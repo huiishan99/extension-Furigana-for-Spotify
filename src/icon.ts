@@ -7,7 +7,6 @@ export const PLAYBAR_FU_ICON = `
     focusable="false"
     style="display: block"
   >
-    <path d="M5 2.5h14v2H5z" fill="currentColor" opacity="0.72" />
     <text
       x="12"
       y="20"

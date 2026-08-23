@@ -9,6 +9,7 @@ describe("playbar icon", () => {
     expect(PLAYBAR_FU_ICON).toContain('viewBox="0 0 24 24"');
     expect(PLAYBAR_FU_ICON).toContain("ふ");
     expect(PLAYBAR_FU_ICON).toContain("currentColor");
+    expect(PLAYBAR_FU_ICON).not.toContain("<path");
     expect(PLAYBAR_FU_ICON).not.toContain("spotify");
   });
 });
