@@ -1,4 +1,4 @@
-import { cp, copyFile, mkdir, rm } from "node:fs/promises";
+import { cp, copyFile, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { build } from "esbuild";
@@ -6,6 +6,14 @@ import { build } from "esbuild";
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const outputRoot = resolve(projectRoot, "dist", "spotify-furigana");
 const expectedPrefix = `${resolve(projectRoot, "dist")}${sep}`;
+const packageJson = JSON.parse(
+  await readFile(resolve(projectRoot, "package.json"), "utf8"),
+);
+const version = String(packageJson.version);
+
+if (!/^\d+\.\d+\.\d+$/u.test(version)) {
+  throw new Error(`Invalid release version: ${version}`);
+}
 
 if (!outputRoot.startsWith(expectedPrefix) || !outputRoot.endsWith("spotify-furigana")) {
   throw new Error(`Refusing to clear unexpected output path: ${outputRoot}`);
@@ -43,6 +51,15 @@ await Promise.all([
     resolve(projectRoot, "assets", "launcher.icns"),
     resolve(outputRoot, "launcher.icns"),
   ),
+  copyFile(
+    resolve(projectRoot, "packaging", "launcher.ps1"),
+    resolve(outputRoot, "launcher.ps1"),
+  ),
+  copyFile(
+    resolve(projectRoot, "packaging", "launcher.sh"),
+    resolve(outputRoot, "launcher.sh"),
+  ),
+  writeFile(resolve(outputRoot, "version.txt"), `${version}\n`, "utf8"),
   cp(
     resolve(projectRoot, "node_modules", "kuromoji", "dict"),
     resolve(outputRoot, "dict"),

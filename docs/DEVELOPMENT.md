@@ -48,7 +48,8 @@ Key entry points:
 - `src/icon.ts`: provides the original 「ふ」 playbar mark;
 - `src/online-readings.ts`: strictly matches optional NetEase synchronized romanization, verifies cross-script artist aliases through MusicBrainz when needed, aligns readings to Spotify lyric lines, and manages the bounded local cache;
 - `app/index.js`: renders the Spicetify settings page;
-- `scripts/build.mjs`: bundles the extension and copies the local dictionary.
+- `packaging/launcher.ps1` and `packaging/launcher.sh`: check the official stable GitHub Release, verify its SHA-256, run a no-recursion upgrade, and fall back to the installed version before launching through Spicetify;
+- `scripts/build.mjs`: bundles the extension, copies the local dictionary and platform launchers, and writes `version.txt` for release comparison.
 
 ## Build and verify
 
@@ -63,6 +64,7 @@ npm run package
 - `npm run marketing-assets` deterministically rebuilds launch artwork from the project logo and real screenshot.
 - `npm run package` creates the installable ZIP and SHA-256 checksum under the ignored `release/` directory.
 - `packaging/install.ps1` and `packaging/uninstall.ps1` implement the Windows lifecycle; `packaging/install.sh` and `packaging/uninstall.sh` implement the macOS lifecycle and create a branded app launcher under `~/Applications`.
+- Auto-update launchers check at most once per 24 hours, accept stable `vX.Y.Z` tags only, require exact versioned ZIP/checksum assets, and invoke installers with launch suppression so the original launcher performs one final `spicetify auto`. Test-only source overrides require `SPOTIFY_FURIGANA_TEST_MODE=1` and are never used by installed shortcuts.
 
 ## Install a source build
 

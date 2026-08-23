@@ -1,11 +1,14 @@
 [CmdletBinding()]
-param()
+param(
+  [switch]$NoLaunch,
+  [switch]$DisableAutoUpdate
+)
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 function Resolve-SpicetifyExecutable {
-  $command = Get-Command "spicetify" -CommandType Application -ErrorAction SilentlyContinue
+  $command = Get-Command "spicetify" -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
   if ($command) {
     return $command.Path
   }
@@ -45,7 +48,8 @@ function Invoke-Spicetify {
 function New-FuriganaShortcut {
   param(
     [Parameter(Mandatory = $true)][string]$Path,
-    [Parameter(Mandatory = $true)][string]$SpicetifyExecutable,
+    [Parameter(Mandatory = $true)][string]$PowerShellExecutable,
+    [Parameter(Mandatory = $true)][string]$LauncherScript,
     [Parameter(Mandatory = $true)][string]$IconPath
   )
 
@@ -56,11 +60,14 @@ function New-FuriganaShortcut {
   $shortcut = $null
   try {
     $shortcut = $shell.CreateShortcut($Path)
-    $shortcut.TargetPath = $SpicetifyExecutable
-    $shortcut.Arguments = "auto"
-    $shortcut.WorkingDirectory = Split-Path -Parent $SpicetifyExecutable
+    if ($LauncherScript.Contains('"')) {
+      throw "The launcher path contains an unsupported quote character."
+    }
+    $shortcut.TargetPath = $PowerShellExecutable
+    $shortcut.Arguments = "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"${LauncherScript}`""
+    $shortcut.WorkingDirectory = Split-Path -Parent $LauncherScript
     $shortcut.IconLocation = "${IconPath},0"
-    $shortcut.Description = "Launch Spotify and keep Furigana for Spotify applied"
+    $shortcut.Description = "Update, repair, and launch Furigana for Spotify"
     $shortcut.WindowStyle = 7
     $shortcut.Save()
   } finally {
@@ -75,11 +82,19 @@ $appName = "spotify-furigana"
 $sourceApp = Join-Path $PSScriptRoot $appName
 $sourceManifest = Join-Path $sourceApp "manifest.json"
 $sourceLauncherIcon = Join-Path $sourceApp "launcher.ico"
+$sourceLauncherScript = Join-Path $sourceApp "launcher.ps1"
+$sourceVersionFile = Join-Path $sourceApp "version.txt"
 if (-not (Test-Path -LiteralPath $sourceManifest)) {
   throw "The release package is incomplete: ${sourceManifest} is missing."
 }
 if (-not (Test-Path -LiteralPath $sourceLauncherIcon -PathType Leaf)) {
   throw "The release package is incomplete: ${sourceLauncherIcon} is missing."
+}
+if (-not (Test-Path -LiteralPath $sourceLauncherScript -PathType Leaf)) {
+  throw "The release package is incomplete: ${sourceLauncherScript} is missing."
+}
+if (-not (Test-Path -LiteralPath $sourceVersionFile -PathType Leaf)) {
+  throw "The release package is incomplete: ${sourceVersionFile} is missing."
 }
 
 $storeSpotify = Get-AppxPackage -Name "SpotifyAB.SpotifyMusic" -ErrorAction SilentlyContinue | Select-Object -First 1
@@ -143,6 +158,9 @@ if (Test-Path -LiteralPath $legacyShortcutPath) {
 
 try {
   Copy-Item -LiteralPath $sourceApp -Destination $targetApp -Recurse
+  if ($DisableAutoUpdate) {
+    New-Item -ItemType File -Path (Join-Path $targetApp "auto-update.disabled") -Force | Out-Null
+  }
 
   Invoke-Spicetify -Executable $spicetifyExecutable -Arguments @(
     "config",
@@ -164,8 +182,15 @@ try {
     Invoke-Spicetify -Executable $spicetifyExecutable -Arguments @("-n", "backup", "apply")
   }
   $installedLauncherIcon = Join-Path $targetApp "launcher.ico"
-  New-FuriganaShortcut -Path $shortcutPath -SpicetifyExecutable $spicetifyExecutable -IconPath $installedLauncherIcon
-  Invoke-Spicetify -Executable $spicetifyExecutable -Arguments @("auto")
+  $installedLauncherScript = Join-Path $targetApp "launcher.ps1"
+  $powerShellExecutable = Join-Path $env:SystemRoot "System32\WindowsPowerShell\v1.0\powershell.exe"
+  if (-not (Test-Path -LiteralPath $powerShellExecutable -PathType Leaf)) {
+    throw "Windows PowerShell was not found at ${powerShellExecutable}."
+  }
+  New-FuriganaShortcut -Path $shortcutPath -PowerShellExecutable $powerShellExecutable -LauncherScript $installedLauncherScript -IconPath $installedLauncherIcon
+  if (-not $NoLaunch) {
+    Invoke-Spicetify -Executable $spicetifyExecutable -Arguments @("auto")
+  }
 } catch {
   if (Test-Path -LiteralPath $targetApp) {
     Remove-Item -LiteralPath $targetApp -Recurse -Force
@@ -197,4 +222,9 @@ if ($legacyShortcutBackupPath) {
 }
 Write-Host "A self-repairing launcher was created at ${shortcutPath}."
 Write-Host "Configured Spotify installation: ${spotifyInstallType}."
-Write-Host "Open 'Furigana for Spotify' from the Start menu. It runs 'spicetify auto' so Spotify updates are reapplied before launch."
+if ($DisableAutoUpdate) {
+  Write-Host "Automatic Furigana release updates are disabled for this installation."
+} else {
+  Write-Host "The launcher checks the official GitHub Release once every 24 hours and installs checksum-verified updates automatically."
+}
+Write-Host "Open 'Furigana for Spotify' from the Start menu. It also runs 'spicetify auto' so Spotify updates are reapplied before launch."

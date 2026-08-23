@@ -61,6 +61,7 @@ config_root="${XDG_CONFIG_HOME:-$HOME/.config}/spicetify"
 custom_apps_root="$config_root/CustomApps"
 target_app="$custom_apps_root/$app_name"
 launcher_app="$HOME/Applications/Furigana for Spotify.app"
+update_state_root="$HOME/Library/Application Support/Furigana for Spotify"
 timestamp=$(date +%Y%m%d-%H%M%S)
 
 run_spicetify config custom_apps "$app_name-"
@@ -81,6 +82,13 @@ if [ -e "$launcher_app" ]; then
   [ ! -e "$removed_launcher_path" ] || fail "Launcher removal path already exists: $removed_launcher_path"
   mv "$launcher_app" "$removed_launcher_path"
   printf 'The launcher was moved to %s.\n' "$removed_launcher_path"
+fi
+
+if [ -e "$update_state_root" ]; then
+  removed_update_state_path="$update_state_root.removed-$timestamp"
+  [ ! -e "$removed_update_state_path" ] || fail "Update-state removal path already exists: $removed_update_state_path"
+  mv "$update_state_root" "$removed_update_state_path"
+  printf 'The automatic-update state and log were moved to %s.\n' "$removed_update_state_path"
 fi
 
 run_spicetify auto

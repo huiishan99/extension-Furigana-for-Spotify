@@ -5,7 +5,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 function Resolve-SpicetifyExecutable {
-  $command = Get-Command "spicetify" -CommandType Application -ErrorAction SilentlyContinue
+  $command = Get-Command "spicetify" -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
   if ($command) {
     return $command.Path
   }
@@ -82,6 +82,16 @@ foreach ($shortcutPath in $shortcutPaths) {
     Move-Item -LiteralPath $shortcutPath -Destination $removedShortcutPath
     Write-Host "The launcher shortcut was moved to ${removedShortcutPath}."
   }
+}
+
+$updateStateRoot = Join-Path $env:LOCALAPPDATA "Furigana for Spotify"
+if (Test-Path -LiteralPath $updateStateRoot) {
+  $removedUpdateStatePath = "${updateStateRoot}.removed-${timestamp}"
+  if (Test-Path -LiteralPath $removedUpdateStatePath) {
+    throw "Update-state removal path already exists: ${removedUpdateStatePath}"
+  }
+  Move-Item -LiteralPath $updateStateRoot -Destination $removedUpdateStatePath
+  Write-Host "The automatic-update state and log were moved to ${removedUpdateStatePath}."
 }
 
 Invoke-Spicetify -Executable $spicetifyExecutable -Arguments @("auto")

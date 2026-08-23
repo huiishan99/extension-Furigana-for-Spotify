@@ -96,7 +96,7 @@ powershell -ExecutionPolicy Bypass -File .\install.ps1
 
 インストーラーは一つだけインストールされたSpotifyを検出し、既存のFurigana版をバックアップしてアプリを有効化し、Spicetify設定を適用したうえで、スタートメニューに **Furigana for Spotify** ランチャーを作成します。このランチャーにはプロジェクト独自の **「ふ」アイコン**を使用し、通常のSpotifyショートカットと見分けやすくしています。
 
-インストール後は、スタートメニューから **Furigana for Spotify** を開いてください。Spotifyを開く前にSpicetifyを確認して再適用するため、通常の再起動後も拡張機能が維持され、対応済みのSpotify更新後も自動で復旧できます。歌詞のある日本語の曲を再生して歌詞画面を開いてください。初回変換時はローカル辞書の読み込みに少し時間がかかります。
+インストール後は、スタートメニューから **Furigana for Spotify** を開いてください。このランチャーは24時間に最大1回、公式のFurigana Releaseを確認し、Spotifyを開く前にSpicetifyを確認して再適用します。今後のFurigana機能が自動更新され、通常の再起動後も拡張機能が維持され、対応済みのSpotify更新後も自動復旧できます。歌詞のある日本語の曲を再生して歌詞画面を開いてください。初回変換時はローカル辞書の読み込みに少し時間がかかります。
 
 > [!IMPORTANT]
 > Microsoft Storeユーザーは、通常のSpotifyショートカットではなく **Furigana for Spotify** を使用してください。生成されたランチャーは `spicetify auto` で必要なアプリディレクトリを指定します。Storeアプリを直接開くと未変更のSpotify UIになります。Spicetify 2.44の公式対応範囲はSpotify 1.2.93までです。上記のStore 1.2.96構成は本プロジェクトで実機確認済みですが、Spicetifyの公式範囲外です。
@@ -109,11 +109,15 @@ powershell -ExecutionPolicy Bypass -File .\install.ps1
 sh ./install.sh
 ```
 
-インストーラーは `/Applications` または `~/Applications` のSpotifyに対応し、設定ファイルを確認して既存版をバックアップし、Spicetifyを設定・適用します。さらに、プロジェクト独自の **「ふ」アイコン**を使った **Furigana for Spotify.app** を `~/Applications` に作成します。今後はこのランチャーを使うと、Spotify起動前に `spicetify auto` が実行され、対応済みのSpotify更新後に自動復旧できます。
+インストーラーは `/Applications` または `~/Applications` のSpotifyに対応し、設定ファイルを確認して既存版をバックアップし、Spicetifyを設定・適用します。さらに、プロジェクト独自の **「ふ」アイコン**を使った **Furigana for Spotify.app** を `~/Applications` に作成します。今後はこのランチャーを使うと、公式Furigana Releaseが自動でインストールされ、Spotifyを開く前に `spicetify auto` が実行されます。
 
 ## 更新
 
-最新のRelease ZIPをダウンロードして展開し、インストーラーをもう一度実行します。
+`v0.5.0` 以降、**Furigana for Spotify** ランチャーは24時間に最大1回、GitHubの公式最新Releaseを確認します。新しい安定版がある場合、対応するZIPと `.sha256` をダウンロードして検証し、現在のバージョンをタイムスタンプ付きバックアップとして保存してから、Spotifyを開く前に更新します。常駐型のバックグラウンド更新プログラムはありません。
+
+GitHubに接続できない場合、チェックサムが不正な場合、またはインストールに失敗した場合は、エラーをローカルに記録し、現在インストール済みのバージョンをそのまま開きます。更新確認ではSpotifyの認証情報、アカウント情報、曲情報、歌詞を送信せず、このプロジェクトの公開GitHub Releaseを確認・ダウンロードするための通常のHTTPSリクエストだけを行います。
+
+`v0.4.3` 以前には更新機能がないため、`v0.5.0` を一度手動でインストールする必要があります。最新のRelease ZIPをダウンロードして展開し、次を実行します。
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\install.ps1
@@ -125,7 +129,13 @@ macOS：
 sh ./install.sh
 ```
 
-更新前に、以前のインストールはタイムスタンプ付きのバックアップとして保存されます。
+Furiganaの自動更新を使わない場合、Windowsではインストール時に `-DisableAutoUpdate` を追加します。
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\install.ps1 -DisableAutoUpdate
+```
+
+macOSでは `SPOTIFY_FURIGANA_DISABLE_AUTO_UPDATE=1 sh ./install.sh` を使用します。後でオプションなしでインストーラーを再実行すると、自動更新が再び有効になります。
 
 ## 読み表示のカスタマイズ
 

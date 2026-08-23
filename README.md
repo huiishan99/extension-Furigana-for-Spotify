@@ -96,7 +96,7 @@ powershell -ExecutionPolicy Bypass -File .\install.ps1
 
 The installer detects your single Spotify installation, backs up an existing Furigana installation, installs and enables the app, applies the Spicetify configuration, and creates a **Furigana for Spotify** launcher in the Start menu. The launcher uses the project's original **ふ** icon so it is easy to distinguish from Spotify's regular shortcut.
 
-After installation, open **Furigana for Spotify** from the Start menu. This launcher checks and reapplies Spicetify before opening Spotify, so the extension survives normal restarts and can recover automatically after supported Spotify updates. Play a Japanese song with lyrics and open the lyrics view; the local dictionary may take a moment to load on the first conversion.
+After installation, open **Furigana for Spotify** from the Start menu. This launcher checks for an official Furigana release at most once every 24 hours, then checks and reapplies Spicetify before opening Spotify. The extension therefore receives future Furigana features automatically, survives normal restarts, and can recover after supported Spotify updates. Play a Japanese song with lyrics and open the lyrics view; the local dictionary may take a moment to load on the first conversion.
 
 > [!IMPORTANT]
 > Microsoft Store users must launch **Furigana for Spotify** instead of Spotify's regular shortcut. The generated launcher runs `spicetify auto` with the required app directory; opening the Store app directly will show the unmodified Spotify UI. Spicetify 2.44 officially lists support through Spotify 1.2.93; the Store 1.2.96 setup above is real-client tested by this project but remains outside Spicetify's official range.
@@ -109,11 +109,15 @@ Open Terminal in the extracted folder and run:
 sh ./install.sh
 ```
 
-The installer supports Spotify in `/Applications` or `~/Applications`, validates Spotify's preferences, backs up an existing Furigana installation, configures and applies Spicetify, and creates **Furigana for Spotify.app** in `~/Applications` with the project's **ふ** icon. Open this launcher for future starts so `spicetify auto` can repair supported Spotify updates before launching Spotify.
+The installer supports Spotify in `/Applications` or `~/Applications`, validates Spotify's preferences, backs up an existing Furigana installation, configures and applies Spicetify, and creates **Furigana for Spotify.app** in `~/Applications` with the project's **ふ** icon. Open this launcher for future starts so it can install official Furigana releases automatically and run `spicetify auto` before launching Spotify.
 
 ## Update
 
-Download and extract the newest Release ZIP, then run its installer again:
+Starting with `v0.5.0`, the **Furigana for Spotify** launcher checks the official latest GitHub Release at most once every 24 hours. When a newer stable version exists, it downloads the version-matched ZIP and `.sha256` file, verifies the archive, preserves the installed version as a timestamped backup, and upgrades before opening Spotify. There is no resident background updater.
+
+If GitHub is unavailable, the checksum is invalid, or installation fails, the launcher records the error locally and opens the currently installed version. The update check sends no Spotify credentials, account data, track information, or lyrics; it makes only the normal HTTPS requests needed to read and download this project's public GitHub Release.
+
+Users on `v0.4.3` or earlier must install `v0.5.0` manually once to receive the new updater. Download and extract the newest Release ZIP, then run:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\install.ps1
@@ -125,7 +129,13 @@ On macOS:
 sh ./install.sh
 ```
 
-The installer preserves the previous installation as a timestamped backup before updating it.
+To install without automatic Furigana updates, use `-DisableAutoUpdate` on Windows:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\install.ps1 -DisableAutoUpdate
+```
+
+On macOS, use `SPOTIFY_FURIGANA_DISABLE_AUTO_UPDATE=1 sh ./install.sh`. Running the installer again without that option re-enables automatic updates.
 
 ## Customize the readings
 

@@ -19,11 +19,13 @@ const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
 describe("Windows release installer", () => {
   let installer = "";
+  let launcher = "";
   let uninstaller = "";
 
   beforeAll(async () => {
-    [installer, uninstaller] = await Promise.all([
+    [installer, launcher, uninstaller] = await Promise.all([
       readFile(resolve(projectRoot, "packaging", "install.ps1"), "utf8"),
+      readFile(resolve(projectRoot, "packaging", "launcher.ps1"), "utf8"),
       readFile(resolve(projectRoot, "packaging", "uninstall.ps1"), "utf8"),
     ]);
   });
@@ -58,24 +60,30 @@ describe("Windows release installer", () => {
     expect(installer).toContain("Furigana for Spotify.lnk");
     expect(installer).toContain("Spotify with Furigana.lnk");
     expect(installer).toContain("legacyShortcutBackupPath");
-    expect(installer).toContain('$shortcut.Arguments = "auto"');
+    expect(installer).toContain("-WindowStyle Hidden -File");
+    expect(installer).toContain('$sourceLauncherScript = Join-Path $sourceApp "launcher.ps1"');
+    expect(installer).toContain("$shortcut.TargetPath = $PowerShellExecutable");
+    expect(launcher).toContain("& $spicetifyExecutable auto");
     expect(installer).toContain('$sourceLauncherIcon = Join-Path $sourceApp "launcher.ico"');
     expect(installer).toContain('$shortcut.IconLocation = "${IconPath},0"');
     expect(installer).not.toContain('$shortcut.IconLocation = "${SpotifyExecutable},0"');
     expect(uninstaller).toContain("Furigana for Spotify.lnk");
     expect(uninstaller).toContain("Spotify with Furigana.lnk");
     expect(uninstaller).toContain("removedShortcutPath");
+    expect(uninstaller).toContain("automatic-update state and log");
   });
 });
 
 describe("macOS release installer", () => {
   let installer = "";
+  let launcher = "";
   let packager = "";
   let uninstaller = "";
 
   beforeAll(async () => {
-    [installer, uninstaller, packager] = await Promise.all([
+    [installer, launcher, uninstaller, packager] = await Promise.all([
       readFile(resolve(projectRoot, "packaging", "install.sh"), "utf8"),
+      readFile(resolve(projectRoot, "packaging", "launcher.sh"), "utf8"),
       readFile(resolve(projectRoot, "packaging", "uninstall.sh"), "utf8"),
       readFile(resolve(projectRoot, "scripts", "package.ps1"), "utf8"),
     ]);
@@ -86,7 +94,7 @@ describe("macOS release installer", () => {
       return;
     }
 
-    for (const script of ["install.sh", "uninstall.sh"]) {
+    for (const script of ["install.sh", "launcher.sh", "uninstall.sh"]) {
       expect(() =>
         execFileSync("/bin/sh", [
           "-n",
@@ -124,8 +132,10 @@ describe("macOS release installer", () => {
     );
     expect(installer).toContain("CFBundleIdentifier");
     expect(installer).toContain("launcher.icns");
-    expect(installer).toContain('exec "$(command -v spicetify)" auto');
+    expect(installer).toContain('cp "$installed_launcher" "$launcher_executable"');
+    expect(launcher).toContain('exec "$spicetify_executable" auto');
     expect(installer).toContain('source_icon="$source_app/launcher.icns"');
+    expect(installer).toContain('source_launcher="$source_app/launcher.sh"');
   });
 
   it("disables the custom app and preserves removed files on uninstall", () => {
@@ -133,6 +143,7 @@ describe("macOS release installer", () => {
     expect(uninstaller).toContain("run_spicetify -n apply");
     expect(uninstaller).toContain("$target_app.removed-$timestamp");
     expect(uninstaller).toContain("$launcher_app.removed-$timestamp");
+    expect(uninstaller).toContain("automatic-update state and log");
     expect(uninstaller).toContain("run_spicetify auto");
   });
 
@@ -186,7 +197,12 @@ describe("macOS release installer", () => {
         resolve(projectRoot, "assets", "launcher.icns"),
         resolve(sourceApp, "launcher.icns"),
       ),
+      copyFile(
+        resolve(projectRoot, "packaging", "launcher.sh"),
+        resolve(sourceApp, "launcher.sh"),
+      ),
       writeFile(resolve(sourceApp, "manifest.json"), '{"name":"test"}\n'),
+      writeFile(resolve(sourceApp, "version.txt"), "0.5.0\n"),
       writeFile(fakeSpotifyExecutable, "#!/bin/sh\nexit 0\n"),
       writeFile(
         resolve(fakeHome, "Library", "Application Support", "Spotify", "prefs"),
@@ -219,6 +235,7 @@ describe("macOS release installer", () => {
       SPICETIFY_FAIL_APPLY_ONCE: "1",
       SPICETIFY_FAIL_FLAG: resolve(testRoot, "apply-failed"),
       SPICETIFY_TEST_LOG: commandLog,
+      SPOTIFY_FURIGANA_SKIP_UPDATE: "1",
       SPOTIFY_FURIGANA_SPOTIFY_APP: fakeSpotify,
       XDG_CONFIG_HOME: configHome,
     };
@@ -246,6 +263,7 @@ describe("macOS release installer", () => {
         resolve(launcherApp, "Contents", "MacOS", "spotify-furigana"),
       ),
       readFile(resolve(launcherApp, "Contents", "Resources", "launcher.icns")),
+      readFile(resolve(launcherApp, "Contents", "Resources", "version.txt")),
     ]);
     execFileSync("/usr/bin/plutil", [
       "-lint",

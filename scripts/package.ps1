@@ -54,6 +54,9 @@ Assert-PathInside -Root $releaseRoot -Candidate $checksumPath
 foreach ($requiredPath in @(
   (Join-Path $builtApp "manifest.json"),
   (Join-Path $builtApp "extension.js"),
+  (Join-Path $builtApp "launcher.ps1"),
+  (Join-Path $builtApp "launcher.sh"),
+  (Join-Path $builtApp "version.txt"),
   (Join-Path $packagingRoot "install.ps1"),
   (Join-Path $packagingRoot "uninstall.ps1"),
   (Join-Path $packagingRoot "install.sh"),

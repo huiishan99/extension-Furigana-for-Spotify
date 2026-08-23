@@ -53,6 +53,10 @@ stop_spotify() {
 create_launcher() {
   launcher_root=$1
   installed_icon=$2
+  installed_launcher=$3
+  installed_version_file=$4
+  disable_auto_update=$5
+  launcher_version=$6
   contents_root="$launcher_root/Contents"
   executable_root="$contents_root/MacOS"
   resources_root="$contents_root/Resources"
@@ -60,22 +64,14 @@ create_launcher() {
 
   mkdir -p "$executable_root" "$resources_root"
 
-  cat > "$launcher_executable" <<'LAUNCHER'
-#!/bin/sh
-
-PATH="/opt/homebrew/bin:/usr/local/bin:$HOME/.spicetify:$PATH"
-export PATH
-
-if ! command -v spicetify >/dev/null 2>&1; then
-  osascript -e 'display alert "Furigana for Spotify" message "Spicetify was not found. Reinstall Spicetify, then run the Furigana installer again." as critical' >/dev/null 2>&1 || true
-  exit 1
-fi
-
-exec "$(command -v spicetify)" auto
-LAUNCHER
+  cp "$installed_launcher" "$launcher_executable"
   chmod 755 "$launcher_executable"
+  cp "$installed_version_file" "$resources_root/version.txt"
+  if [ "$disable_auto_update" = "1" ]; then
+    : > "$resources_root/auto-update.disabled"
+  fi
 
-  cat > "$contents_root/Info.plist" <<'PLIST'
+  cat > "$contents_root/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -95,9 +91,9 @@ LAUNCHER
   <key>CFBundlePackageType</key>
   <string>APPL</string>
   <key>CFBundleShortVersionString</key>
-  <string>1.0</string>
+  <string>$launcher_version</string>
   <key>CFBundleVersion</key>
-  <string>1</string>
+  <string>$launcher_version</string>
   <key>LSMinimumSystemVersion</key>
   <string>12.0</string>
   <key>NSHighResolutionCapable</key>
@@ -120,9 +116,20 @@ app_name="spotify-furigana"
 source_app="$script_root/$app_name"
 source_manifest="$source_app/manifest.json"
 source_icon="$source_app/launcher.icns"
+source_launcher="$source_app/launcher.sh"
+source_version_file="$source_app/version.txt"
 
 [ -f "$source_manifest" ] || fail "The release package is incomplete: $source_manifest is missing."
 [ -f "$source_icon" ] || fail "The release package is incomplete: $source_icon is missing."
+[ -f "$source_launcher" ] || fail "The release package is incomplete: $source_launcher is missing."
+[ -f "$source_version_file" ] || fail "The release package is incomplete: $source_version_file is missing."
+launcher_version=$(tr -d '[:space:]' < "$source_version_file")
+printf '%s\n' "$launcher_version" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$' || fail "The release package has invalid version metadata."
+disable_auto_update=${SPOTIFY_FURIGANA_DISABLE_AUTO_UPDATE:-0}
+case "$disable_auto_update" in
+  0|1) ;;
+  *) fail "SPOTIFY_FURIGANA_DISABLE_AUTO_UPDATE must be 0 or 1." ;;
+esac
 
 spotify_app=""
 if [ -n "${SPOTIFY_FURIGANA_SPOTIFY_APP:-}" ]; then
@@ -204,8 +211,16 @@ if ! run_spicetify -n apply; then
   run_spicetify -n backup apply
 fi
 
-create_launcher "$launcher_app" "$target_app/launcher.icns"
-run_spicetify auto
+create_launcher \
+  "$launcher_app" \
+  "$target_app/launcher.icns" \
+  "$target_app/launcher.sh" \
+  "$target_app/version.txt" \
+  "$disable_auto_update" \
+  "$launcher_version"
+if [ "${SPOTIFY_FURIGANA_NO_LAUNCH:-0}" != "1" ]; then
+  run_spicetify auto
+fi
 
 install_complete=1
 printf 'Furigana for Spotify was installed to %s.\n' "$target_app"
@@ -216,4 +231,9 @@ if [ -n "$launcher_backup_path" ]; then
   printf 'The previous launcher was preserved at %s.\n' "$launcher_backup_path"
 fi
 printf 'A self-repairing launcher was created at %s.\n' "$launcher_app"
-printf 'Open Furigana for Spotify from Applications. It runs spicetify auto so supported Spotify updates are reapplied before launch.\n'
+if [ "$disable_auto_update" = "1" ]; then
+  printf 'Automatic Furigana release updates are disabled for this installation.\n'
+else
+  printf 'The launcher checks the official GitHub Release once every 24 hours and installs checksum-verified updates automatically.\n'
+fi
+printf 'Open Furigana for Spotify from Applications. It also runs spicetify auto so supported Spotify updates are reapplied before launch.\n'

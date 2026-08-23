@@ -1,5 +1,14 @@
 # Devlog
 
+## 2026-08-23 — v0.5.0 checksum-verified automatic updates
+
+- Windows 开始菜单与 macOS `.app` 启动器新增 Furigana Release 自动更新：每 24 小时最多检查一次官方稳定版，按语义版本判断是否升级，不安装 draft、prerelease 或非 `vX.Y.Z` 标签。
+- 更新器要求 Release 同时存在精确版本名的 ZIP 与 `.sha256`，下载后验证 SHA-256、包内版本和必需安装文件；通过后才以无递归启动模式运行安装器，并继续使用原有可恢复备份流程。
+- GitHub 不可用、资源缺失、校验错误或安装失败时只写入本机更新日志，继续运行已安装版本与 `spicetify auto`；没有常驻后台进程，也不会发送 Spotify 凭据、账号数据、曲目信息或歌词。
+- Windows 安装器改为让品牌快捷方式启动内置更新器，macOS `.app` 同步携带启动器与版本元数据；安装时可用 `-DisableAutoUpdate` 或 `SPOTIFY_FURIGANA_DISABLE_AUTO_UPDATE=1` 关闭自动更新。
+- 构建产物新增 `launcher.ps1`、`launcher.sh` 和 `version.txt`，卸载时会把更新状态与日志移到可恢复目录；版本提升至 `0.5.0`，三语 README、离线说明与开发文档同步更新。
+- Windows 隔离测试覆盖正确升级、SHA-256 不匹配和发布服务离线三条路径；本机安装后确认开始菜单快捷方式指向更新启动器、官方最新 `v0.4.3` 低于已装 `v0.5.0` 时记录无需更新，并继续成功打开 Spotify。版本发现改用 GitHub `releases/latest` 网页重定向，不消耗 REST API 配额。
+
 ## 2026-08-23 — Visible playbar Furigana icon
 
 - 修复播放器底部「ふ」按钮只有 32×32 可点击区域、图标却不可见的问题：自定义 SVG 没有固有尺寸，被 Spicetify 的图标容器计算为 `0 × 0`。
