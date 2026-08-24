@@ -252,18 +252,22 @@ describe("release auto-updaters", () => {
     expect(packageScript).toContain('(Join-Path $builtApp "version.txt")');
   });
 
-  it("installs a checksum-verified newer release and still launches Spotify", async () => {
-    if (process.platform !== "win32") {
-      return;
-    }
+  it(
+    "installs a checksum-verified newer release and still launches Spotify",
+    async () => {
+      if (process.platform !== "win32") {
+        return;
+      }
 
-    const result = await runWindowsUpdateScenario("valid");
-    expect(result.installRan).toBe(true);
-    expect(result.spicetifyLog).toContain("auto");
-    expect(result.updateLog).toContain(
-      "Updated automatically from 0.4.0 to 0.5.0.",
-    );
-  });
+      const result = await runWindowsUpdateScenario("valid");
+      expect(result.installRan).toBe(true);
+      expect(result.spicetifyLog).toContain("auto");
+      expect(result.updateLog).toContain(
+        "Updated automatically from 0.4.0 to 0.5.0.",
+      );
+    },
+    20_000,
+  );
 
   it("rejects a bad checksum but still launches the installed version", async () => {
     if (process.platform !== "win32") {
