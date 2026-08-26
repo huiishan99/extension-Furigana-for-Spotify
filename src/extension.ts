@@ -38,11 +38,23 @@ import {
   type RuntimeMessageKey,
   type UiLanguage,
 } from "./ui-language";
+import {
+  clampFloatingLyricPosition,
+  findTimedLyricLine,
+  findCurrentLyricLine,
+  FLOATING_LYRICS_ID,
+  FLOATING_LYRICS_POSITION_KEY,
+  getSpotifyLyricsUrl,
+  parseFloatingLyricPosition,
+  parseSpotifyTimedLyrics,
+  type TimedLyricLine,
+} from "./floating-lyrics";
 
 const STATE_ATTRIBUTE = "data-spotify-furigana";
 const STYLE_ID = "spotify-furigana-styles";
 const READY_INTERVAL_MS = 100;
 const ONLINE_REQUEST_TIMEOUT_MS = 10_000;
+const FLOATING_LYRICS_SYNC_INTERVAL_MS = 250;
 
 declare const __SPOTIFY_FURIGANA_VERSION__: string;
 
@@ -72,6 +84,107 @@ function injectStyles(): void {
 
     [data-spotify-furigana="ready"] ruby.spotify-furigana__ruby rp {
       display: none;
+    }
+
+    #${FLOATING_LYRICS_ID} {
+      position: fixed;
+      z-index: 2147483000;
+      left: 50%;
+      bottom: 108px;
+      display: grid;
+      grid-template-columns: 34px minmax(0, 1fr) 28px;
+      align-items: center;
+      width: min(680px, calc(100vw - 48px));
+      min-height: 70px;
+      padding: 14px 14px 12px;
+      border: 1px solid color-mix(in srgb, var(--spice-button, #1ed760) 58%, transparent);
+      border-radius: 18px;
+      color: var(--spice-text, #fff);
+      background: color-mix(in srgb, var(--spice-main, #121212) 88%, transparent);
+      box-shadow: 0 16px 44px rgba(0, 0, 0, 0.42);
+      backdrop-filter: blur(18px) saturate(1.18);
+      transform: translateX(-50%);
+      cursor: grab;
+      user-select: none;
+      touch-action: none;
+    }
+
+    #${FLOATING_LYRICS_ID}[hidden] {
+      display: none;
+    }
+
+    #${FLOATING_LYRICS_ID}.is-dragging {
+      cursor: grabbing;
+    }
+
+    #${FLOATING_LYRICS_ID} .spotify-furigana-floating__badge {
+      display: grid;
+      place-items: center;
+      width: 27px;
+      height: 27px;
+      border-radius: 9px;
+      color: #06120d;
+      background: var(--spice-button, #1ed760);
+      font-size: 16px;
+      font-weight: 850;
+    }
+
+    #${FLOATING_LYRICS_ID} .spotify-furigana-floating__line {
+      min-width: 0;
+      padding: 8px 10px 2px;
+      overflow: hidden;
+      font-size: clamp(20px, 2.2vw, 30px);
+      font-weight: 750;
+      line-height: 1.45;
+      text-align: center;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    #${FLOATING_LYRICS_ID} ruby.spotify-furigana__ruby {
+      ruby-align: center;
+      ruby-position: over;
+    }
+
+    #${FLOATING_LYRICS_ID} .spotify-furigana-floating__line rt {
+      color: color-mix(in srgb, currentColor 78%, var(--spice-button, #1ed760));
+      font-size: 0.48em;
+      font-weight: 600;
+      line-height: 1;
+      opacity: var(--spotify-furigana-opacity, 0.82);
+      position: relative;
+      top: calc(-1 * var(--spotify-furigana-gap, 0px));
+    }
+
+    #${FLOATING_LYRICS_ID} .spotify-furigana-floating__line rp {
+      display: none;
+    }
+
+    #${FLOATING_LYRICS_ID} .spotify-furigana-floating__close {
+      display: grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      border: 0;
+      border-radius: 50%;
+      color: var(--spice-subtext, #b3b3b3);
+      background: transparent;
+      font: inherit;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    #${FLOATING_LYRICS_ID} .spotify-furigana-floating__close:hover {
+      color: var(--spice-text, #fff);
+      background: color-mix(in srgb, var(--spice-text, #fff) 12%, transparent);
+    }
+
+    @media (max-width: 720px) {
+      #${FLOATING_LYRICS_ID} {
+        bottom: 96px;
+        width: calc(100vw - 24px);
+      }
     }
   `;
   document.head.appendChild(style);
@@ -183,6 +296,14 @@ async function main(): Promise<void> {
   };
   let diagnosticsTimer: number | undefined;
   let lastDiagnosticsSignature = "";
+  let floatingLyricsRoot: HTMLElement | undefined;
+  let floatingLyricsContent: HTMLElement | undefined;
+  let lastFloatingLyricsSignature = "";
+  let floatingLyricsRenderGeneration = 0;
+  let floatingLyricsLoadGeneration = 0;
+  let floatingLyricsTrackUri: string | undefined;
+  let floatingTimedLyrics: TimedLyricLine[] = [];
+  let floatingLyricsTimer: number | undefined;
 
   function t(
     key: RuntimeMessageKey,
@@ -226,6 +347,7 @@ async function main(): Promise<void> {
       enabled,
       readingMode: settings.readingMode,
       onlineReadings: settings.onlineReadings,
+      floatingLyrics: settings.floatingLyrics,
       onlineStatus: {
         state: onlineStatus.state,
         code: onlineStatus.code,
@@ -285,6 +407,302 @@ async function main(): Promise<void> {
     originalNodes.delete(line);
     sourceText.delete(line);
     lineGeneration.delete(line);
+  }
+
+  function removeFloatingLyrics(): void {
+    floatingLyricsRenderGeneration += 1;
+    floatingLyricsRoot?.remove();
+    floatingLyricsRoot = undefined;
+    floatingLyricsContent = undefined;
+    lastFloatingLyricsSignature = "";
+  }
+
+  function setFloatingLyricsPosition(
+    root: HTMLElement,
+    position: { left: number; top: number },
+  ): void {
+    root.style.left = `${position.left}px`;
+    root.style.top = `${position.top}px`;
+    root.style.right = "auto";
+    root.style.bottom = "auto";
+    root.style.transform = "none";
+  }
+
+  function constrainFloatingLyrics(root: HTMLElement): {
+    left: number;
+    top: number;
+  } {
+    const rect = root.getBoundingClientRect();
+    return clampFloatingLyricPosition(
+      { left: rect.left, top: rect.top },
+      { width: window.innerWidth, height: window.innerHeight },
+      { width: rect.width, height: rect.height },
+    );
+  }
+
+  function beginFloatingLyricsDrag(
+    event: PointerEvent,
+    root: HTMLElement,
+  ): void {
+    if (
+      event.button !== 0 ||
+      (event.target instanceof Element && event.target.closest("button"))
+    ) {
+      return;
+    }
+
+    const rect = root.getBoundingClientRect();
+    const offsetX = event.clientX - rect.left;
+    const offsetY = event.clientY - rect.top;
+    root.classList.add("is-dragging");
+    setFloatingLyricsPosition(root, { left: rect.left, top: rect.top });
+
+    const move = (moveEvent: PointerEvent): void => {
+      const position = clampFloatingLyricPosition(
+        {
+          left: moveEvent.clientX - offsetX,
+          top: moveEvent.clientY - offsetY,
+        },
+        { width: window.innerWidth, height: window.innerHeight },
+        { width: root.offsetWidth, height: root.offsetHeight },
+      );
+      setFloatingLyricsPosition(root, position);
+    };
+
+    const stop = (): void => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", stop);
+      root.classList.remove("is-dragging");
+      Spicetify.LocalStorage.set(
+        FLOATING_LYRICS_POSITION_KEY,
+        JSON.stringify(constrainFloatingLyrics(root)),
+      );
+    };
+
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", stop, { once: true });
+    event.preventDefault();
+  }
+
+  function ensureFloatingLyrics(): HTMLElement | null {
+    if (!document.body) {
+      return null;
+    }
+
+    if (floatingLyricsRoot?.isConnected && floatingLyricsContent) {
+      const close = floatingLyricsRoot.querySelector<HTMLElement>(
+        ".spotify-furigana-floating__close",
+      );
+      floatingLyricsRoot.title = t("moveFloatingLyrics");
+      close?.setAttribute("aria-label", t("hideFloatingLyrics"));
+      return floatingLyricsRoot;
+    }
+
+    const root = document.createElement("aside");
+    root.id = FLOATING_LYRICS_ID;
+    root.hidden = true;
+    root.title = t("moveFloatingLyrics");
+    root.setAttribute("data-spotify-furigana-floating", "ready");
+    root.setAttribute("aria-live", "polite");
+    root.setAttribute("aria-atomic", "true");
+
+    const badge = document.createElement("span");
+    badge.className = "spotify-furigana-floating__badge";
+    badge.textContent = "ふ";
+    badge.setAttribute("aria-hidden", "true");
+
+    const content = document.createElement("div");
+    content.className = "spotify-furigana-floating__line";
+    content.dir = "auto";
+
+    const close = document.createElement("button");
+    close.className = "spotify-furigana-floating__close";
+    close.type = "button";
+    close.textContent = "×";
+    close.setAttribute("aria-label", t("hideFloatingLyrics"));
+    close.addEventListener("click", () => {
+      applySettings({ ...settings, floatingLyrics: false }, false, true);
+    });
+
+    root.append(badge, content, close);
+    root.addEventListener("pointerdown", (event) =>
+      beginFloatingLyricsDrag(event, root),
+    );
+    document.body.appendChild(root);
+
+    const savedPosition = parseFloatingLyricPosition(
+      Spicetify.LocalStorage.get(FLOATING_LYRICS_POSITION_KEY),
+    );
+    if (savedPosition) {
+      setFloatingLyricsPosition(root, savedPosition);
+    }
+
+    floatingLyricsRoot = root;
+    floatingLyricsContent = content;
+    lastFloatingLyricsSignature = "";
+    return root;
+  }
+
+  async function renderTimedFloatingLyrics(
+    sourceValue: string,
+    root: HTMLElement,
+  ): Promise<void> {
+    if (!floatingLyricsContent) {
+      return;
+    }
+
+    const source = normalizeLyricText(sourceValue);
+    const sungRomanization =
+      activeOnlineTrackUri === Spicetify.Player.data?.item?.uri
+        ? findOnlineRomanization(onlineReadings, source)
+        : undefined;
+    const signature = `timed:${settings.readingMode}:${sungRomanization ?? ""}:${source}`;
+    if (signature === lastFloatingLyricsSignature) {
+      root.hidden = false;
+      return;
+    }
+
+    const generation = ++floatingLyricsRenderGeneration;
+    lastFloatingLyricsSignature = signature;
+    floatingLyricsContent.textContent = source;
+    root.hidden = false;
+
+    if (!shouldAnnotateLyric(source)) {
+      return;
+    }
+
+    try {
+      const converted = await convertToFurigana(
+        source,
+        dictionaryPath,
+        settings.readingMode,
+        sungRomanization,
+      );
+      if (
+        generation !== floatingLyricsRenderGeneration ||
+        !enabled ||
+        !settings.floatingLyrics ||
+        !floatingLyricsContent?.isConnected
+      ) {
+        return;
+      }
+      floatingLyricsContent.replaceChildren(
+        createSafeFuriganaFragment(converted, document),
+      );
+    } catch (error: unknown) {
+      console.warn(
+        "[Furigana for Spotify] Floating lyric conversion failed.",
+        error,
+      );
+    }
+  }
+
+  function updateFloatingLyrics(): void {
+    if (!enabled || !settings.floatingLyrics) {
+      removeFloatingLyrics();
+      return;
+    }
+
+    const root = ensureFloatingLyrics();
+    if (!root || !floatingLyricsContent) {
+      return;
+    }
+
+    const currentLine = findCurrentLyricLine(document);
+    if (currentLine) {
+      const signature = `dom:${currentLine.innerHTML}`;
+      if (signature !== lastFloatingLyricsSignature) {
+        floatingLyricsRenderGeneration += 1;
+        floatingLyricsContent.replaceChildren(
+          ...Array.from(currentLine.childNodes, (node) => node.cloneNode(true)),
+        );
+        lastFloatingLyricsSignature = signature;
+      }
+
+      root.hidden = false;
+    } else {
+      const currentTimedLine = findTimedLyricLine(
+        floatingTimedLyrics,
+        Spicetify.Player.getProgress(),
+      );
+      if (!currentTimedLine) {
+        root.hidden = true;
+        lastFloatingLyricsSignature = "";
+        return;
+      }
+      void renderTimedFloatingLyrics(currentTimedLine.words, root);
+    }
+
+    const savedPosition = parseFloatingLyricPosition(
+      Spicetify.LocalStorage.get(FLOATING_LYRICS_POSITION_KEY),
+    );
+    if (savedPosition) {
+      setFloatingLyricsPosition(root, constrainFloatingLyrics(root));
+    }
+  }
+
+  async function refreshFloatingTimedLyrics(): Promise<void> {
+    const generation = ++floatingLyricsLoadGeneration;
+    const trackUri = Spicetify.Player.data?.item?.uri;
+    const url = typeof trackUri === "string" ? getSpotifyLyricsUrl(trackUri) : null;
+    floatingLyricsTrackUri = typeof trackUri === "string" ? trackUri : undefined;
+    floatingTimedLyrics = [];
+    lastFloatingLyricsSignature = "";
+
+    if (!enabled || !settings.floatingLyrics || !url) {
+      updateFloatingLyrics();
+      return;
+    }
+
+    try {
+      const response = await requestOnlineJson(url);
+      if (
+        generation !== floatingLyricsLoadGeneration ||
+        floatingLyricsTrackUri !== trackUri
+      ) {
+        return;
+      }
+      floatingTimedLyrics = parseSpotifyTimedLyrics(response);
+    } catch (error: unknown) {
+      if (generation !== floatingLyricsLoadGeneration) {
+        return;
+      }
+      console.warn(
+        "[Furigana for Spotify] Spotify timed lyrics were unavailable.",
+        error,
+      );
+    }
+
+    updateFloatingLyrics();
+  }
+
+  function syncFloatingLyricsTimer(): void {
+    const shouldRun = enabled && settings.floatingLyrics;
+    if (shouldRun && floatingLyricsTimer === undefined) {
+      floatingLyricsTimer = window.setInterval(
+        updateFloatingLyrics,
+        FLOATING_LYRICS_SYNC_INTERVAL_MS,
+      );
+    } else if (!shouldRun && floatingLyricsTimer !== undefined) {
+      window.clearInterval(floatingLyricsTimer);
+      floatingLyricsTimer = undefined;
+    }
+
+    if (shouldRun) {
+      void refreshFloatingTimedLyrics();
+    } else {
+      floatingLyricsLoadGeneration += 1;
+      floatingTimedLyrics = [];
+      floatingLyricsTrackUri = undefined;
+      removeFloatingLyrics();
+    }
+  }
+
+  function hideFloatingLyricsUntilAvailable(): void {
+    if (floatingLyricsRoot) {
+      floatingLyricsRoot.hidden = true;
+    }
+    lastFloatingLyricsSignature = "";
   }
 
   function restoreLine(line: HTMLElement): void {
@@ -499,6 +917,7 @@ async function main(): Promise<void> {
 
   function scan(): void {
     scanTimer = undefined;
+    updateFloatingLyrics();
     if (!enabled || (engineUnavailable && !onlineReadings)) {
       return;
     }
@@ -528,12 +947,15 @@ async function main(): Promise<void> {
       nextSettings.gap !== settings.gap;
     const onlineReadingsChanged =
       nextSettings.onlineReadings !== settings.onlineReadings;
+    const floatingLyricsChanged =
+      nextSettings.floatingLyrics !== settings.floatingLyrics;
 
     if (
       !enabledChanged &&
       !readingModeChanged &&
       !appearanceChanged &&
-      !onlineReadingsChanged
+      !onlineReadingsChanged &&
+      !floatingLyricsChanged
     ) {
       return;
     }
@@ -547,6 +969,7 @@ async function main(): Promise<void> {
 
     if (readingModeChanged || onlineReadingsChanged) {
       restoreAll();
+      lastFloatingLyricsSignature = "";
     }
 
     if (enabled && (enabledChanged || readingModeChanged)) {
@@ -561,6 +984,12 @@ async function main(): Promise<void> {
         scheduleScan();
       }
       void refreshOnlineReadings();
+    }
+
+    if (floatingLyricsChanged || enabledChanged) {
+      syncFloatingLyricsTimer();
+    } else if (readingModeChanged || onlineReadingsChanged) {
+      updateFloatingLyrics();
     }
 
     if (announce) {
@@ -589,6 +1018,12 @@ async function main(): Promise<void> {
   window.addEventListener(UI_LANGUAGE_CHANGE_EVENT, () => {
     uiLanguage = getRuntimeUiLanguage(Spicetify.LocalStorage);
     playbarButton.label = getPlaybarLabel();
+    if (floatingLyricsRoot?.isConnected) {
+      floatingLyricsRoot.title = t("moveFloatingLyrics");
+      floatingLyricsRoot
+        .querySelector(".spotify-furigana-floating__close")
+        ?.setAttribute("aria-label", t("hideFloatingLyrics"));
+    }
     scheduleRuntimeDiagnostics();
   });
 
@@ -613,15 +1048,20 @@ async function main(): Promise<void> {
 
   const observer = new MutationObserver(scheduleScan);
   observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["class", "aria-current", "data-active"],
     childList: true,
     characterData: true,
     subtree: true,
   });
 
   applyAppearance(settings);
+  syncFloatingLyricsTimer();
   Spicetify.Player.addEventListener("songchange", () => {
     restoreAll();
+    hideFloatingLyricsUntilAvailable();
     void refreshOnlineReadings();
+    void refreshFloatingTimedLyrics();
   });
   void refreshOnlineReadings();
   scheduleScan();

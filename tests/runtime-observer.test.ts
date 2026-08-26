@@ -14,6 +14,9 @@ describe("Spotify runtime observation", () => {
 
     expect(extension).toContain("observer.observe(document.documentElement");
     expect(extension).not.toContain("observer.observe(document.body");
+    expect(extension).toContain(
+      'attributeFilter: ["class", "aria-current", "data-active"]',
+    );
   });
 
   it("does not pause lyric scans when Spotify marks its page as hidden", async () => {

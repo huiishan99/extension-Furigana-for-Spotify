@@ -14,6 +14,7 @@ const input = {
   enabled: true,
   readingMode: "hiragana" as const,
   onlineReadings: true,
+  floatingLyrics: false,
   onlineStatus: {
     state: "ready" as const,
     code: "matched" as const,
@@ -38,6 +39,7 @@ describe("privacy-safe runtime diagnostics", () => {
 
     expect(diagnostics.schemaVersion).toBe(1);
     expect(diagnostics.report).toContain("App version: 0.5.1");
+    expect(diagnostics.report).toContain("Floating lyrics enabled: no");
     expect(diagnostics.report).toContain("Online status: matched (35 matched lines)");
     expect(diagnostics.report).toContain(
       "  .lyrics-lyricsContent-text: 32",

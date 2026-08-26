@@ -8,6 +8,7 @@ const settingKeys = {
   opacity: "spotify-furigana:opacity",
   gap: "spotify-furigana:gap",
   onlineReadings: "spotify-furigana:online-readings-enabled",
+  floatingLyrics: "spotify-furigana:floating-lyrics-enabled",
 };
 const onlineStatusKey = "spotify-furigana:online-status";
 const onlineStatusEvent = "spotify-furigana:online-status-change";
@@ -36,6 +37,9 @@ const translations = {
     currentlyOff: "Currently off",
     turnOff: "Turn off",
     turnOn: "Turn on",
+    floatingTitle: "Floating current lyric",
+    floatingDescription:
+      "Keep the currently sung line and its furigana in a draggable card inside Spotify.",
     onlineTitle: "Accurate online readings (experimental)",
     onlineDescription:
       "Use synchronized romanization for special sung pronunciations, with automatic fallback to local readings.",
@@ -93,6 +97,9 @@ const translations = {
     currentlyOff: "当前已关闭",
     turnOff: "关闭",
     turnOn: "开启",
+    floatingTitle: "当前句悬浮显示",
+    floatingDescription:
+      "把正在唱的歌词及其 Furigana 放进 Spotify 窗口内可拖动的悬浮卡片。",
     onlineTitle: "在线精准读音（实验性）",
     onlineDescription:
       "使用同步罗马音修正歌词中的特殊唱法；无结果时自动回退本地词典。",
@@ -148,6 +155,9 @@ const translations = {
     currentlyOff: "現在オフ",
     turnOff: "オフにする",
     turnOn: "オンにする",
+    floatingTitle: "現在の歌詞をフローティング表示",
+    floatingDescription:
+      "再生中の一行とふりがなを、Spotify上の移動できるカードに表示します。",
     onlineTitle: "オンライン高精度読み（実験的）",
     onlineDescription:
       "同期ローマ字で歌唱特有の読みを補正し、見つからない場合はローカル読みに戻します。",
@@ -272,6 +282,7 @@ const defaultSettings = {
   opacity: 0.82,
   gap: 0,
   onlineReadings: false,
+  floatingLyrics: false,
 };
 
 const readingModes = ["hiragana", "katakana", "romaji"];
@@ -305,6 +316,8 @@ function readSettings() {
     gap: readNumber(settingKeys.gap, defaultSettings.gap, 0, 8),
     onlineReadings:
       Spicetify.LocalStorage.get(settingKeys.onlineReadings) === "true",
+    floatingLyrics:
+      Spicetify.LocalStorage.get(settingKeys.floatingLyrics) === "true",
   };
 }
 
@@ -567,6 +580,30 @@ function SpotifyFuriganaApp() {
     ),
     react.createElement(
       "div",
+      {
+        className:
+          "spotify-furigana-app__card spotify-furigana-app__floating",
+      },
+      react.createElement(
+        "div",
+        null,
+        react.createElement("strong", null, text.floatingTitle),
+        react.createElement("p", null, text.floatingDescription),
+      ),
+      react.createElement(
+        "button",
+        {
+          className: "spotify-furigana-app__toggle",
+          type: "button",
+          "aria-pressed": settings.floatingLyrics,
+          onClick: () =>
+            updateSettings({ floatingLyrics: !settings.floatingLyrics }),
+        },
+        settings.floatingLyrics ? text.turnOff : text.turnOn,
+      ),
+    ),
+    react.createElement(
+      "div",
       { className: "spotify-furigana-app__card spotify-furigana-app__online" },
       react.createElement(
         "div",
@@ -635,6 +672,7 @@ function SpotifyFuriganaApp() {
               updateSettings({
                 ...defaultSettings,
                 enabled: settings.enabled,
+                floatingLyrics: settings.floatingLyrics,
               }),
           },
           text.reset,

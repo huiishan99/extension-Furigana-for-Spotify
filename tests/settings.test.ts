@@ -4,6 +4,7 @@ import {
   FURIGANA_GAP_KEY,
   FURIGANA_OPACITY_KEY,
   FURIGANA_SIZE_KEY,
+  FLOATING_LYRICS_KEY,
   getFuriganaSettings,
   READING_MODE_KEY,
   setFuriganaSettings,
@@ -57,6 +58,7 @@ describe("furigana settings", () => {
       opacity: 0.7,
       gap: 4,
       onlineReadings: true,
+      floatingLyrics: true,
     });
 
     expect(getFuriganaSettings()).toEqual({
@@ -66,7 +68,9 @@ describe("furigana settings", () => {
       opacity: 0.7,
       gap: 4,
       onlineReadings: true,
+      floatingLyrics: true,
     });
-    expect(values.size).toBe(6);
+    expect(values.get(FLOATING_LYRICS_KEY)).toBe("true");
+    expect(values.size).toBe(7);
   });
 });

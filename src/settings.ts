@@ -4,6 +4,7 @@ export const FURIGANA_SIZE_KEY = "spotify-furigana:size";
 export const FURIGANA_OPACITY_KEY = "spotify-furigana:opacity";
 export const FURIGANA_GAP_KEY = "spotify-furigana:gap";
 export const ONLINE_READINGS_KEY = "spotify-furigana:online-readings-enabled";
+export const FLOATING_LYRICS_KEY = "spotify-furigana:floating-lyrics-enabled";
 export const SETTING_CHANGE_EVENT = "spotify-furigana:setting-change";
 
 export const READING_MODES = ["hiragana", "katakana", "romaji"] as const;
@@ -17,6 +18,7 @@ export interface FuriganaSettings {
   opacity: number;
   gap: number;
   onlineReadings: boolean;
+  floatingLyrics: boolean;
 }
 
 export const DEFAULT_SETTINGS: Readonly<FuriganaSettings> = {
@@ -26,6 +28,7 @@ export const DEFAULT_SETTINGS: Readonly<FuriganaSettings> = {
   opacity: 0.82,
   gap: 0,
   onlineReadings: false,
+  floatingLyrics: false,
 };
 
 export const SETTING_RANGES = {
@@ -89,6 +92,8 @@ export function getFuriganaSettings(): FuriganaSettings {
     ),
     onlineReadings:
       Spicetify.LocalStorage.get(ONLINE_READINGS_KEY) === "true",
+    floatingLyrics:
+      Spicetify.LocalStorage.get(FLOATING_LYRICS_KEY) === "true",
   };
 }
 
@@ -101,5 +106,9 @@ export function setFuriganaSettings(settings: FuriganaSettings): void {
   Spicetify.LocalStorage.set(
     ONLINE_READINGS_KEY,
     String(settings.onlineReadings),
+  );
+  Spicetify.LocalStorage.set(
+    FLOATING_LYRICS_KEY,
+    String(settings.floatingLyrics),
   );
 }

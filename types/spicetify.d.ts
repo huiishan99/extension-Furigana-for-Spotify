@@ -21,6 +21,7 @@ interface SpicetifyGlobal {
     };
     addEventListener(type: string, callback: () => void): void;
     removeEventListener(type: string, callback: () => void): void;
+    getProgress(): number;
   };
   CosmosAsync: {
     get<T = unknown>(

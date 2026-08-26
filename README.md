@@ -50,6 +50,7 @@ The extension enhances lyrics already displayed by Spotify and uses standard HTM
 ## Why use it
 
 - **Works with Spotify's lyrics view**: automatically processes the current desktop layout and known fullscreen lyrics layouts.
+- **Optional floating current line**: keep the lyric being sung and its furigana in a draggable card inside Spotify while browsing other pages.
 - **Local by default**: Kuroshiro + Kuromoji perform tokenization and reading conversion on your machine without contacting a lyrics service.
 - **Reliable common counters offline**: locally corrects `一人` / `1人` → `ひとり` and `二人` / `2人` → `ふたり`, while preserving terms such as `一人称` and `二人三脚`.
 - **Optional accurate-reading mode**: use synchronized romanization when available for song-specific and intentionally unusual pronunciations.
@@ -147,10 +148,13 @@ Open **Furigana for Spotify** from Spotify's sidebar. The settings page lets you
 - adjust reading size from 30% to 75%;
 - adjust opacity from 40% to 100%;
 - add up to 8 px of vertical spacing;
+- show the current lyric and its furigana in a draggable floating card inside Spotify;
 - restore the display defaults with one click.
 - enable experimental online accurate readings and clear their local cache.
 
 Changes are saved locally and apply immediately.
+
+The floating card uses the same line-synced lyrics that Spotify already provides to its desktop client and remains inside the Spotify window. It does not contact an additional lyrics service unless you separately enable accurate online readings.
 
 ## Optional accurate readings and privacy
 

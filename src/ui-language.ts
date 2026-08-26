@@ -27,7 +27,9 @@ export type RuntimeMessageKey =
   | "sourceLocal"
   | "sourceLoading"
   | "sourceAccurate"
-  | "sourceFallback";
+  | "sourceFallback"
+  | "moveFloatingLyrics"
+  | "hideFloatingLyrics";
 
 const runtimeMessages: Record<
   UiLanguage,
@@ -53,6 +55,8 @@ const runtimeMessages: Record<
     sourceLoading: "Checking accurate readings",
     sourceAccurate: "Accurate readings · {count} lines",
     sourceFallback: "Local fallback · online unavailable",
+    moveFloatingLyrics: "Drag to move the floating lyric",
+    hideFloatingLyrics: "Hide floating lyrics",
   },
   "zh-CN": {
     onlineDisabled: "在线精准读音未开启",
@@ -72,6 +76,8 @@ const runtimeMessages: Record<
     sourceLoading: "正在查询精准读音",
     sourceAccurate: "精准读音 · {count} 行",
     sourceFallback: "本地回退 · 在线读音不可用",
+    moveFloatingLyrics: "拖动悬浮歌词",
+    hideFloatingLyrics: "关闭悬浮歌词",
   },
   ja: {
     onlineDisabled: "オンライン高精度読みはオフです",
@@ -92,6 +98,8 @@ const runtimeMessages: Record<
     sourceLoading: "高精度読みを確認中",
     sourceAccurate: "高精度読み · {count}行",
     sourceFallback: "ローカル読み · オンライン利用不可",
+    moveFloatingLyrics: "ドラッグしてフローティング歌詞を移動",
+    hideFloatingLyrics: "フローティング歌詞を閉じる",
   },
 };
 
