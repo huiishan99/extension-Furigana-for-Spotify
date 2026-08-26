@@ -189,10 +189,16 @@ function Set-LyricSegments {
     $reading.FontFamily = [Windows.Media.FontFamily]::new("Yu Gothic UI, Meiryo UI, Segoe UI")
     $reading.FontSize = 14
     $reading.FontWeight = [Windows.FontWeights]::SemiBold
-    $reading.Foreground = if ($readingValue) { New-Brush "#B8F5D7" } else { New-Brush "#00121212" }
+    $reading.Foreground = if ($readingValue) { New-Brush "#E6B8F5D7" } else { New-Brush "#00121212" }
     $reading.TextAlignment = [Windows.TextAlignment]::Center
     $reading.HorizontalAlignment = [Windows.HorizontalAlignment]::Stretch
     $reading.Margin = [Windows.Thickness]::new(1, 0, 1, 1)
+    $reading.Effect = [Windows.Media.Effects.DropShadowEffect]@{
+      Color = [Windows.Media.Colors]::Black
+      BlurRadius = 4
+      ShadowDepth = 1
+      Opacity = 0.95
+    }
 
     $base = [Windows.Controls.TextBlock]::new()
     $base.Text = $textValue
@@ -202,6 +208,12 @@ function Set-LyricSegments {
     $base.Foreground = New-Brush "#FFF8F2"
     $base.TextAlignment = [Windows.TextAlignment]::Center
     $base.Margin = [Windows.Thickness]::new(0)
+    $base.Effect = [Windows.Media.Effects.DropShadowEffect]@{
+      Color = [Windows.Media.Colors]::Black
+      BlurRadius = 6
+      ShadowDepth = 1
+      Opacity = 1
+    }
 
     [void]$segmentPanel.Children.Add($reading)
     [void]$segmentPanel.Children.Add($base)
@@ -243,8 +255,8 @@ function Apply-OverlayState {
 try {
   $window = [Windows.Window]::new()
   $window.Title = "Furigana for Spotify Desktop Lyrics"
-  $window.Width = 880
-  $window.Height = 140
+  $window.Width = 860
+  $window.Height = 112
   $window.WindowStyle = [Windows.WindowStyle]::None
   $window.ResizeMode = [Windows.ResizeMode]::NoResize
   $window.AllowsTransparency = $true
@@ -255,35 +267,29 @@ try {
   $window.WindowStartupLocation = [Windows.WindowStartupLocation]::Manual
 
   $card = [Windows.Controls.Border]::new()
-  $card.Background = New-Brush "#EE121212"
-  $card.BorderBrush = New-Brush "#A801CA95"
-  $card.BorderThickness = [Windows.Thickness]::new(1)
-  $card.CornerRadius = [Windows.CornerRadius]::new(18)
-  $card.Padding = [Windows.Thickness]::new(14, 12, 12, 10)
-  $card.Effect = [Windows.Media.Effects.DropShadowEffect]@{
-    Color = [Windows.Media.Colors]::Black
-    BlurRadius = 24
-    ShadowDepth = 6
-    Opacity = 0.55
-  }
+  $card.Background = [Windows.Media.Brushes]::Transparent
+  $card.BorderThickness = [Windows.Thickness]::new(0)
+  $card.Padding = [Windows.Thickness]::new(8, 5, 8, 5)
 
   $grid = [Windows.Controls.Grid]::new()
-  [void]$grid.ColumnDefinitions.Add([Windows.Controls.ColumnDefinition]@{ Width = [Windows.GridLength]::new(46) })
+  [void]$grid.ColumnDefinitions.Add([Windows.Controls.ColumnDefinition]@{ Width = [Windows.GridLength]::new(36) })
   [void]$grid.ColumnDefinitions.Add([Windows.Controls.ColumnDefinition]@{ Width = [Windows.GridLength]::new(1, [Windows.GridUnitType]::Star) })
-  [void]$grid.ColumnDefinitions.Add([Windows.Controls.ColumnDefinition]@{ Width = [Windows.GridLength]::new(38) })
+  [void]$grid.ColumnDefinitions.Add([Windows.Controls.ColumnDefinition]@{ Width = [Windows.GridLength]::new(32) })
 
   $badge = [Windows.Controls.Border]::new()
-  $badge.Width = 34
-  $badge.Height = 34
-  $badge.Background = New-Brush "#01CA95"
-  $badge.CornerRadius = [Windows.CornerRadius]::new(10)
+  $badge.Width = 26
+  $badge.Height = 26
+  $badge.Background = New-Brush "#8001CA95"
+  $badge.CornerRadius = [Windows.CornerRadius]::new(8)
+  $badge.Opacity = 0.3
+  $badge.ToolTip = "Drag to move desktop lyrics"
   $badge.VerticalAlignment = [Windows.VerticalAlignment]::Center
   $badgeText = [Windows.Controls.TextBlock]::new()
   $badgeText.Text = [string][char]0x3075
   $badgeText.FontFamily = [Windows.Media.FontFamily]::new("Yu Gothic UI, Meiryo UI")
-  $badgeText.FontSize = 19
+  $badgeText.FontSize = 15
   $badgeText.FontWeight = [Windows.FontWeights]::Bold
-  $badgeText.Foreground = New-Brush "#06120D"
+  $badgeText.Foreground = New-Brush "#FFF8F2"
   $badgeText.HorizontalAlignment = [Windows.HorizontalAlignment]::Center
   $badgeText.VerticalAlignment = [Windows.VerticalAlignment]::Center
   $badge.Child = $badgeText
@@ -294,7 +300,7 @@ try {
   $viewbox.StretchDirection = [Windows.Controls.StretchDirection]::DownOnly
   $viewbox.HorizontalAlignment = [Windows.HorizontalAlignment]::Center
   $viewbox.VerticalAlignment = [Windows.VerticalAlignment]::Center
-  $viewbox.Margin = [Windows.Thickness]::new(8, 0, 8, 0)
+  $viewbox.Margin = [Windows.Thickness]::new(4, 0, 4, 0)
   $lyricsPanel = [Windows.Controls.StackPanel]::new()
   $lyricsPanel.Orientation = [Windows.Controls.Orientation]::Horizontal
   $lyricsPanel.HorizontalAlignment = [Windows.HorizontalAlignment]::Center
@@ -303,13 +309,14 @@ try {
 
   $closeButton = [Windows.Controls.Button]::new()
   $closeButton.Content = [string][char]0x00D7
-  $closeButton.Width = 30
-  $closeButton.Height = 30
+  $closeButton.Width = 26
+  $closeButton.Height = 26
   $closeButton.Padding = [Windows.Thickness]::new(0)
   $closeButton.BorderThickness = [Windows.Thickness]::new(0)
   $closeButton.Background = [Windows.Media.Brushes]::Transparent
-  $closeButton.Foreground = New-Brush "#B3B3B3"
-  $closeButton.FontSize = 20
+  $closeButton.Foreground = New-Brush "#D9FFFFFF"
+  $closeButton.FontSize = 17
+  $closeButton.Opacity = 0.25
   $closeButton.Cursor = [Windows.Input.Cursors]::Hand
   $closeButton.ToolTip = "Hide until the desktop lyric setting is turned off and on"
   $closeButton.VerticalAlignment = [Windows.VerticalAlignment]::Top
@@ -317,6 +324,15 @@ try {
   $closeButton.Add_Click({
     $script:suppressed = $true
     $window.Hide()
+  })
+
+  $card.Add_MouseEnter({
+    $badge.Opacity = 0.8
+    $closeButton.Opacity = 0.8
+  })
+  $card.Add_MouseLeave({
+    $badge.Opacity = 0.3
+    $closeButton.Opacity = 0.25
   })
 
   [void]$grid.Children.Add($badge)

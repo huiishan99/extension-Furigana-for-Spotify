@@ -50,7 +50,7 @@ The extension enhances lyrics already displayed by Spotify and uses standard HTM
 ## Why use it
 
 - **Works with Spotify's lyrics view**: automatically processes the current desktop layout and known fullscreen lyrics layouts.
-- **Optional Windows desktop lyrics**: keep the current line and its furigana in a draggable, always-on-top overlay while using any Windows app.
+- **Optional Windows desktop lyrics**: keep the current line and its furigana in a transparent, draggable, always-on-top overlay while using any Windows app.
 - **Local by default**: Kuroshiro + Kuromoji perform tokenization and reading conversion on your machine without contacting a lyrics service.
 - **Reliable common counters offline**: locally corrects `一人` / `1人` → `ひとり` and `二人` / `2人` → `ふたり`, while preserving terms such as `一人称` and `二人三脚`.
 - **Optional accurate-reading mode**: use synchronized romanization when available for song-specific and intentionally unusual pronunciations.
