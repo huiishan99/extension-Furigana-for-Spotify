@@ -102,7 +102,8 @@ function demoFrameSvg(frameIndex, frameCount) {
   const eased = easeInOut(wave);
   const scale = 1 + eased * 0.085;
   const highlightOpacity = 0.28 + eased * 0.64;
-  const scanX = 247 + progress * 530;
+  const highlight = { x: 207, y: 101, width: 329, height: 67 };
+  const scanX = highlight.x + 10 + progress * (highlight.width - 20);
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="960" height="540" viewBox="0 0 960 540">
@@ -121,6 +122,8 @@ function demoFrameSvg(frameIndex, frameCount) {
   <rect width="960" height="540" fill="#071017" />
   <g clip-path="url(#viewport)" transform="translate(566 291) scale(${scale.toFixed(4)}) translate(-566 -291)">
     <image x="-65" y="54" width="1025" height="557" preserveAspectRatio="xMidYMid slice" xlink:href="${screenshotUri}" />
+    <rect x="${highlight.x}" y="${highlight.y}" width="${highlight.width}" height="${highlight.height}" rx="14" fill="none" stroke="#00e0a5" stroke-width="4" opacity="${highlightOpacity.toFixed(3)}" />
+    <rect x="${scanX.toFixed(2)}" y="${highlight.y + 5}" width="3" height="${highlight.height - 10}" rx="1.5" fill="#8affde" opacity="${(0.35 + eased * 0.45).toFixed(3)}" />
   </g>
   <rect x="0" y="418" width="960" height="122" fill="url(#bottomShade)" />
 
@@ -133,8 +136,6 @@ function demoFrameSvg(frameIndex, frameCount) {
     <text x="36" y="23" fill="#c9f8ea" font-family="Segoe UI, Yu Gothic UI, sans-serif" font-size="13" font-weight="750" letter-spacing="1">FURIGANA ON</text>
   </g>
 
-  <rect x="235" y="128" width="575" height="110" rx="18" fill="none" stroke="#00e0a5" stroke-width="4" opacity="${highlightOpacity.toFixed(3)}" />
-  <rect x="${scanX.toFixed(2)}" y="132" width="3" height="102" rx="1.5" fill="#8affde" opacity="${(0.35 + eased * 0.45).toFixed(3)}" />
   <g transform="translate(608 476)">
     <rect width="320" height="44" rx="22" fill="#07120f" fill-opacity="0.88" stroke="#287866" />
     <text x="160" y="29" text-anchor="middle" fill="#d8f8ef" font-family="Segoe UI, Yu Gothic UI, sans-serif" font-size="15" font-weight="700">Read kanji without leaving the song</text>

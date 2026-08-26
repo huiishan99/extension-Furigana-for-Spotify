@@ -11,6 +11,7 @@
 - 修复 Spotify 1.2.97 启动或路由切换时替换 `<body>` 后歌词观察器失效的问题：观察根节点改为稳定的 `document.documentElement`，歌词页和诊断计数会在新页面挂载后继续更新。
 - 歌词扫描与诊断发布不再依赖后台 WebView 会暂停的 `requestAnimationFrame`，改用合并式零延时任务；切到歌词页后即使 Spotify 暂时失去前台焦点，注音也会完成。
 - 在 Spotify 1.2.97.270 + Spicetify 2.44.0 实装验证设置诊断、来源悬停提示和后台歌词扫描，并以正确显示 `二人 → ふたり`、`一人 → ひとり` 的真实《きらり》画面刷新仓库截图、社交预览与演示 GIF。
+- 修正 README 演示 GIF 的高亮框：范围收紧到单行歌词，并与 Spotify 画面共用缩放变换，动画过程中不再偏离文字。
 
 ## 2026-08-23 — v0.5.0 checksum-verified automatic updates
 
