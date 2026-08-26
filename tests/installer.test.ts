@@ -100,6 +100,8 @@ describe("Windows release installer", () => {
     expect(overlay).toContain("$window.ShowInTaskbar = $false");
     expect(overlay).toContain("$card.Background = [Windows.Media.Brushes]::Transparent");
     expect(overlay).toContain("$base.Effect = [Windows.Media.Effects.DropShadowEffect]");
+    expect(overlay).toContain("$nextLyricsPanel");
+    expect(overlay).toContain("[Windows.Media.Animation.DoubleAnimation]");
     expect(overlay).toContain('Join-Path $stateRoot "overlay-position.json"');
     expect(overlay).toContain('Get-Process -Name "Spotify"');
     expect(overlay).not.toContain("IPAddress]::Any");

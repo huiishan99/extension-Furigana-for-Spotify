@@ -31,6 +31,7 @@ $lastSpotifySeenAt = $null
 $spotifySeen = $false
 $processCheckTick = 0
 $suppressed = $false
+$lastCurrentLyricSignature = ""
 
 function New-Brush {
   param([Parameter(Mandatory = $true)][string]$Color)
@@ -160,10 +161,17 @@ function Get-StateProperty {
   return $null
 }
 
-function Set-LyricSegments {
-  param([Parameter(Mandatory = $true)][object[]]$Segments)
+function Set-SegmentPanel {
+  param(
+    [Parameter(Mandatory = $true)][Windows.Controls.StackPanel]$Panel,
+    [Parameter(Mandatory = $true)][object[]]$Segments,
+    [Parameter(Mandatory = $true)][double]$BaseFontSize,
+    [Parameter(Mandatory = $true)][double]$ReadingFontSize,
+    [Parameter(Mandatory = $true)][string]$BaseColor,
+    [Parameter(Mandatory = $true)][string]$ReadingColor
+  )
 
-  $lyricsPanel.Children.Clear()
+  $Panel.Children.Clear()
   foreach ($segment in $Segments | Select-Object -First 128) {
     if ($null -eq $segment) {
       continue
@@ -187,9 +195,9 @@ function Set-LyricSegments {
     $reading = [Windows.Controls.TextBlock]::new()
     $reading.Text = if ($readingValue) { $readingValue } else { " " }
     $reading.FontFamily = [Windows.Media.FontFamily]::new("Yu Gothic UI, Meiryo UI, Segoe UI")
-    $reading.FontSize = 14
+    $reading.FontSize = $ReadingFontSize
     $reading.FontWeight = [Windows.FontWeights]::SemiBold
-    $reading.Foreground = if ($readingValue) { New-Brush "#E6B8F5D7" } else { New-Brush "#00121212" }
+    $reading.Foreground = if ($readingValue) { New-Brush $ReadingColor } else { New-Brush "#00121212" }
     $reading.TextAlignment = [Windows.TextAlignment]::Center
     $reading.HorizontalAlignment = [Windows.HorizontalAlignment]::Stretch
     $reading.Margin = [Windows.Thickness]::new(1, 0, 1, 1)
@@ -203,9 +211,9 @@ function Set-LyricSegments {
     $base = [Windows.Controls.TextBlock]::new()
     $base.Text = $textValue
     $base.FontFamily = [Windows.Media.FontFamily]::new("Yu Gothic UI, Meiryo UI, Segoe UI")
-    $base.FontSize = 30
+    $base.FontSize = $BaseFontSize
     $base.FontWeight = [Windows.FontWeights]::SemiBold
-    $base.Foreground = New-Brush "#FFF8F2"
+    $base.Foreground = New-Brush $BaseColor
     $base.TextAlignment = [Windows.TextAlignment]::Center
     $base.Margin = [Windows.Thickness]::new(0)
     $base.Effect = [Windows.Media.Effects.DropShadowEffect]@{
@@ -217,14 +225,52 @@ function Set-LyricSegments {
 
     [void]$segmentPanel.Children.Add($reading)
     [void]$segmentPanel.Children.Add($base)
-    [void]$lyricsPanel.Children.Add($segmentPanel)
+    [void]$Panel.Children.Add($segmentPanel)
   }
 
-  if ($lyricsPanel.Children.Count -eq 0 -or $suppressed) {
+  return $Panel.Children.Count
+}
+
+function Set-LyricSegments {
+  param(
+    [Parameter(Mandatory = $true)][object[]]$Segments,
+    [Parameter(Mandatory = $true)][object[]]$NextSegments
+  )
+
+  $currentSignature = $Segments | ConvertTo-Json -Compress -Depth 4
+  $currentCount = Set-SegmentPanel `
+    -Panel $lyricsPanel `
+    -Segments $Segments `
+    -BaseFontSize 30 `
+    -ReadingFontSize 14 `
+    -BaseColor "#FFF8F2" `
+    -ReadingColor "#E6B8F5D7"
+  $nextCount = Set-SegmentPanel `
+    -Panel $nextLyricsPanel `
+    -Segments $NextSegments `
+    -BaseFontSize 20 `
+    -ReadingFontSize 10 `
+    -BaseColor "#BFF8F2" `
+    -ReadingColor "#A8B8F5D7"
+  $nextViewbox.Visibility = if ($nextCount -gt 0) {
+    [Windows.Visibility]::Visible
+  } else {
+    [Windows.Visibility]::Collapsed
+  }
+
+  if ($currentCount -eq 0 -or $suppressed) {
     $window.Hide()
   } else {
     $window.Topmost = $true
     $window.Show()
+    if ($currentSignature -ne $lastCurrentLyricSignature) {
+      $script:lastCurrentLyricSignature = $currentSignature
+      $duration = [Windows.Duration]::new([TimeSpan]::FromMilliseconds(180))
+      $fade = [Windows.Media.Animation.DoubleAnimation]::new(0.3, 1, $duration)
+      $slide = [Windows.Media.Animation.DoubleAnimation]::new(6, 0, $duration)
+      $contentStack.BeginAnimation([Windows.UIElement]::OpacityProperty, $fade)
+      $contentTranslate.BeginAnimation([Windows.Media.TranslateTransform]::YProperty, $slide)
+    }
   }
 }
 
@@ -239,6 +285,7 @@ function Apply-OverlayState {
     $stateEnabled = Get-StateProperty -State $state -Name "enabled"
     if ($stateEnabled -isnot [bool] -or -not $stateEnabled) {
       $script:suppressed = $false
+      $script:lastCurrentLyricSignature = ""
       $window.Hide()
       return
     }
@@ -246,7 +293,13 @@ function Apply-OverlayState {
     if ($segments -isnot [array]) {
       $segments = @($segments)
     }
-    Set-LyricSegments -Segments $segments
+    $nextSegments = Get-StateProperty -State $state -Name "nextSegments"
+    if ($null -eq $nextSegments) {
+      $nextSegments = @()
+    } elseif ($nextSegments -isnot [array]) {
+      $nextSegments = @($nextSegments)
+    }
+    Set-LyricSegments -Segments $segments -NextSegments $nextSegments
   } catch {
     # Ignore malformed loopback messages without writing lyric content to disk.
   }
@@ -256,7 +309,7 @@ try {
   $window = [Windows.Window]::new()
   $window.Title = "Furigana for Spotify Desktop Lyrics"
   $window.Width = 860
-  $window.Height = 112
+  $window.Height = 154
   $window.WindowStyle = [Windows.WindowStyle]::None
   $window.ResizeMode = [Windows.ResizeMode]::NoResize
   $window.AllowsTransparency = $true
@@ -295,7 +348,15 @@ try {
   $badge.Child = $badgeText
   [Windows.Controls.Grid]::SetColumn($badge, 0)
 
+  $contentStack = [Windows.Controls.StackPanel]::new()
+  $contentStack.Orientation = [Windows.Controls.Orientation]::Vertical
+  $contentStack.HorizontalAlignment = [Windows.HorizontalAlignment]::Stretch
+  $contentStack.VerticalAlignment = [Windows.VerticalAlignment]::Center
+  $contentTranslate = [Windows.Media.TranslateTransform]::new(0, 0)
+  $contentStack.RenderTransform = $contentTranslate
+
   $viewbox = [Windows.Controls.Viewbox]::new()
+  $viewbox.Height = 78
   $viewbox.Stretch = [Windows.Media.Stretch]::Uniform
   $viewbox.StretchDirection = [Windows.Controls.StretchDirection]::DownOnly
   $viewbox.HorizontalAlignment = [Windows.HorizontalAlignment]::Center
@@ -305,7 +366,23 @@ try {
   $lyricsPanel.Orientation = [Windows.Controls.Orientation]::Horizontal
   $lyricsPanel.HorizontalAlignment = [Windows.HorizontalAlignment]::Center
   $viewbox.Child = $lyricsPanel
-  [Windows.Controls.Grid]::SetColumn($viewbox, 1)
+
+  $nextViewbox = [Windows.Controls.Viewbox]::new()
+  $nextViewbox.Height = 48
+  $nextViewbox.Stretch = [Windows.Media.Stretch]::Uniform
+  $nextViewbox.StretchDirection = [Windows.Controls.StretchDirection]::DownOnly
+  $nextViewbox.HorizontalAlignment = [Windows.HorizontalAlignment]::Center
+  $nextViewbox.VerticalAlignment = [Windows.VerticalAlignment]::Center
+  $nextViewbox.Margin = [Windows.Thickness]::new(4, -4, 4, 0)
+  $nextViewbox.Opacity = 0.72
+  $nextLyricsPanel = [Windows.Controls.StackPanel]::new()
+  $nextLyricsPanel.Orientation = [Windows.Controls.Orientation]::Horizontal
+  $nextLyricsPanel.HorizontalAlignment = [Windows.HorizontalAlignment]::Center
+  $nextViewbox.Child = $nextLyricsPanel
+
+  [void]$contentStack.Children.Add($viewbox)
+  [void]$contentStack.Children.Add($nextViewbox)
+  [Windows.Controls.Grid]::SetColumn($contentStack, 1)
 
   $closeButton = [Windows.Controls.Button]::new()
   $closeButton.Content = [string][char]0x00D7
@@ -336,7 +413,7 @@ try {
   })
 
   [void]$grid.Children.Add($badge)
-  [void]$grid.Children.Add($viewbox)
+  [void]$grid.Children.Add($contentStack)
   [void]$grid.Children.Add($closeButton)
   $card.Child = $grid
   $window.Content = $card

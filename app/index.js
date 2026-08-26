@@ -40,7 +40,7 @@ const translations = {
     turnOn: "Turn on",
     floatingTitle: "Floating current lyric",
     floatingDescription:
-      "Keep the currently sung line and its furigana in a transparent, draggable, always-on-top Windows desktop overlay.",
+      "Show the current line with a smaller preview of the next line in a transparent, draggable Windows desktop overlay.",
     windowsOnly: "Windows only",
     onlineTitle: "Accurate online readings (experimental)",
     onlineDescription:
@@ -101,7 +101,7 @@ const translations = {
     turnOn: "开启",
     floatingTitle: "当前句悬浮显示",
     floatingDescription:
-      "把正在唱的歌词及其 Furigana 显示在 Windows 桌面上透明、可拖动、跨应用置顶的悬浮窗中。",
+      "在透明、可拖动的 Windows 桌面悬浮窗中显示当前句，并在下方提前显示较小的下一句。",
     windowsOnly: "仅支持 Windows",
     onlineTitle: "在线精准读音（实验性）",
     onlineDescription:
@@ -160,7 +160,7 @@ const translations = {
     turnOn: "オンにする",
     floatingTitle: "現在の歌詞をフローティング表示",
     floatingDescription:
-      "再生中の一行とふりがなを、Windowsデスクトップ上の透明で移動可能な最前面ウィンドウに表示します。",
+      "現在の一行と、その下に小さくした次の一行を、透明で移動可能なWindowsデスクトップウィンドウに表示します。",
     windowsOnly: "Windowsのみ",
     onlineTitle: "オンライン高精度読み（実験的）",
     onlineDescription:

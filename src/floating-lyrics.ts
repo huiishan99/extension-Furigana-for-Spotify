@@ -24,6 +24,12 @@ export interface DesktopOverlayState {
   version: 1;
   enabled: boolean;
   segments: DesktopLyricSegment[];
+  nextSegments: DesktopLyricSegment[];
+}
+
+export interface TimedLyricContext {
+  current: TimedLyricLine;
+  next: TimedLyricLine | null;
 }
 
 function asRecord(value: unknown): Record<string, unknown> | null {
@@ -64,6 +70,13 @@ export function findTimedLyricLine(
   lines: readonly TimedLyricLine[],
   progressMs: number,
 ): TimedLyricLine | null {
+  return findTimedLyricContext(lines, progressMs)?.current ?? null;
+}
+
+export function findTimedLyricContext(
+  lines: readonly TimedLyricLine[],
+  progressMs: number,
+): TimedLyricContext | null {
   if (!Number.isFinite(progressMs) || lines.length === 0) {
     return null;
   }
@@ -81,7 +94,13 @@ export function findTimedLyricLine(
     }
   }
 
-  return currentIndex >= 0 ? (lines[currentIndex] ?? null) : null;
+  if (currentIndex < 0) {
+    return null;
+  }
+  return {
+    current: lines[currentIndex]!,
+    next: lines[currentIndex + 1] ?? null,
+  };
 }
 
 export function findCurrentLyricLine(
@@ -179,19 +198,24 @@ export function extractDesktopLyricSegments(
 export function createDesktopOverlayState(
   enabled: boolean,
   segments: readonly DesktopLyricSegment[] = [],
+  nextSegments: readonly DesktopLyricSegment[] = [],
 ): DesktopOverlayState {
+  const sanitize = (
+    values: readonly DesktopLyricSegment[],
+  ): DesktopLyricSegment[] =>
+    values
+      .slice(0, 128)
+      .map(({ text, reading }) => ({
+        text: text.slice(0, 512),
+        ...(reading ? { reading: reading.slice(0, 512) } : {}),
+      }))
+      .filter(({ text }) => text.length > 0);
+
   return {
     version: 1,
     enabled,
-    segments: enabled
-      ? segments
-          .slice(0, 128)
-          .map(({ text, reading }) => ({
-            text: text.slice(0, 512),
-            ...(reading ? { reading: reading.slice(0, 512) } : {}),
-          }))
-          .filter(({ text }) => text.length > 0)
-      : [],
+    segments: enabled ? sanitize(segments) : [],
+    nextSegments: enabled ? sanitize(nextSegments) : [],
   };
 }
 

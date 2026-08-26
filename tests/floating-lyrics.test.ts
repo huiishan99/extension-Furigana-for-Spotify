@@ -5,6 +5,7 @@ import {
   DESKTOP_OVERLAY_URL,
   extractDesktopLyricSegments,
   findCurrentLyricLine,
+  findTimedLyricContext,
   findTimedLyricLine,
   getSpotifyLyricsUrl,
   parseSpotifyTimedLyrics,
@@ -97,10 +98,14 @@ describe("floating current lyric", () => {
       { text: "だけの空" },
     ]);
     expect(
-      createDesktopOverlayState(true, [
-        { text: "二人", reading: "ふたり" },
-        { text: "だけ" },
-      ]),
+      createDesktopOverlayState(
+        true,
+        [
+          { text: "二人", reading: "ふたり" },
+          { text: "だけ" },
+        ],
+        [{ text: "次", reading: "つぎ" }],
+      ),
     ).toEqual({
       version: 1,
       enabled: true,
@@ -108,6 +113,7 @@ describe("floating current lyric", () => {
         { text: "二人", reading: "ふたり" },
         { text: "だけ" },
       ],
+      nextSegments: [{ text: "次", reading: "つぎ" }],
     });
   });
 
@@ -130,6 +136,11 @@ describe("floating current lyric", () => {
     expect(findTimedLyricLine(lines, 799)).toBeNull();
     expect(findTimedLyricLine(lines, 1800)?.words).toBe("一人きり");
     expect(findTimedLyricLine(lines, 2200)?.words).toBe("二人だけ");
+    expect(findTimedLyricContext(lines, 1800)).toEqual({
+      current: { startTimeMs: 800, words: "一人きり" },
+      next: { startTimeMs: 2200, words: "二人だけ" },
+    });
+    expect(findTimedLyricContext(lines, 2200)?.next).toBeNull();
   });
 
   it("builds the authenticated Spotify lyrics endpoint only for tracks", () => {

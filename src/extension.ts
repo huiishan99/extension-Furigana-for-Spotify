@@ -41,7 +41,7 @@ import {
 import {
   createDesktopOverlayState,
   extractDesktopLyricSegments,
-  findTimedLyricLine,
+  findTimedLyricContext,
   findCurrentLyricLine,
   getSpotifyLyricsUrl,
   parseSpotifyTimedLyrics,
@@ -201,6 +201,10 @@ async function main(): Promise<void> {
   let lastDesktopOverlayStateSignature = "";
   let lastDesktopOverlayState: DesktopOverlayState | undefined;
   let lastDesktopOverlaySentAt = 0;
+  const desktopLyricSegmentCache = new Map<
+    string,
+    Promise<DesktopLyricSegment[]>
+  >();
   let floatingLyricsRenderGeneration = 0;
   let floatingLyricsLoadGeneration = 0;
   let floatingLyricsTrackUri: string | undefined;
@@ -313,8 +317,13 @@ async function main(): Promise<void> {
 
   function publishDesktopOverlay(
     segments: readonly DesktopLyricSegment[] = [],
+    nextSegments: readonly DesktopLyricSegment[] = [],
   ): void {
-    const state = createDesktopOverlayState(segments.length > 0, segments);
+    const state = createDesktopOverlayState(
+      segments.length > 0,
+      segments,
+      nextSegments,
+    );
     const signature = JSON.stringify(state);
     const now = Date.now();
     if (
@@ -345,54 +354,97 @@ async function main(): Promise<void> {
     publishDesktopOverlay();
   }
 
-  async function renderDesktopLyricSource(sourceValue: string): Promise<void> {
+  function getDesktopLyricSegments(
+    sourceValue: string,
+  ): Promise<DesktopLyricSegment[]> {
     const source = normalizeLyricText(sourceValue);
     const sungRomanization =
       activeOnlineTrackUri === Spicetify.Player.data?.item?.uri
         ? findOnlineRomanization(onlineReadings, source)
         : undefined;
-    const signature = `source:${settings.readingMode}:${sungRomanization ?? ""}:${source}`;
+    const cacheKey = `${settings.readingMode}:${sungRomanization ?? ""}:${source}`;
+    const cached = desktopLyricSegmentCache.get(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    const result = (async (): Promise<DesktopLyricSegment[]> => {
+      if (!source) {
+        return [];
+      }
+      if (!shouldAnnotateLyric(source)) {
+        return [{ text: source }];
+      }
+      try {
+        const converted = await convertToFurigana(
+          source,
+          dictionaryPath,
+          settings.readingMode,
+          sungRomanization,
+        );
+        const fragment = createSafeFuriganaFragment(converted, document);
+        return extractDesktopLyricSegments(fragment);
+      } catch (error: unknown) {
+        console.warn(
+          "[Furigana for Spotify] Desktop lyric conversion failed.",
+          error,
+        );
+        return [{ text: source }];
+      }
+    })();
+    desktopLyricSegmentCache.set(cacheKey, result);
+    if (desktopLyricSegmentCache.size > 24) {
+      const oldestKey = desktopLyricSegmentCache.keys().next().value;
+      if (typeof oldestKey === "string") {
+        desktopLyricSegmentCache.delete(oldestKey);
+      }
+    }
+    return result;
+  }
+
+  async function renderDesktopLyricPair(
+    currentSourceValue: string,
+    nextSourceValue = "",
+    currentSegments?: readonly DesktopLyricSegment[],
+    signaturePrefix = "timed",
+  ): Promise<void> {
+    const currentSource = normalizeLyricText(currentSourceValue);
+    const nextSource = normalizeLyricText(nextSourceValue);
+    const currentSungRomanization = findOnlineRomanization(
+      onlineReadings,
+      currentSource,
+    );
+    const nextSungRomanization = findOnlineRomanization(
+      onlineReadings,
+      nextSource,
+    );
+    const signature = `${signaturePrefix}:${settings.readingMode}:${currentSungRomanization ?? ""}:${nextSungRomanization ?? ""}:${currentSource}:${nextSource}`;
     if (signature === lastFloatingLyricsSignature) {
       return;
     }
 
     const generation = ++floatingLyricsRenderGeneration;
     lastFloatingLyricsSignature = signature;
-    if (!source) {
+    if (!currentSource) {
       publishDesktopOverlay();
       return;
     }
-    if (!shouldAnnotateLyric(source)) {
-      publishDesktopOverlay([{ text: source }]);
+
+    const [resolvedCurrentSegments, resolvedNextSegments] = await Promise.all([
+      currentSegments
+        ? Promise.resolve([...currentSegments])
+        : getDesktopLyricSegments(currentSource),
+      getDesktopLyricSegments(nextSource),
+    ]);
+    if (
+      generation !== floatingLyricsRenderGeneration ||
+      !enabled ||
+      !settings.floatingLyrics ||
+      !desktopOverlaySupported
+    ) {
       return;
     }
-
-    try {
-      const converted = await convertToFurigana(
-        source,
-        dictionaryPath,
-        settings.readingMode,
-        sungRomanization,
-      );
-      if (
-        generation !== floatingLyricsRenderGeneration ||
-        !enabled ||
-        !settings.floatingLyrics ||
-        !desktopOverlaySupported
-      ) {
-        return;
-      }
-      const fragment = createSafeFuriganaFragment(converted, document);
-      publishDesktopOverlay(extractDesktopLyricSegments(fragment));
-    } catch (error: unknown) {
-      if (generation === floatingLyricsRenderGeneration) {
-        publishDesktopOverlay([{ text: source }]);
-      }
-      console.warn(
-        "[Furigana for Spotify] Desktop lyric conversion failed.",
-        error,
-      );
-    }
+    publishDesktopOverlay(resolvedCurrentSegments, resolvedNextSegments);
   }
 
   function updateFloatingLyrics(): void {
@@ -402,30 +454,39 @@ async function main(): Promise<void> {
     }
     retryDesktopOverlayState();
 
-    const currentLine = findCurrentLyricLine(document);
-    if (currentLine?.querySelector("ruby.spotify-furigana__ruby")) {
-      const signature = `dom:${currentLine.innerHTML}`;
-      if (signature !== lastFloatingLyricsSignature) {
-        floatingLyricsRenderGeneration += 1;
-        lastFloatingLyricsSignature = signature;
-        publishDesktopOverlay(extractDesktopLyricSegments(currentLine));
-      }
-      return;
-    }
-    if (currentLine) {
-      void renderDesktopLyricSource(currentLine.textContent ?? "");
-      return;
-    }
-
-    const currentTimedLine = findTimedLyricLine(
+    const timedContext = findTimedLyricContext(
       floatingTimedLyrics,
       Spicetify.Player.getProgress(),
     );
-    if (!currentTimedLine) {
+    const nextSource = timedContext?.next?.words ?? "";
+    const currentLine = findCurrentLyricLine(document);
+    if (currentLine?.querySelector("ruby.spotify-furigana__ruby")) {
+      void renderDesktopLyricPair(
+        getAnnotatedSource(currentLine),
+        nextSource,
+        extractDesktopLyricSegments(currentLine),
+        `dom:${currentLine.innerHTML}`,
+      );
+      return;
+    }
+    if (currentLine) {
+      void renderDesktopLyricPair(
+        currentLine.textContent ?? "",
+        nextSource,
+        undefined,
+        "dom-text",
+      );
+      return;
+    }
+
+    if (!timedContext) {
       hideDesktopOverlay();
       return;
     }
-    void renderDesktopLyricSource(currentTimedLine.words);
+    void renderDesktopLyricPair(
+      timedContext.current.words,
+      timedContext.next?.words ?? "",
+    );
   }
 
   async function refreshFloatingTimedLyrics(): Promise<void> {

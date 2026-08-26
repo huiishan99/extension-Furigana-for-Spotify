@@ -50,7 +50,7 @@ The extension enhances lyrics already displayed by Spotify and uses standard HTM
 ## Why use it
 
 - **Works with Spotify's lyrics view**: automatically processes the current desktop layout and known fullscreen lyrics layouts.
-- **Optional Windows desktop lyrics**: keep the current line and its furigana in a transparent, draggable, always-on-top overlay while using any Windows app.
+- **Optional Windows desktop lyrics**: keep the current line and furigana on top, preview the next line below in smaller text, and soften line changes with a short transition.
 - **Local by default**: Kuroshiro + Kuromoji perform tokenization and reading conversion on your machine without contacting a lyrics service.
 - **Reliable common counters offline**: locally corrects `一人` / `1人` → `ひとり` and `二人` / `2人` → `ふたり`, while preserving terms such as `一人称` and `二人三脚`.
 - **Optional accurate-reading mode**: use synchronized romanization when available for song-specific and intentionally unusual pronunciations.
@@ -150,13 +150,13 @@ Open **Furigana for Spotify** from Spotify's sidebar. The settings page lets you
 - adjust reading size from 30% to 75%;
 - adjust opacity from 40% to 100%;
 - add up to 8 px of vertical spacing;
-- on Windows, show the current lyric and its furigana in a draggable, always-on-top desktop overlay;
+- on Windows, show the current lyric plus a smaller next-line preview in a draggable, always-on-top desktop overlay;
 - restore the display defaults with one click.
 - enable experimental online accurate readings and clear their local cache.
 
 Changes are saved locally and apply immediately.
 
-The Windows overlay uses the same line-synced lyrics that Spotify already provides to its desktop client. The current rendered line stays on your device and is neither saved nor uploaded. It does not contact an additional lyrics service unless you separately enable accurate online readings. Desktop lyrics are not currently available on macOS.
+The Windows overlay uses the same line-synced lyrics that Spotify already provides to its desktop client. The current and next rendered lines stay on your device and are neither saved nor uploaded. It does not contact an additional lyrics service unless you separately enable accurate online readings. Desktop lyrics are not currently available on macOS.
 
 ## Optional accurate readings and privacy
 
