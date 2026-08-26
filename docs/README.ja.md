@@ -19,7 +19,7 @@
   <a href="https://github.com/huiishan99/spotify-furigana/releases/latest"><img alt="最新リリース" src="https://img.shields.io/github/v/release/huiishan99/spotify-furigana?display_name=tag&amp;label=release&amp;color=00A77D" /></a>
   <a href="https://github.com/huiishan99/spotify-furigana/stargazers"><img alt="GitHub Stars" src="https://img.shields.io/github/stars/huiishan99/spotify-furigana?style=flat&amp;logo=github&amp;color=00A77D" /></a>
   <img alt="Windows and macOS" src="https://img.shields.io/badge/Desktop-Windows%20%7C%20macOS-4F46E5" />
-  <img alt="Spotify Desktop 1.2.96 tested" src="https://img.shields.io/badge/Spotify%20Desktop-1.2.96%20tested-16A34A?logo=spotify&amp;logoColor=1ED760&amp;labelColor=191414" />
+  <img alt="Spotify Desktop 1.2.97 tested" src="https://img.shields.io/badge/Spotify%20Desktop-1.2.97%20tested-16A34A?logo=spotify&amp;logoColor=1ED760&amp;labelColor=191414" />
   <img alt="Spicetify 2.44 tested" src="https://img.shields.io/badge/Spicetify-2.44%20tested-F97366" />
   <a href="../LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-4338CA" /></a>
 </p>
@@ -37,7 +37,7 @@
 </p>
 
 <p align="center">
-  <sub>実機環境から作成：Windows 11 · Spotify 1.2.96.518 · Spicetify 2.44.0。<a href="../assets/screenshots/lyrics-view.png">全体のスクリーンショットを見る。</a>歌詞、アートワーク、SpotifyのUI要素に関する権利は各権利者に帰属し、この画像は拡張機能の動作を説明する目的でのみ掲載しています。</sub>
+  <sub>実機環境から作成：Windows 11 · Spotify 1.2.97.270 · Spicetify 2.44.0。<a href="../assets/screenshots/lyrics-view.png">全体のスクリーンショットを見る。</a>歌詞、アートワーク、SpotifyのUI要素に関する権利は各権利者に帰属し、この画像は拡張機能の動作を説明する目的でのみ掲載しています。</sub>
 </p>
 
 Spotifyがすでに表示している歌詞を拡張し、漢字に標準HTMLの `<ruby>` を使ってふりがなを追加します。
@@ -53,6 +53,7 @@ Spotifyがすでに表示している歌詞を拡張し、漢字に標準HTMLの
 - **デフォルトは完全ローカル**：Kuroshiro + Kuromojiが端末上で形態素解析と読み変換を行い、歌詞サービスには接続しません。
 - **一般的な人数読みをオフライン補正**：`一人` / `1人` → `ひとり`、`二人` / `2人` → `ふたり` をローカルで補正し、`一人称` や `二人三脚` など別の読みは除外します。
 - **任意の高精度読みモード**：同期ローマ字が利用できる場合、曲固有の読み方や意図的に変化した歌唱に利用します。
+- **使用中の読みを確認**：プレーヤーバーの `ふ` ボタンにカーソルを合わせると、ローカル読み、同期された高精度読み、安全なローカルフォールバックのどれを使用中か確認できます。
 - **英語・中国語・日本語UI**：Spotifyに自動で合わせるか、アプリだけの表示言語を選べます。
 - **表示を自由に調整**：ひらがな・カタカナ・ローマ字を切り替え、サイズ、透明度、上下の間隔を調整できます。
 - **Spotifyの歌詞画面を維持**：Spotifyに表示済みの文字を拡張し、プレーヤーや歌詞タイミングは置き換えません。
@@ -69,7 +70,7 @@ Spotifyがすでに表示している歌詞を拡張し、漢字に標準HTMLの
 | コンポーネント | 確認済みバージョン |
 | --- | --- |
 | Windows | Windows 11 Pro 10.0.26200 |
-| Spotify | Microsoft Store版 1.2.96.518 |
+| Spotify | Microsoft Store版 1.2.97.270 |
 | Spicetify | 2.44.0 |
 
 ほかのバージョンでも動作する可能性はありますが、個別の検証はまだ行っていません。
@@ -99,7 +100,7 @@ powershell -ExecutionPolicy Bypass -File .\install.ps1
 インストール後は、スタートメニューから **Furigana for Spotify** を開いてください。このランチャーは24時間に最大1回、公式のFurigana Releaseを確認し、Spotifyを開く前にSpicetifyを確認して再適用します。今後のFurigana機能が自動更新され、通常の再起動後も拡張機能が維持され、対応済みのSpotify更新後も自動復旧できます。歌詞のある日本語の曲を再生して歌詞画面を開いてください。初回変換時はローカル辞書の読み込みに少し時間がかかります。
 
 > [!IMPORTANT]
-> Microsoft Storeユーザーは、通常のSpotifyショートカットではなく **Furigana for Spotify** を使用してください。生成されたランチャーは `spicetify auto` で必要なアプリディレクトリを指定します。Storeアプリを直接開くと未変更のSpotify UIになります。Spicetify 2.44の公式対応範囲はSpotify 1.2.93までです。上記のStore 1.2.96構成は本プロジェクトで実機確認済みですが、Spicetifyの公式範囲外です。
+> Microsoft Storeユーザーは、通常のSpotifyショートカットではなく **Furigana for Spotify** を使用してください。生成されたランチャーは `spicetify auto` で必要なアプリディレクトリを指定します。Storeアプリを直接開くと未変更のSpotify UIになります。Spicetify 2.44の公式対応範囲はSpotify 1.2.93までです。上記のStore 1.2.97構成は本プロジェクトで実機確認済みですが、Spicetifyの公式範囲外です。
 
 ### macOS
 
@@ -179,6 +180,7 @@ sh ./uninstall.sh
 - **Microsoft Store版を開いてもFuriganaがない：**閉じて、スタートメニューの **Furigana for Spotify** を使用してください。通常のStoreショートカットは使用しません。
 - **macOSでSpotifyまたは設定ファイルが見つからない：**Spotifyを `/Applications` または `~/Applications` にインストールし、60秒以上ログインしてから閉じ、`sh ./install.sh` を再実行してください。
 - **macOSランチャーがSpicetifyを見つけられない：**Spicetifyを再インストールし、新しいターミナルを開いてからFuriganaインストーラーを再実行し、ランチャーを作り直してください。
+- **Issueのために情報が必要：**Furiganaページで**診断情報をコピー**を選択してください。レポートにはバージョン、設定、読みの状態、セレクター数だけが含まれ、曲名、アーティスト、歌詞、アカウント情報、認証情報は含まれません。
 
 ## 既知の制限
 

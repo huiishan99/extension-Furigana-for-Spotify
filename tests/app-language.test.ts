@@ -54,6 +54,8 @@ describe("Spicetify app language", () => {
     expect(api.resolveUiLanguage("zh-CN")).toBe("zh-CN");
     expect(api.translations["zh-CN"].interfaceLanguage).toBe("界面语言");
     expect(api.translations.ja.interfaceLanguage).toBe("表示言語");
+    expect(api.translations["zh-CN"].copyDiagnostics).toBe("复制诊断信息");
+    expect(api.translations.ja.copyDiagnostics).toBe("診断情報をコピー");
     expect(api.normalizeUiLanguagePreference("invalid")).toBe("auto");
   });
 

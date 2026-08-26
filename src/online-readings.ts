@@ -290,7 +290,7 @@ async function fetchVerifiedArtistAliases(
     "&fmt=json&limit=5";
   const response = await request(url, {
     "User-Agent":
-      "FuriganaForSpotify/0.5.0 (https://github.com/huiishan99/spotify-furigana)",
+      "FuriganaForSpotify/0.5.1 (https://github.com/huiishan99/spotify-furigana)",
   });
   const aliases = getVerifiedArtistAliases(response, artist);
   if (aliases.length > 0) {

@@ -18,4 +18,6 @@ Furigana for Spotify processes lyrics already rendered by Spotify and performs r
 
 Starting with v0.5.0, the branded launcher checks this repository's public `github.com` latest-Release page at most once every 24 hours unless automatic updates were disabled during installation. It sends no Spotify data. A newer stable package is installed only after the downloaded ZIP matches the adjacent published SHA-256 file and its internal version matches the release tag. Update errors are logged locally and do not prevent the installed version from launching.
 
+Starting with v0.5.1, the settings page can copy a local troubleshooting report. It contains the Furigana and Spicetify versions, platform, UI language, display settings, online-reading state, lyric-selector counts, and annotation counts. It does not contain track titles, artists, Spotify URIs, lyrics, account data, cookies, tokens, or credentials. The report remains in Spotify's local storage until the runtime state changes and is shared only when the user explicitly copies it.
+
 Reports involving unsafe DOM insertion, network requests outside the three disclosed online-reading hosts and the documented GitHub release paths, accidental online-mode activation, release package tampering, updater verification bypasses, or installer path handling are especially useful.

@@ -209,6 +209,10 @@ try {
   throw
 }
 $stateRoot = Join-Path $env:LOCALAPPDATA "Furigana for Spotify"
+$resolvedStateRoot = [System.IO.Path]::GetFullPath($stateRoot)
+New-Item -ItemType Directory -Path $resolvedStateRoot -Force | Out-Null
+Set-Location -LiteralPath $resolvedStateRoot
+[Environment]::CurrentDirectory = $resolvedStateRoot
 $lastCheckPath = Join-Path $stateRoot "last-update-check.txt"
 $disabledMarker = Join-Path $PSScriptRoot "auto-update.disabled"
 $versionPath = Join-Path $PSScriptRoot "version.txt"

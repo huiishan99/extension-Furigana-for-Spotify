@@ -52,6 +52,8 @@ describe("Windows release installer", () => {
     expect(installer).toContain('"prefs_path", $prefsPath');
     expect(installer).toContain("& $spicetifyExecutable -n apply");
     expect(installer).toContain('@("-n", "backup", "apply")');
+    expect(installer).toContain('$StandardInput | & $Executable @Arguments');
+    expect(installer).toContain('-StandardInput "y"');
     expect(installer).toContain("if ($LASTEXITCODE -ne 0)");
     expect(installer).toContain('Arguments @("auto")');
   });
@@ -63,7 +65,18 @@ describe("Windows release installer", () => {
     expect(installer).toContain("-WindowStyle Hidden -File");
     expect(installer).toContain('$sourceLauncherScript = Join-Path $sourceApp "launcher.ps1"');
     expect(installer).toContain("$shortcut.TargetPath = $PowerShellExecutable");
+    expect(installer).toContain("$shortcut.WorkingDirectory = $WorkingDirectory");
+    expect(installer).toContain(
+      '$launcherStateRoot = Join-Path $env:LOCALAPPDATA "Furigana for Spotify"',
+    );
+    expect(installer).not.toContain(
+      "$shortcut.WorkingDirectory = Split-Path -Parent $LauncherScript",
+    );
     expect(launcher).toContain("& $spicetifyExecutable auto");
+    expect(launcher).toContain("Set-Location -LiteralPath $resolvedStateRoot");
+    expect(launcher).toContain(
+      "[Environment]::CurrentDirectory = $resolvedStateRoot",
+    );
     expect(installer).toContain('$sourceLauncherIcon = Join-Path $sourceApp "launcher.ico"');
     expect(installer).toContain('$shortcut.IconLocation = "${IconPath},0"');
     expect(installer).not.toContain('$shortcut.IconLocation = "${SpotifyExecutable},0"');

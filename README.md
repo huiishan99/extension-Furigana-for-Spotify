@@ -19,7 +19,7 @@
   <a href="https://github.com/huiishan99/spotify-furigana/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/huiishan99/spotify-furigana?display_name=tag&amp;label=release&amp;color=00A77D" /></a>
   <a href="https://github.com/huiishan99/spotify-furigana/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/huiishan99/spotify-furigana?style=flat&amp;logo=github&amp;color=00A77D" /></a>
   <img alt="Windows and macOS" src="https://img.shields.io/badge/Desktop-Windows%20%7C%20macOS-4F46E5" />
-  <img alt="Spotify Desktop 1.2.96 tested" src="https://img.shields.io/badge/Spotify%20Desktop-1.2.96%20tested-16A34A?logo=spotify&amp;logoColor=1ED760&amp;labelColor=191414" />
+  <img alt="Spotify Desktop 1.2.97 tested" src="https://img.shields.io/badge/Spotify%20Desktop-1.2.97%20tested-16A34A?logo=spotify&amp;logoColor=1ED760&amp;labelColor=191414" />
   <img alt="Spicetify 2.44 tested" src="https://img.shields.io/badge/Spicetify-2.44%20tested-F97366" />
   <a href="./LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-4338CA" /></a>
 </p>
@@ -37,7 +37,7 @@
 </p>
 
 <p align="center">
-  <sub>Animated from a real capture on Windows 11 · Spotify 1.2.96.518 · Spicetify 2.44.0. <a href="./assets/screenshots/lyrics-view.png">View the full screenshot.</a> Lyrics, artwork, and Spotify UI elements belong to their respective rights holders and appear here only to demonstrate the extension.</sub>
+  <sub>Animated from a real capture on Windows 11 · Spotify 1.2.97.270 · Spicetify 2.44.0. <a href="./assets/screenshots/lyrics-view.png">View the full screenshot.</a> Lyrics, artwork, and Spotify UI elements belong to their respective rights holders and appear here only to demonstrate the extension.</sub>
 </p>
 
 The extension enhances lyrics already displayed by Spotify and uses standard HTML `<ruby>` annotations to place readings above kanji.
@@ -53,6 +53,7 @@ The extension enhances lyrics already displayed by Spotify and uses standard HTM
 - **Local by default**: Kuroshiro + Kuromoji perform tokenization and reading conversion on your machine without contacting a lyrics service.
 - **Reliable common counters offline**: locally corrects `一人` / `1人` → `ひとり` and `二人` / `2人` → `ふたり`, while preserving terms such as `一人称` and `二人三脚`.
 - **Optional accurate-reading mode**: use synchronized romanization when available for song-specific and intentionally unusual pronunciations.
+- **Know which source is active**: hover the player-bar `ふ` button to see whether the current lyrics use local readings, accurate synchronized readings, or a safe local fallback.
 - **English, Chinese, and Japanese UI**: follow Spotify automatically or choose a language independently in the app.
 - **Choose how readings appear**: switch between hiragana, katakana, and romaji, then tune size, opacity, and vertical spacing.
 - **Keeps Spotify's lyrics view**: it enhances the text already visible in Spotify instead of replacing the player or its timing.
@@ -69,7 +70,7 @@ Verified on real hardware with:
 | Component | Verified version |
 | --- | --- |
 | Windows | Windows 11 Pro 10.0.26200 |
-| Spotify | Microsoft Store build 1.2.96.518 |
+| Spotify | Microsoft Store build 1.2.97.270 |
 | Spicetify | 2.44.0 |
 
 Other versions may work, but have not been individually verified.
@@ -99,7 +100,7 @@ The installer detects your single Spotify installation, backs up an existing Fur
 After installation, open **Furigana for Spotify** from the Start menu. This launcher checks for an official Furigana release at most once every 24 hours, then checks and reapplies Spicetify before opening Spotify. The extension therefore receives future Furigana features automatically, survives normal restarts, and can recover after supported Spotify updates. Play a Japanese song with lyrics and open the lyrics view; the local dictionary may take a moment to load on the first conversion.
 
 > [!IMPORTANT]
-> Microsoft Store users must launch **Furigana for Spotify** instead of Spotify's regular shortcut. The generated launcher runs `spicetify auto` with the required app directory; opening the Store app directly will show the unmodified Spotify UI. Spicetify 2.44 officially lists support through Spotify 1.2.93; the Store 1.2.96 setup above is real-client tested by this project but remains outside Spicetify's official range.
+> Microsoft Store users must launch **Furigana for Spotify** instead of Spotify's regular shortcut. The generated launcher runs `spicetify auto` with the required app directory; opening the Store app directly will show the unmodified Spotify UI. Spicetify 2.44 officially lists support through Spotify 1.2.93; the Store 1.2.97 setup above is real-client tested by this project but remains outside Spicetify's official range.
 
 ### macOS
 
@@ -179,6 +180,7 @@ sh ./uninstall.sh
 - **Microsoft Store Spotify opens without Furigana:** close it and use **Furigana for Spotify** from the Start menu; do not use the regular Store shortcut.
 - **macOS says Spotify or its preferences are missing:** install Spotify in `/Applications` or `~/Applications`, open it, sign in for at least 60 seconds, close it, and rerun `sh ./install.sh`.
 - **The macOS launcher cannot find Spicetify:** reinstall Spicetify, open a new Terminal window, and rerun the Furigana installer so the launcher is rebuilt.
+- **Need help with an issue:** open the Furigana app page and select **Copy diagnostics**. The report contains versions, settings, reading status, and selector counts, but never track titles, artists, lyrics, account data, or credentials.
 
 ## Known limitations
 

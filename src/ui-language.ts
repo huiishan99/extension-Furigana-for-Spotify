@@ -23,7 +23,11 @@ export type RuntimeMessageKey =
   | "enableFurigana"
   | "enabledNotice"
   | "disabledNotice"
-  | "cacheCleared";
+  | "cacheCleared"
+  | "sourceLocal"
+  | "sourceLoading"
+  | "sourceAccurate"
+  | "sourceFallback";
 
 const runtimeMessages: Record<
   UiLanguage,
@@ -45,6 +49,10 @@ const runtimeMessages: Record<
     enabledNotice: "Lyric furigana is on",
     disabledNotice: "Lyric furigana is off",
     cacheCleared: "Online reading cache cleared",
+    sourceLocal: "Local readings",
+    sourceLoading: "Checking accurate readings",
+    sourceAccurate: "Accurate readings · {count} lines",
+    sourceFallback: "Local fallback · online unavailable",
   },
   "zh-CN": {
     onlineDisabled: "在线精准读音未开启",
@@ -60,6 +68,10 @@ const runtimeMessages: Record<
     enabledNotice: "歌词振假名已开启",
     disabledNotice: "歌词振假名已关闭",
     cacheCleared: "在线缓存已清除",
+    sourceLocal: "本地读音",
+    sourceLoading: "正在查询精准读音",
+    sourceAccurate: "精准读音 · {count} 行",
+    sourceFallback: "本地回退 · 在线读音不可用",
   },
   ja: {
     onlineDisabled: "オンライン高精度読みはオフです",
@@ -76,6 +88,10 @@ const runtimeMessages: Record<
     enabledNotice: "歌詞のふりがなをオンにしました",
     disabledNotice: "歌詞のふりがなをオフにしました",
     cacheCleared: "オンライン読みのキャッシュを消去しました",
+    sourceLocal: "ローカル読み",
+    sourceLoading: "高精度読みを確認中",
+    sourceAccurate: "高精度読み · {count}行",
+    sourceFallback: "ローカル読み · オンライン利用不可",
   },
 };
 

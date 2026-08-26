@@ -9,9 +9,15 @@ import {
   setFuriganaSettings,
   SETTING_CHANGE_EVENT,
 } from "./settings";
-import { LYRIC_SELECTOR } from "./lyrics";
+import { LYRIC_SELECTOR, LYRIC_SELECTORS } from "./lyrics";
 import { PLAYBAR_FU_ICON } from "./icon";
 import { normalizeLyricText, shouldAnnotateLyric } from "./text";
+import {
+  createRuntimeDiagnostics,
+  RUNTIME_DIAGNOSTICS_EVENT,
+  RUNTIME_DIAGNOSTICS_KEY,
+  type RuntimeDiagnosticsInput,
+} from "./diagnostics";
 import {
   clearOnlineReadingCache,
   fetchOnlineReadingResult,
@@ -37,6 +43,8 @@ const STATE_ATTRIBUTE = "data-spotify-furigana";
 const STYLE_ID = "spotify-furigana-styles";
 const READY_INTERVAL_MS = 100;
 const ONLINE_REQUEST_TIMEOUT_MS = 10_000;
+
+declare const __SPOTIFY_FURIGANA_VERSION__: string;
 
 function injectStyles(): void {
   if (document.getElementById(STYLE_ID)) {
@@ -163,11 +171,18 @@ async function main(): Promise<void> {
   let enabled = settings.enabled;
   let generationCounter = 0;
   let engineUnavailable = false;
-  let scanFrame: number | undefined;
+  let scanTimer: number | undefined;
   let reportedEngineError = false;
   let activeOnlineTrackUri: string | undefined;
   let onlineReadings: OnlineReadingIndex | undefined;
   let onlineLoadGeneration = 0;
+  let onlineStatus: OnlineReadingStatus = {
+    state: "idle",
+    code: "online-disabled",
+    message: "",
+  };
+  let diagnosticsTimer: number | undefined;
+  let lastDiagnosticsSignature = "";
 
   function t(
     key: RuntimeMessageKey,
@@ -176,11 +191,93 @@ async function main(): Promise<void> {
     return translateRuntimeMessage(uiLanguage, key, values);
   }
 
+  function getReadingSourceLabel(): string {
+    if (onlineStatus.code === "loading") {
+      return t("sourceLoading");
+    }
+    if (onlineStatus.code === "matched" || onlineStatus.code === "cache-ready") {
+      return t("sourceAccurate", { count: onlineStatus.count ?? 0 });
+    }
+    if (onlineStatus.code === "unavailable") {
+      return t("sourceFallback");
+    }
+    return t("sourceLocal");
+  }
+
+  function getPlaybarLabel(): string {
+    const action = enabled ? t("disableFurigana") : t("enableFurigana");
+    return enabled ? `${action} · ${getReadingSourceLabel()}` : action;
+  }
+
+  const playbarButton = new Spicetify.Playbar.Button(
+    getPlaybarLabel(),
+    PLAYBAR_FU_ICON,
+    () => applySettings({ ...settings, enabled: !enabled }, true, true),
+    false,
+    enabled,
+  );
+
+  function createDiagnosticsInput(): RuntimeDiagnosticsInput {
+    return {
+      appVersion: __SPOTIFY_FURIGANA_VERSION__,
+      spicetifyVersion: Spicetify.Config?.version ?? "unknown",
+      platform: navigator.platform || "unknown",
+      uiLanguage,
+      enabled,
+      readingMode: settings.readingMode,
+      onlineReadings: settings.onlineReadings,
+      onlineStatus: {
+        state: onlineStatus.state,
+        code: onlineStatus.code,
+        count: onlineStatus.count,
+      },
+      trackAvailable: Boolean(getCurrentTrackMetadata()),
+      selectorCounts: LYRIC_SELECTORS.map((selector) => ({
+        selector,
+        count: document.querySelectorAll(selector).length,
+      })),
+      annotatedLines: document.querySelectorAll(
+        `[${STATE_ATTRIBUTE}="ready"]`,
+      ).length,
+      pendingLines: document.querySelectorAll(
+        `[${STATE_ATTRIBUTE}="pending"]`,
+      ).length,
+      engineState: engineUnavailable ? "error" : "ready",
+    };
+  }
+
+  function publishRuntimeDiagnostics(): void {
+    diagnosticsTimer = undefined;
+    const input = createDiagnosticsInput();
+    const signature = JSON.stringify(input);
+    if (signature === lastDiagnosticsSignature) {
+      return;
+    }
+    lastDiagnosticsSignature = signature;
+    const diagnostics = createRuntimeDiagnostics(input);
+    Spicetify.LocalStorage.set(
+      RUNTIME_DIAGNOSTICS_KEY,
+      JSON.stringify(diagnostics),
+    );
+    window.dispatchEvent(
+      new CustomEvent(RUNTIME_DIAGNOSTICS_EVENT, { detail: diagnostics }),
+    );
+  }
+
+  function scheduleRuntimeDiagnostics(): void {
+    if (diagnosticsTimer === undefined) {
+      diagnosticsTimer = window.setTimeout(publishRuntimeDiagnostics, 0);
+    }
+  }
+
   function publishOnlineStatus(status: OnlineReadingStatus): void {
+    onlineStatus = status;
     Spicetify.LocalStorage.set(ONLINE_STATUS_KEY, JSON.stringify(status));
     window.dispatchEvent(
       new CustomEvent(ONLINE_STATUS_EVENT, { detail: status }),
     );
+    playbarButton.label = getPlaybarLabel();
+    scheduleRuntimeDiagnostics();
   }
 
   function forgetLine(line: HTMLElement): void {
@@ -242,6 +339,7 @@ async function main(): Promise<void> {
           ? {
               state: "ready",
               code: "cache-ready",
+              count: Object.keys(cached.result.readings).length,
               message: t("cachedReady"),
             }
           : {
@@ -400,7 +498,7 @@ async function main(): Promise<void> {
   }
 
   function scan(): void {
-    scanFrame = undefined;
+    scanTimer = undefined;
     if (!enabled || (engineUnavailable && !onlineReadings)) {
       return;
     }
@@ -408,11 +506,12 @@ async function main(): Promise<void> {
     document
       .querySelectorAll<HTMLElement>(LYRIC_SELECTOR)
       .forEach((line) => void annotateLine(line));
+    scheduleRuntimeDiagnostics();
   }
 
   function scheduleScan(): void {
-    if (scanFrame === undefined) {
-      scanFrame = requestAnimationFrame(scan);
+    if (scanTimer === undefined) {
+      scanTimer = window.setTimeout(scan, 0);
     }
   }
 
@@ -444,9 +543,7 @@ async function main(): Promise<void> {
     setFuriganaSettings(settings);
     applyAppearance(settings);
     playbarButton.active = enabled;
-    playbarButton.label = enabled
-      ? t("disableFurigana")
-      : t("enableFurigana");
+    playbarButton.label = getPlaybarLabel();
 
     if (readingModeChanged || onlineReadingsChanged) {
       restoreAll();
@@ -479,16 +576,8 @@ async function main(): Promise<void> {
         }),
       );
     }
+    scheduleRuntimeDiagnostics();
   }
-
-  const playbarButton = new Spicetify.Playbar.Button(
-    enabled ? t("disableFurigana") : t("enableFurigana"),
-    PLAYBAR_FU_ICON,
-    () =>
-      applySettings({ ...settings, enabled: !enabled }, true, true),
-    false,
-    enabled,
-  );
 
   window.addEventListener(SETTING_CHANGE_EVENT, (event) => {
     const detail = (event as CustomEvent<{ settings?: unknown }>).detail;
@@ -499,9 +588,8 @@ async function main(): Promise<void> {
 
   window.addEventListener(UI_LANGUAGE_CHANGE_EVENT, () => {
     uiLanguage = getRuntimeUiLanguage(Spicetify.LocalStorage);
-    playbarButton.label = enabled
-      ? t("disableFurigana")
-      : t("enableFurigana");
+    playbarButton.label = getPlaybarLabel();
+    scheduleRuntimeDiagnostics();
   });
 
   window.addEventListener(ONLINE_CACHE_CLEAR_EVENT, () => {
@@ -524,7 +612,7 @@ async function main(): Promise<void> {
   });
 
   const observer = new MutationObserver(scheduleScan);
-  observer.observe(document.body, {
+  observer.observe(document.documentElement, {
     childList: true,
     characterData: true,
     subtree: true,
@@ -537,6 +625,7 @@ async function main(): Promise<void> {
   });
   void refreshOnlineReadings();
   scheduleScan();
+  scheduleRuntimeDiagnostics();
 }
 
 void main();

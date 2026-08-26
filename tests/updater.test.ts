@@ -45,6 +45,7 @@ async function runWindowsUpdateScenario(
   mode: "valid" | "checksum-failure" | "offline",
 ): Promise<{
   installRan: boolean;
+  launcherStateRoot: string;
   spicetifyLog: string;
   updateLog: string;
 }> {
@@ -90,7 +91,7 @@ async function runWindowsUpdateScenario(
       resolve(fakeBin, "spicetify.cmd"),
       [
         "@echo off",
-        'echo %*>>"%SPICETIFY_TEST_LOG%"',
+        'echo cwd=%CD% args=%*>>"%SPICETIFY_TEST_LOG%"',
         "exit /b 0",
         "",
       ].join("\r\n"),
@@ -208,7 +209,12 @@ async function runWindowsUpdateScenario(
       resolve(fakeLocalAppData, "Furigana for Spotify", "update.log"),
       "utf8",
     );
-    return { installRan, spicetifyLog, updateLog };
+    return {
+      installRan,
+      launcherStateRoot: resolve(fakeLocalAppData, "Furigana for Spotify"),
+      spicetifyLog,
+      updateLog,
+    };
   } finally {
     if (!serverClosed) {
       await new Promise<void>((resolveClose) =>
@@ -262,6 +268,9 @@ describe("release auto-updaters", () => {
       const result = await runWindowsUpdateScenario("valid");
       expect(result.installRan).toBe(true);
       expect(result.spicetifyLog).toContain("auto");
+      expect(result.spicetifyLog.toLowerCase()).toContain(
+        `cwd=${result.launcherStateRoot}`.toLowerCase(),
+      );
       expect(result.updateLog).toContain(
         "Updated automatically from 0.4.0 to 0.5.0.",
       );

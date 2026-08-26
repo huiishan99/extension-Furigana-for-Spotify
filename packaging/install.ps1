@@ -36,10 +36,15 @@ function Resolve-SpicetifyExecutable {
 function Invoke-Spicetify {
   param(
     [Parameter(Mandatory = $true)][string]$Executable,
-    [Parameter(Mandatory = $true)][string[]]$Arguments
+    [Parameter(Mandatory = $true)][string[]]$Arguments,
+    [string]$StandardInput
   )
 
-  & $Executable @Arguments
+  if ($PSBoundParameters.ContainsKey("StandardInput")) {
+    $StandardInput | & $Executable @Arguments
+  } else {
+    & $Executable @Arguments
+  }
   if ($LASTEXITCODE -ne 0) {
     throw "spicetify $($Arguments -join ' ') failed with exit code ${LASTEXITCODE}."
   }
@@ -50,11 +55,13 @@ function New-FuriganaShortcut {
     [Parameter(Mandatory = $true)][string]$Path,
     [Parameter(Mandatory = $true)][string]$PowerShellExecutable,
     [Parameter(Mandatory = $true)][string]$LauncherScript,
-    [Parameter(Mandatory = $true)][string]$IconPath
+    [Parameter(Mandatory = $true)][string]$IconPath,
+    [Parameter(Mandatory = $true)][string]$WorkingDirectory
   )
 
   $shortcutRoot = Split-Path -Parent $Path
   New-Item -ItemType Directory -Path $shortcutRoot -Force | Out-Null
+  New-Item -ItemType Directory -Path $WorkingDirectory -Force | Out-Null
 
   $shell = New-Object -ComObject WScript.Shell
   $shortcut = $null
@@ -65,7 +72,7 @@ function New-FuriganaShortcut {
     }
     $shortcut.TargetPath = $PowerShellExecutable
     $shortcut.Arguments = "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"${LauncherScript}`""
-    $shortcut.WorkingDirectory = Split-Path -Parent $LauncherScript
+    $shortcut.WorkingDirectory = $WorkingDirectory
     $shortcut.IconLocation = "${IconPath},0"
     $shortcut.Description = "Update, repair, and launch Furigana for Spotify"
     $shortcut.WindowStyle = 7
@@ -134,6 +141,7 @@ if (-not $resolvedTarget.StartsWith($expectedPrefix, [System.StringComparison]::
 $startMenuPrograms = Join-Path ([Environment]::GetFolderPath("StartMenu")) "Programs"
 $shortcutPath = Join-Path $startMenuPrograms "Furigana for Spotify.lnk"
 $legacyShortcutPath = Join-Path $startMenuPrograms "Spotify with Furigana.lnk"
+$launcherStateRoot = Join-Path $env:LOCALAPPDATA "Furigana for Spotify"
 $timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
 $backupPath = $null
 $shortcutBackupPath = $null
@@ -179,7 +187,11 @@ try {
   & $spicetifyExecutable -n apply
   if ($LASTEXITCODE -ne 0) {
     Write-Warning "The existing Spotify backup could not be applied. Refreshing the backup for the current Spotify version..."
-    Invoke-Spicetify -Executable $spicetifyExecutable -Arguments @("-n", "backup", "apply")
+    if ($storeSpotify) {
+      Invoke-Spicetify -Executable $spicetifyExecutable -Arguments @("-n", "backup", "apply") -StandardInput "y"
+    } else {
+      Invoke-Spicetify -Executable $spicetifyExecutable -Arguments @("-n", "backup", "apply")
+    }
   }
   $installedLauncherIcon = Join-Path $targetApp "launcher.ico"
   $installedLauncherScript = Join-Path $targetApp "launcher.ps1"
@@ -187,7 +199,7 @@ try {
   if (-not (Test-Path -LiteralPath $powerShellExecutable -PathType Leaf)) {
     throw "Windows PowerShell was not found at ${powerShellExecutable}."
   }
-  New-FuriganaShortcut -Path $shortcutPath -PowerShellExecutable $powerShellExecutable -LauncherScript $installedLauncherScript -IconPath $installedLauncherIcon
+  New-FuriganaShortcut -Path $shortcutPath -PowerShellExecutable $powerShellExecutable -LauncherScript $installedLauncherScript -IconPath $installedLauncherIcon -WorkingDirectory $launcherStateRoot
   if (-not $NoLaunch) {
     Invoke-Spicetify -Executable $spicetifyExecutable -Arguments @("auto")
   }

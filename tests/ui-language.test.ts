@@ -36,5 +36,11 @@ describe("runtime UI language", () => {
     expect(
       translateRuntimeMessage("ja", "matched", { count: 35 }),
     ).toBe("35行の同期読みを照合しました");
+    expect(
+      translateRuntimeMessage("zh-CN", "sourceAccurate", { count: 35 }),
+    ).toBe("精准读音 · 35 行");
+    expect(translateRuntimeMessage("en", "sourceFallback")).toBe(
+      "Local fallback · online unavailable",
+    );
   });
 });

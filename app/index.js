@@ -12,6 +12,9 @@ const settingKeys = {
 const onlineStatusKey = "spotify-furigana:online-status";
 const onlineStatusEvent = "spotify-furigana:online-status-change";
 const onlineCacheClearEvent = "spotify-furigana:online-cache-clear";
+const runtimeDiagnosticsKey = "spotify-furigana:runtime-diagnostics-v1";
+const runtimeDiagnosticsEvent =
+  "spotify-furigana:runtime-diagnostics-change";
 const uiLanguageKey = "spotify-furigana:ui-language";
 const uiLanguageChangeEvent = "spotify-furigana:ui-language-change";
 const uiLanguagePreferences = ["auto", "en", "zh-CN", "ja"];
@@ -51,6 +54,16 @@ const translations = {
     verticalGap: "Vertical gap",
     runtimeReady: "Runtime ready · Spicetify {version}",
     runtimeMissing: "Runtime API incomplete; run spicetify apply again",
+    diagnosticsTitle: "Troubleshooting diagnostics",
+    diagnosticsDescription:
+      "Copy a compact runtime report when opening an issue.",
+    diagnosticsPrivacy:
+      "The report contains versions, settings, reading status, and selector counts—never track titles, artists, lyrics, account data, or credentials.",
+    diagnosticsSummary: "{annotated} annotated lines · {source}",
+    diagnosticsWaiting: "Waiting for the lyric runtime",
+    copyDiagnostics: "Copy diagnostics",
+    diagnosticsCopied: "Diagnostics copied",
+    diagnosticsCopyFailed: "Could not copy diagnostics",
     hint:
       "You can also use the ふ button in the player bar. Changing the reading style regenerates the current lyrics; the local dictionary may take a moment to load the first time.",
     statusOnlineDisabled: "Accurate online readings are off",
@@ -98,6 +111,15 @@ const translations = {
     verticalGap: "上下间距",
     runtimeReady: "运行时正常 · Spicetify {version}",
     runtimeMissing: "运行时 API 不完整，请重新运行 spicetify apply",
+    diagnosticsTitle: "故障诊断",
+    diagnosticsDescription: "提交 Issue 时可复制一份精简的运行状态报告。",
+    diagnosticsPrivacy:
+      "报告只包含版本、设置、读音状态和选择器数量，不包含歌曲名、歌手、歌词、账号数据或凭据。",
+    diagnosticsSummary: "已注音 {annotated} 行 · {source}",
+    diagnosticsWaiting: "正在等待歌词运行时",
+    copyDiagnostics: "复制诊断信息",
+    diagnosticsCopied: "诊断信息已复制",
+    diagnosticsCopyFailed: "无法复制诊断信息",
     hint:
       "也可以点击播放器底部的 ふ 按钮快速开关。切换读音形式时会重新生成当前歌词；本地词典首次加载可能需要片刻。",
     statusOnlineDisabled: "在线精准读音未开启",
@@ -144,6 +166,16 @@ const translations = {
     verticalGap: "上下の間隔",
     runtimeReady: "ランタイム正常 · Spicetify {version}",
     runtimeMissing: "ランタイムAPIが不足しています。spicetify applyを再実行してください",
+    diagnosticsTitle: "トラブルシューティング診断",
+    diagnosticsDescription:
+      "Issueを作成するときに、簡潔な実行状態レポートをコピーできます。",
+    diagnosticsPrivacy:
+      "レポートに含まれるのはバージョン、設定、読みの状態、セレクター数だけです。曲名、アーティスト、歌詞、アカウント情報、認証情報は含まれません。",
+    diagnosticsSummary: "{annotated}行に読みを表示 · {source}",
+    diagnosticsWaiting: "歌詞ランタイムを待っています",
+    copyDiagnostics: "診断情報をコピー",
+    diagnosticsCopied: "診断情報をコピーしました",
+    diagnosticsCopyFailed: "診断情報をコピーできませんでした",
     hint:
       "プレーヤーバーの「ふ」ボタンでも切り替えられます。読みの形式を変えると現在の歌詞を再生成します。ローカル辞書の初回読み込みには少し時間がかかる場合があります。",
     statusOnlineDisabled: "オンライン高精度読みはオフです",
@@ -298,6 +330,57 @@ function readOnlineStatus() {
   return { state: "idle", message: "" };
 }
 
+function readRuntimeDiagnostics() {
+  const raw = Spicetify.LocalStorage.get(runtimeDiagnosticsKey);
+  if (!raw) {
+    return null;
+  }
+  try {
+    const parsed = JSON.parse(raw);
+    if (
+      parsed?.schemaVersion === 1 &&
+      typeof parsed.report === "string" &&
+      typeof parsed.annotatedLines === "number" &&
+      typeof parsed.onlineStatus?.state === "string"
+    ) {
+      return parsed;
+    }
+  } catch {
+    // Ignore stale or malformed diagnostics.
+  }
+  return null;
+}
+
+function formatDiagnosticsSummary(diagnostics, text) {
+  if (!diagnostics) {
+    return text.diagnosticsWaiting;
+  }
+  return formatText(text.diagnosticsSummary, {
+    annotated: diagnostics.annotatedLines,
+    source: localizeOnlineStatus(diagnostics.onlineStatus, text),
+  });
+}
+
+async function copyText(value) {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(value);
+    return;
+  }
+
+  const textarea = document.createElement("textarea");
+  textarea.value = value;
+  textarea.setAttribute("readonly", "");
+  textarea.style.position = "fixed";
+  textarea.style.opacity = "0";
+  document.body.appendChild(textarea);
+  textarea.select();
+  const copied = document.execCommand("copy");
+  textarea.remove();
+  if (!copied) {
+    throw new Error("Clipboard copy failed.");
+  }
+}
+
 function persistSettings(settings) {
   Object.entries(settings).forEach(([name, value]) => {
     Spicetify.LocalStorage.set(settingKeys[name], String(value));
@@ -333,6 +416,9 @@ function SettingSlider({ label, value, min, max, step, valueLabel, onChange }) {
 function SpotifyFuriganaApp() {
   const [settings, setSettings] = react.useState(readSettings);
   const [onlineStatus, setOnlineStatus] = react.useState(readOnlineStatus);
+  const [runtimeDiagnostics, setRuntimeDiagnostics] = react.useState(
+    readRuntimeDiagnostics,
+  );
   const [uiLanguagePreference, setUiLanguagePreference] = react.useState(
     readUiLanguagePreference,
   );
@@ -355,6 +441,19 @@ function SpotifyFuriganaApp() {
     window.dispatchEvent(new CustomEvent(uiLanguageChangeEvent));
   };
 
+  const copyRuntimeDiagnostics = async () => {
+    if (!runtimeDiagnostics?.report) {
+      Spicetify.showNotification(text.diagnosticsCopyFailed, true);
+      return;
+    }
+    try {
+      await copyText(runtimeDiagnostics.report);
+      Spicetify.showNotification(text.diagnosticsCopied);
+    } catch {
+      Spicetify.showNotification(text.diagnosticsCopyFailed, true);
+    }
+  };
+
   react.useEffect(() => {
     const syncSettings = (event) => {
       if (event.detail?.source !== "app") {
@@ -365,6 +464,18 @@ function SpotifyFuriganaApp() {
     };
     window.addEventListener(settingEvent, syncSettings);
     return () => window.removeEventListener(settingEvent, syncSettings);
+  }, []);
+
+  react.useEffect(() => {
+    const syncRuntimeDiagnostics = (event) => {
+      setRuntimeDiagnostics(event.detail ?? readRuntimeDiagnostics());
+    };
+    window.addEventListener(runtimeDiagnosticsEvent, syncRuntimeDiagnostics);
+    return () =>
+      window.removeEventListener(
+        runtimeDiagnosticsEvent,
+        syncRuntimeDiagnostics,
+      );
   }, []);
 
   react.useEffect(() => {
@@ -592,6 +703,39 @@ function SpotifyFuriganaApp() {
           valueLabel: `${settings.gap}px`,
           onChange: (gap) => updateSettings({ gap }),
         }),
+      ),
+    ),
+    react.createElement(
+      "div",
+      {
+        className:
+          "spotify-furigana-app__card spotify-furigana-app__diagnostics",
+      },
+      react.createElement(
+        "div",
+        null,
+        react.createElement("strong", null, text.diagnosticsTitle),
+        react.createElement("p", null, text.diagnosticsDescription),
+        react.createElement(
+          "p",
+          { className: "spotify-furigana-app__diagnostics-summary" },
+          formatDiagnosticsSummary(runtimeDiagnostics, text),
+        ),
+        react.createElement(
+          "p",
+          { className: "spotify-furigana-app__privacy" },
+          text.diagnosticsPrivacy,
+        ),
+      ),
+      react.createElement(
+        "button",
+        {
+          className: "spotify-furigana-app__reset",
+          type: "button",
+          disabled: !runtimeDiagnostics?.report,
+          onClick: copyRuntimeDiagnostics,
+        },
+        text.copyDiagnostics,
       ),
     ),
     react.createElement(

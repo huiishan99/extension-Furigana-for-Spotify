@@ -30,6 +30,9 @@ await build({
   platform: "browser",
   target: ["chrome120"],
   sourcemap: true,
+  define: {
+    __SPOTIFY_FURIGANA_VERSION__: JSON.stringify(version),
+  },
   alias: {
     path: "path-browserify",
   },

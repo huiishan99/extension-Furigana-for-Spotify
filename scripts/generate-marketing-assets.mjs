@@ -74,7 +74,7 @@ function socialPreviewSvg(logoHref, screenshotHref) {
   <g transform="translate(68 510)">
     <rect width="470" height="54" rx="27" fill="#0e2824" stroke="#1f6b59" />
     <circle cx="28" cy="27" r="7" fill="#00dba1" />
-    <text x="48" y="35" fill="#d9f7ee" font-family="Segoe UI, Yu Gothic UI, sans-serif" font-size="17" font-weight="700" letter-spacing="1.1">100% LOCAL  ·  NO UPLOADS  ·  SPICETIFY</text>
+    <text x="48" y="35" fill="#d9f7ee" font-family="Segoe UI, Yu Gothic UI, sans-serif" font-size="16" font-weight="700" letter-spacing="0.9">LOCAL BY DEFAULT  ·  OPT-IN ONLINE  ·  SPICETIFY</text>
   </g>
 
   <g filter="url(#shadow)">
