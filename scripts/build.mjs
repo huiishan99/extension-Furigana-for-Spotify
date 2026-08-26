@@ -59,6 +59,10 @@ await Promise.all([
     resolve(outputRoot, "launcher.ps1"),
   ),
   copyFile(
+    resolve(projectRoot, "packaging", "overlay.ps1"),
+    resolve(outputRoot, "overlay.ps1"),
+  ),
+  copyFile(
     resolve(projectRoot, "packaging", "launcher.sh"),
     resolve(outputRoot, "launcher.sh"),
   ),

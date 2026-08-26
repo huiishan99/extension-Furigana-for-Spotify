@@ -50,7 +50,7 @@ The extension enhances lyrics already displayed by Spotify and uses standard HTM
 ## Why use it
 
 - **Works with Spotify's lyrics view**: automatically processes the current desktop layout and known fullscreen lyrics layouts.
-- **Optional floating current line**: keep the lyric being sung and its furigana in a draggable card inside Spotify while browsing other pages.
+- **Optional Windows desktop lyrics**: keep the current line and its furigana in a draggable, always-on-top overlay while using any Windows app.
 - **Local by default**: Kuroshiro + Kuromoji perform tokenization and reading conversion on your machine without contacting a lyrics service.
 - **Reliable common counters offline**: locally corrects `一人` / `1人` → `ひとり` and `二人` / `2人` → `ふたり`, while preserving terms such as `一人称` and `二人三脚`.
 - **Optional accurate-reading mode**: use synchronized romanization when available for song-specific and intentionally unusual pronunciations.
@@ -100,6 +100,8 @@ The installer detects your single Spotify installation, backs up an existing Fur
 
 After installation, open **Furigana for Spotify** from the Start menu. This launcher checks for an official Furigana release at most once every 24 hours, then checks and reapplies Spicetify before opening Spotify. The extension therefore receives future Furigana features automatically, survives normal restarts, and can recover after supported Spotify updates. Play a Japanese song with lyrics and open the lyrics view; the local dictionary may take a moment to load on the first conversion.
 
+On Windows, the same launcher also starts the optional desktop-lyrics window. Turn on **Floating current lyric** in the sidebar settings to keep the synchronized line above other apps; drag it anywhere on the desktop. The overlay exits with Spotify and remembers its position for the next launch.
+
 > [!IMPORTANT]
 > Microsoft Store users must launch **Furigana for Spotify** instead of Spotify's regular shortcut. The generated launcher runs `spicetify auto` with the required app directory; opening the Store app directly will show the unmodified Spotify UI. Spicetify 2.44 officially lists support through Spotify 1.2.93; the Store 1.2.97 setup above is real-client tested by this project but remains outside Spicetify's official range.
 
@@ -148,13 +150,13 @@ Open **Furigana for Spotify** from Spotify's sidebar. The settings page lets you
 - adjust reading size from 30% to 75%;
 - adjust opacity from 40% to 100%;
 - add up to 8 px of vertical spacing;
-- show the current lyric and its furigana in a draggable floating card inside Spotify;
+- on Windows, show the current lyric and its furigana in a draggable, always-on-top desktop overlay;
 - restore the display defaults with one click.
 - enable experimental online accurate readings and clear their local cache.
 
 Changes are saved locally and apply immediately.
 
-The floating card uses the same line-synced lyrics that Spotify already provides to its desktop client and remains inside the Spotify window. It does not contact an additional lyrics service unless you separately enable accurate online readings.
+The Windows overlay uses the same line-synced lyrics that Spotify already provides to its desktop client. The current rendered line stays on your device and is neither saved nor uploaded. It does not contact an additional lyrics service unless you separately enable accurate online readings. Desktop lyrics are not currently available on macOS.
 
 ## Optional accurate readings and privacy
 

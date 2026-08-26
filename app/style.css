@@ -161,6 +161,12 @@
   transform: scale(1.04);
 }
 
+.spotify-furigana-app__toggle:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
 .spotify-furigana-app__reset {
   padding: 7px 12px;
   border: 1px solid color-mix(in srgb, var(--spice-text) 20%, transparent);

@@ -90,6 +90,7 @@ $sourceApp = Join-Path $PSScriptRoot $appName
 $sourceManifest = Join-Path $sourceApp "manifest.json"
 $sourceLauncherIcon = Join-Path $sourceApp "launcher.ico"
 $sourceLauncherScript = Join-Path $sourceApp "launcher.ps1"
+$sourceOverlayScript = Join-Path $sourceApp "overlay.ps1"
 $sourceVersionFile = Join-Path $sourceApp "version.txt"
 if (-not (Test-Path -LiteralPath $sourceManifest)) {
   throw "The release package is incomplete: ${sourceManifest} is missing."
@@ -99,6 +100,9 @@ if (-not (Test-Path -LiteralPath $sourceLauncherIcon -PathType Leaf)) {
 }
 if (-not (Test-Path -LiteralPath $sourceLauncherScript -PathType Leaf)) {
   throw "The release package is incomplete: ${sourceLauncherScript} is missing."
+}
+if (-not (Test-Path -LiteralPath $sourceOverlayScript -PathType Leaf)) {
+  throw "The release package is incomplete: ${sourceOverlayScript} is missing."
 }
 if (-not (Test-Path -LiteralPath $sourceVersionFile -PathType Leaf)) {
   throw "The release package is incomplete: ${sourceVersionFile} is missing."
@@ -195,13 +199,20 @@ try {
   }
   $installedLauncherIcon = Join-Path $targetApp "launcher.ico"
   $installedLauncherScript = Join-Path $targetApp "launcher.ps1"
+  $installedOverlayScript = Join-Path $targetApp "overlay.ps1"
+  if (-not (Test-Path -LiteralPath $installedOverlayScript -PathType Leaf)) {
+    throw "The installed desktop overlay is missing: ${installedOverlayScript}"
+  }
   $powerShellExecutable = Join-Path $env:SystemRoot "System32\WindowsPowerShell\v1.0\powershell.exe"
   if (-not (Test-Path -LiteralPath $powerShellExecutable -PathType Leaf)) {
     throw "Windows PowerShell was not found at ${powerShellExecutable}."
   }
   New-FuriganaShortcut -Path $shortcutPath -PowerShellExecutable $powerShellExecutable -LauncherScript $installedLauncherScript -IconPath $installedLauncherIcon -WorkingDirectory $launcherStateRoot
   if (-not $NoLaunch) {
-    Invoke-Spicetify -Executable $spicetifyExecutable -Arguments @("auto")
+    & $powerShellExecutable -NoProfile -ExecutionPolicy Bypass -File $installedLauncherScript -SkipUpdateCheck
+    if ($LASTEXITCODE -ne 0) {
+      throw "The Furigana launcher failed with exit code ${LASTEXITCODE}."
+    }
   }
 } catch {
   if (Test-Path -LiteralPath $targetApp) {

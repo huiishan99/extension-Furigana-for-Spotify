@@ -1,12 +1,14 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
-  clampFloatingLyricPosition,
+  createDesktopOverlayState,
   CURRENT_LYRIC_SELECTORS,
+  DESKTOP_OVERLAY_URL,
+  extractDesktopLyricSegments,
   findCurrentLyricLine,
   findTimedLyricLine,
   getSpotifyLyricsUrl,
   parseSpotifyTimedLyrics,
-  parseFloatingLyricPosition,
+  sendDesktopOverlayState,
 } from "../src/floating-lyrics";
 
 class FakeElement {
@@ -62,19 +64,51 @@ describe("floating current lyric", () => {
     ).toBe(nestedLine);
   });
 
-  it("restores valid positions and keeps dragged cards on screen", () => {
-    expect(parseFloatingLyricPosition('{"left":120,"top":80}')).toEqual({
-      left: 120,
-      top: 80,
+  it("serializes base text and ruby readings for the native overlay", () => {
+    const text = (value: string) => ({
+      nodeType: 3,
+      textContent: value,
+      childNodes: [],
     });
-    expect(parseFloatingLyricPosition("not-json")).toBeNull();
+    const element = (tagName: string, childNodes: object[]) => ({
+      nodeType: 1,
+      tagName,
+      textContent: childNodes.map((child) => (child as { textContent: string }).textContent).join(""),
+      childNodes,
+    });
+    const root = {
+      childNodes: [
+        element("ruby", [
+          text("二人"),
+          element("rp", [text("(")]),
+          element("rt", [text("ふたり")]),
+          element("rp", [text(")")]),
+        ]),
+        text("だけの空"),
+      ],
+    };
+
     expect(
-      clampFloatingLyricPosition(
-        { left: 900, top: -50 },
-        { width: 960, height: 540 },
-        { width: 400, height: 90 },
+      extractDesktopLyricSegments(
+        root as unknown as Pick<ParentNode, "childNodes">,
       ),
-    ).toEqual({ left: 548, top: 12 });
+    ).toEqual([
+      { text: "二人", reading: "ふたり" },
+      { text: "だけの空" },
+    ]);
+    expect(
+      createDesktopOverlayState(true, [
+        { text: "二人", reading: "ふたり" },
+        { text: "だけ" },
+      ]),
+    ).toEqual({
+      version: 1,
+      enabled: true,
+      segments: [
+        { text: "二人", reading: "ふたり" },
+        { text: "だけ" },
+      ],
+    });
   });
 
   it("parses Spotify line-synced lyrics and follows playback progress", () => {
@@ -103,5 +137,22 @@ describe("floating current lyric", () => {
       "https://spclient.wg.spotify.com/color-lyrics/v2/track/3L7ISJTvKx56uhsF28aJ4p?format=json&vocalRemoval=false&market=from_token",
     );
     expect(getSpotifyLyricsUrl("spotify:episode:abc")).toBeNull();
+  });
+
+  it("posts only to the fixed loopback overlay without CORS proxying", () => {
+    const fetchMock = vi.fn(() => Promise.resolve(new Response(null)));
+    vi.stubGlobal("fetch", fetchMock);
+    const state = createDesktopOverlayState(true, [
+      { text: "二人", reading: "ふたり" },
+    ]);
+
+    sendDesktopOverlayState(state);
+
+    expect(DESKTOP_OVERLAY_URL).toBe("http://127.0.0.1:43841/state");
+    expect(fetchMock).toHaveBeenCalledWith(DESKTOP_OVERLAY_URL, {
+      method: "POST",
+      mode: "no-cors",
+      body: JSON.stringify(state),
+    });
   });
 });

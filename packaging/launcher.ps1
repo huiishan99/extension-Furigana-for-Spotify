@@ -262,5 +262,23 @@ if (
   }
 }
 
+$overlayPath = Join-Path $PSScriptRoot "overlay.ps1"
+$disableOverlay = $env:SPOTIFY_FURIGANA_DISABLE_OVERLAY -eq "1"
+if (-not $testMode -and -not $disableOverlay) {
+  if (-not (Test-Path -LiteralPath $overlayPath -PathType Leaf)) {
+    Write-UpdateLog -StateRoot $stateRoot -Message "Desktop overlay was not started because overlay.ps1 is missing."
+  } elseif ($overlayPath.Contains('"')) {
+    Write-UpdateLog -StateRoot $stateRoot -Message "Desktop overlay was not started because its path contains an unsupported quote character."
+  } else {
+    try {
+      $powerShellExecutable = (Get-Process -Id $PID).Path
+      $overlayArguments = "-NoProfile -STA -ExecutionPolicy Bypass -WindowStyle Hidden -File `"${overlayPath}`""
+      Start-Process -FilePath $powerShellExecutable -ArgumentList $overlayArguments -WindowStyle Hidden | Out-Null
+    } catch {
+      Write-UpdateLog -StateRoot $stateRoot -Message "Desktop overlay could not start; Spotify will still open. $($_.Exception.Message)"
+    }
+  }
+}
+
 & $spicetifyExecutable auto
 exit $LASTEXITCODE

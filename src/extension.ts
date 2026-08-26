@@ -39,14 +39,15 @@ import {
   type UiLanguage,
 } from "./ui-language";
 import {
-  clampFloatingLyricPosition,
+  createDesktopOverlayState,
+  extractDesktopLyricSegments,
   findTimedLyricLine,
   findCurrentLyricLine,
-  FLOATING_LYRICS_ID,
-  FLOATING_LYRICS_POSITION_KEY,
   getSpotifyLyricsUrl,
-  parseFloatingLyricPosition,
   parseSpotifyTimedLyrics,
+  sendDesktopOverlayState,
+  type DesktopLyricSegment,
+  type DesktopOverlayState,
   type TimedLyricLine,
 } from "./floating-lyrics";
 
@@ -84,107 +85,6 @@ function injectStyles(): void {
 
     [data-spotify-furigana="ready"] ruby.spotify-furigana__ruby rp {
       display: none;
-    }
-
-    #${FLOATING_LYRICS_ID} {
-      position: fixed;
-      z-index: 2147483000;
-      left: 50%;
-      bottom: 108px;
-      display: grid;
-      grid-template-columns: 34px minmax(0, 1fr) 28px;
-      align-items: center;
-      width: min(680px, calc(100vw - 48px));
-      min-height: 70px;
-      padding: 14px 14px 12px;
-      border: 1px solid color-mix(in srgb, var(--spice-button, #1ed760) 58%, transparent);
-      border-radius: 18px;
-      color: var(--spice-text, #fff);
-      background: color-mix(in srgb, var(--spice-main, #121212) 88%, transparent);
-      box-shadow: 0 16px 44px rgba(0, 0, 0, 0.42);
-      backdrop-filter: blur(18px) saturate(1.18);
-      transform: translateX(-50%);
-      cursor: grab;
-      user-select: none;
-      touch-action: none;
-    }
-
-    #${FLOATING_LYRICS_ID}[hidden] {
-      display: none;
-    }
-
-    #${FLOATING_LYRICS_ID}.is-dragging {
-      cursor: grabbing;
-    }
-
-    #${FLOATING_LYRICS_ID} .spotify-furigana-floating__badge {
-      display: grid;
-      place-items: center;
-      width: 27px;
-      height: 27px;
-      border-radius: 9px;
-      color: #06120d;
-      background: var(--spice-button, #1ed760);
-      font-size: 16px;
-      font-weight: 850;
-    }
-
-    #${FLOATING_LYRICS_ID} .spotify-furigana-floating__line {
-      min-width: 0;
-      padding: 8px 10px 2px;
-      overflow: hidden;
-      font-size: clamp(20px, 2.2vw, 30px);
-      font-weight: 750;
-      line-height: 1.45;
-      text-align: center;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    #${FLOATING_LYRICS_ID} ruby.spotify-furigana__ruby {
-      ruby-align: center;
-      ruby-position: over;
-    }
-
-    #${FLOATING_LYRICS_ID} .spotify-furigana-floating__line rt {
-      color: color-mix(in srgb, currentColor 78%, var(--spice-button, #1ed760));
-      font-size: 0.48em;
-      font-weight: 600;
-      line-height: 1;
-      opacity: var(--spotify-furigana-opacity, 0.82);
-      position: relative;
-      top: calc(-1 * var(--spotify-furigana-gap, 0px));
-    }
-
-    #${FLOATING_LYRICS_ID} .spotify-furigana-floating__line rp {
-      display: none;
-    }
-
-    #${FLOATING_LYRICS_ID} .spotify-furigana-floating__close {
-      display: grid;
-      place-items: center;
-      width: 28px;
-      height: 28px;
-      padding: 0;
-      border: 0;
-      border-radius: 50%;
-      color: var(--spice-subtext, #b3b3b3);
-      background: transparent;
-      font: inherit;
-      font-size: 20px;
-      cursor: pointer;
-    }
-
-    #${FLOATING_LYRICS_ID} .spotify-furigana-floating__close:hover {
-      color: var(--spice-text, #fff);
-      background: color-mix(in srgb, var(--spice-text, #fff) 12%, transparent);
-    }
-
-    @media (max-width: 720px) {
-      #${FLOATING_LYRICS_ID} {
-        bottom: 96px;
-        width: calc(100vw - 24px);
-      }
     }
   `;
   document.head.appendChild(style);
@@ -296,9 +196,11 @@ async function main(): Promise<void> {
   };
   let diagnosticsTimer: number | undefined;
   let lastDiagnosticsSignature = "";
-  let floatingLyricsRoot: HTMLElement | undefined;
-  let floatingLyricsContent: HTMLElement | undefined;
+  const desktopOverlaySupported = /^win/iu.test(navigator.platform);
   let lastFloatingLyricsSignature = "";
+  let lastDesktopOverlayStateSignature = "";
+  let lastDesktopOverlayState: DesktopOverlayState | undefined;
+  let lastDesktopOverlaySentAt = 0;
   let floatingLyricsRenderGeneration = 0;
   let floatingLyricsLoadGeneration = 0;
   let floatingLyricsTrackUri: string | undefined;
@@ -409,165 +311,59 @@ async function main(): Promise<void> {
     lineGeneration.delete(line);
   }
 
-  function removeFloatingLyrics(): void {
-    floatingLyricsRenderGeneration += 1;
-    floatingLyricsRoot?.remove();
-    floatingLyricsRoot = undefined;
-    floatingLyricsContent = undefined;
-    lastFloatingLyricsSignature = "";
-  }
-
-  function setFloatingLyricsPosition(
-    root: HTMLElement,
-    position: { left: number; top: number },
+  function publishDesktopOverlay(
+    segments: readonly DesktopLyricSegment[] = [],
   ): void {
-    root.style.left = `${position.left}px`;
-    root.style.top = `${position.top}px`;
-    root.style.right = "auto";
-    root.style.bottom = "auto";
-    root.style.transform = "none";
-  }
-
-  function constrainFloatingLyrics(root: HTMLElement): {
-    left: number;
-    top: number;
-  } {
-    const rect = root.getBoundingClientRect();
-    return clampFloatingLyricPosition(
-      { left: rect.left, top: rect.top },
-      { width: window.innerWidth, height: window.innerHeight },
-      { width: rect.width, height: rect.height },
-    );
-  }
-
-  function beginFloatingLyricsDrag(
-    event: PointerEvent,
-    root: HTMLElement,
-  ): void {
+    const state = createDesktopOverlayState(segments.length > 0, segments);
+    const signature = JSON.stringify(state);
+    const now = Date.now();
     if (
-      event.button !== 0 ||
-      (event.target instanceof Element && event.target.closest("button"))
+      signature === lastDesktopOverlayStateSignature &&
+      now - lastDesktopOverlaySentAt < 5_000
     ) {
       return;
     }
-
-    const rect = root.getBoundingClientRect();
-    const offsetX = event.clientX - rect.left;
-    const offsetY = event.clientY - rect.top;
-    root.classList.add("is-dragging");
-    setFloatingLyricsPosition(root, { left: rect.left, top: rect.top });
-
-    const move = (moveEvent: PointerEvent): void => {
-      const position = clampFloatingLyricPosition(
-        {
-          left: moveEvent.clientX - offsetX,
-          top: moveEvent.clientY - offsetY,
-        },
-        { width: window.innerWidth, height: window.innerHeight },
-        { width: root.offsetWidth, height: root.offsetHeight },
-      );
-      setFloatingLyricsPosition(root, position);
-    };
-
-    const stop = (): void => {
-      window.removeEventListener("pointermove", move);
-      window.removeEventListener("pointerup", stop);
-      root.classList.remove("is-dragging");
-      Spicetify.LocalStorage.set(
-        FLOATING_LYRICS_POSITION_KEY,
-        JSON.stringify(constrainFloatingLyrics(root)),
-      );
-    };
-
-    window.addEventListener("pointermove", move);
-    window.addEventListener("pointerup", stop, { once: true });
-    event.preventDefault();
+    lastDesktopOverlayStateSignature = signature;
+    lastDesktopOverlayState = state;
+    lastDesktopOverlaySentAt = now;
+    sendDesktopOverlayState(state);
   }
 
-  function ensureFloatingLyrics(): HTMLElement | null {
-    if (!document.body) {
-      return null;
+  function retryDesktopOverlayState(): void {
+    if (
+      lastDesktopOverlayState &&
+      Date.now() - lastDesktopOverlaySentAt >= 5_000
+    ) {
+      lastDesktopOverlaySentAt = Date.now();
+      sendDesktopOverlayState(lastDesktopOverlayState);
     }
+  }
 
-    if (floatingLyricsRoot?.isConnected && floatingLyricsContent) {
-      const close = floatingLyricsRoot.querySelector<HTMLElement>(
-        ".spotify-furigana-floating__close",
-      );
-      floatingLyricsRoot.title = t("moveFloatingLyrics");
-      close?.setAttribute("aria-label", t("hideFloatingLyrics"));
-      return floatingLyricsRoot;
-    }
-
-    const root = document.createElement("aside");
-    root.id = FLOATING_LYRICS_ID;
-    root.hidden = true;
-    root.title = t("moveFloatingLyrics");
-    root.setAttribute("data-spotify-furigana-floating", "ready");
-    root.setAttribute("aria-live", "polite");
-    root.setAttribute("aria-atomic", "true");
-
-    const badge = document.createElement("span");
-    badge.className = "spotify-furigana-floating__badge";
-    badge.textContent = "ふ";
-    badge.setAttribute("aria-hidden", "true");
-
-    const content = document.createElement("div");
-    content.className = "spotify-furigana-floating__line";
-    content.dir = "auto";
-
-    const close = document.createElement("button");
-    close.className = "spotify-furigana-floating__close";
-    close.type = "button";
-    close.textContent = "×";
-    close.setAttribute("aria-label", t("hideFloatingLyrics"));
-    close.addEventListener("click", () => {
-      applySettings({ ...settings, floatingLyrics: false }, false, true);
-    });
-
-    root.append(badge, content, close);
-    root.addEventListener("pointerdown", (event) =>
-      beginFloatingLyricsDrag(event, root),
-    );
-    document.body.appendChild(root);
-
-    const savedPosition = parseFloatingLyricPosition(
-      Spicetify.LocalStorage.get(FLOATING_LYRICS_POSITION_KEY),
-    );
-    if (savedPosition) {
-      setFloatingLyricsPosition(root, savedPosition);
-    }
-
-    floatingLyricsRoot = root;
-    floatingLyricsContent = content;
+  function hideDesktopOverlay(): void {
+    floatingLyricsRenderGeneration += 1;
     lastFloatingLyricsSignature = "";
-    return root;
+    publishDesktopOverlay();
   }
 
-  async function renderTimedFloatingLyrics(
-    sourceValue: string,
-    root: HTMLElement,
-  ): Promise<void> {
-    if (!floatingLyricsContent) {
-      return;
-    }
-
+  async function renderDesktopLyricSource(sourceValue: string): Promise<void> {
     const source = normalizeLyricText(sourceValue);
     const sungRomanization =
       activeOnlineTrackUri === Spicetify.Player.data?.item?.uri
         ? findOnlineRomanization(onlineReadings, source)
         : undefined;
-    const signature = `timed:${settings.readingMode}:${sungRomanization ?? ""}:${source}`;
+    const signature = `source:${settings.readingMode}:${sungRomanization ?? ""}:${source}`;
     if (signature === lastFloatingLyricsSignature) {
-      root.hidden = false;
       return;
     }
 
     const generation = ++floatingLyricsRenderGeneration;
     lastFloatingLyricsSignature = signature;
-    floatingLyricsContent.textContent = source;
-    root.hidden = false;
-
+    if (!source) {
+      publishDesktopOverlay();
+      return;
+    }
     if (!shouldAnnotateLyric(source)) {
+      publishDesktopOverlay([{ text: source }]);
       return;
     }
 
@@ -582,63 +378,54 @@ async function main(): Promise<void> {
         generation !== floatingLyricsRenderGeneration ||
         !enabled ||
         !settings.floatingLyrics ||
-        !floatingLyricsContent?.isConnected
+        !desktopOverlaySupported
       ) {
         return;
       }
-      floatingLyricsContent.replaceChildren(
-        createSafeFuriganaFragment(converted, document),
-      );
+      const fragment = createSafeFuriganaFragment(converted, document);
+      publishDesktopOverlay(extractDesktopLyricSegments(fragment));
     } catch (error: unknown) {
+      if (generation === floatingLyricsRenderGeneration) {
+        publishDesktopOverlay([{ text: source }]);
+      }
       console.warn(
-        "[Furigana for Spotify] Floating lyric conversion failed.",
+        "[Furigana for Spotify] Desktop lyric conversion failed.",
         error,
       );
     }
   }
 
   function updateFloatingLyrics(): void {
-    if (!enabled || !settings.floatingLyrics) {
-      removeFloatingLyrics();
+    if (!enabled || !settings.floatingLyrics || !desktopOverlaySupported) {
+      hideDesktopOverlay();
       return;
     }
-
-    const root = ensureFloatingLyrics();
-    if (!root || !floatingLyricsContent) {
-      return;
-    }
+    retryDesktopOverlayState();
 
     const currentLine = findCurrentLyricLine(document);
-    if (currentLine) {
+    if (currentLine?.querySelector("ruby.spotify-furigana__ruby")) {
       const signature = `dom:${currentLine.innerHTML}`;
       if (signature !== lastFloatingLyricsSignature) {
         floatingLyricsRenderGeneration += 1;
-        floatingLyricsContent.replaceChildren(
-          ...Array.from(currentLine.childNodes, (node) => node.cloneNode(true)),
-        );
         lastFloatingLyricsSignature = signature;
+        publishDesktopOverlay(extractDesktopLyricSegments(currentLine));
       }
-
-      root.hidden = false;
-    } else {
-      const currentTimedLine = findTimedLyricLine(
-        floatingTimedLyrics,
-        Spicetify.Player.getProgress(),
-      );
-      if (!currentTimedLine) {
-        root.hidden = true;
-        lastFloatingLyricsSignature = "";
-        return;
-      }
-      void renderTimedFloatingLyrics(currentTimedLine.words, root);
+      return;
+    }
+    if (currentLine) {
+      void renderDesktopLyricSource(currentLine.textContent ?? "");
+      return;
     }
 
-    const savedPosition = parseFloatingLyricPosition(
-      Spicetify.LocalStorage.get(FLOATING_LYRICS_POSITION_KEY),
+    const currentTimedLine = findTimedLyricLine(
+      floatingTimedLyrics,
+      Spicetify.Player.getProgress(),
     );
-    if (savedPosition) {
-      setFloatingLyricsPosition(root, constrainFloatingLyrics(root));
+    if (!currentTimedLine) {
+      hideDesktopOverlay();
+      return;
     }
+    void renderDesktopLyricSource(currentTimedLine.words);
   }
 
   async function refreshFloatingTimedLyrics(): Promise<void> {
@@ -649,7 +436,7 @@ async function main(): Promise<void> {
     floatingTimedLyrics = [];
     lastFloatingLyricsSignature = "";
 
-    if (!enabled || !settings.floatingLyrics || !url) {
+    if (!enabled || !settings.floatingLyrics || !desktopOverlaySupported || !url) {
       updateFloatingLyrics();
       return;
     }
@@ -677,7 +464,7 @@ async function main(): Promise<void> {
   }
 
   function syncFloatingLyricsTimer(): void {
-    const shouldRun = enabled && settings.floatingLyrics;
+    const shouldRun = enabled && settings.floatingLyrics && desktopOverlaySupported;
     if (shouldRun && floatingLyricsTimer === undefined) {
       floatingLyricsTimer = window.setInterval(
         updateFloatingLyrics,
@@ -694,15 +481,12 @@ async function main(): Promise<void> {
       floatingLyricsLoadGeneration += 1;
       floatingTimedLyrics = [];
       floatingLyricsTrackUri = undefined;
-      removeFloatingLyrics();
+      hideDesktopOverlay();
     }
   }
 
   function hideFloatingLyricsUntilAvailable(): void {
-    if (floatingLyricsRoot) {
-      floatingLyricsRoot.hidden = true;
-    }
-    lastFloatingLyricsSignature = "";
+    hideDesktopOverlay();
   }
 
   function restoreLine(line: HTMLElement): void {
@@ -1018,12 +802,6 @@ async function main(): Promise<void> {
   window.addEventListener(UI_LANGUAGE_CHANGE_EVENT, () => {
     uiLanguage = getRuntimeUiLanguage(Spicetify.LocalStorage);
     playbarButton.label = getPlaybarLabel();
-    if (floatingLyricsRoot?.isConnected) {
-      floatingLyricsRoot.title = t("moveFloatingLyrics");
-      floatingLyricsRoot
-        .querySelector(".spotify-furigana-floating__close")
-        ?.setAttribute("aria-label", t("hideFloatingLyrics"));
-    }
     scheduleRuntimeDiagnostics();
   });
 

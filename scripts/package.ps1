@@ -55,6 +55,7 @@ foreach ($requiredPath in @(
   (Join-Path $builtApp "manifest.json"),
   (Join-Path $builtApp "extension.js"),
   (Join-Path $builtApp "launcher.ps1"),
+  (Join-Path $builtApp "overlay.ps1"),
   (Join-Path $builtApp "launcher.sh"),
   (Join-Path $builtApp "version.txt"),
   (Join-Path $packagingRoot "install.ps1"),

@@ -1,5 +1,6 @@
 const react = Spicetify.React;
 const settingEvent = "spotify-furigana:setting-change";
+const desktopOverlaySupported = /^win/iu.test(navigator.platform ?? "");
 
 const settingKeys = {
   enabled: "spotify-furigana:enabled",
@@ -39,7 +40,8 @@ const translations = {
     turnOn: "Turn on",
     floatingTitle: "Floating current lyric",
     floatingDescription:
-      "Keep the currently sung line and its furigana in a draggable card inside Spotify.",
+      "Keep the currently sung line and its furigana in a draggable, always-on-top Windows desktop overlay.",
+    windowsOnly: "Windows only",
     onlineTitle: "Accurate online readings (experimental)",
     onlineDescription:
       "Use synchronized romanization for special sung pronunciations, with automatic fallback to local readings.",
@@ -99,7 +101,8 @@ const translations = {
     turnOn: "开启",
     floatingTitle: "当前句悬浮显示",
     floatingDescription:
-      "把正在唱的歌词及其 Furigana 放进 Spotify 窗口内可拖动的悬浮卡片。",
+      "把正在唱的歌词及其 Furigana 显示在 Windows 桌面上可拖动、跨应用置顶的悬浮窗中。",
+    windowsOnly: "仅支持 Windows",
     onlineTitle: "在线精准读音（实验性）",
     onlineDescription:
       "使用同步罗马音修正歌词中的特殊唱法；无结果时自动回退本地词典。",
@@ -157,7 +160,8 @@ const translations = {
     turnOn: "オンにする",
     floatingTitle: "現在の歌詞をフローティング表示",
     floatingDescription:
-      "再生中の一行とふりがなを、Spotify上の移動できるカードに表示します。",
+      "再生中の一行とふりがなを、Windowsデスクトップ上の移動可能な最前面ウィンドウに表示します。",
+    windowsOnly: "Windowsのみ",
     onlineTitle: "オンライン高精度読み（実験的）",
     onlineDescription:
       "同期ローマ字で歌唱特有の読みを補正し、見つからない場合はローカル読みに戻します。",
@@ -595,11 +599,16 @@ function SpotifyFuriganaApp() {
         {
           className: "spotify-furigana-app__toggle",
           type: "button",
+          disabled: !desktopOverlaySupported,
           "aria-pressed": settings.floatingLyrics,
           onClick: () =>
             updateSettings({ floatingLyrics: !settings.floatingLyrics }),
         },
-        settings.floatingLyrics ? text.turnOff : text.turnOn,
+        desktopOverlaySupported
+          ? settings.floatingLyrics
+            ? text.turnOff
+            : text.turnOn
+          : text.windowsOnly,
       ),
     ),
     react.createElement(

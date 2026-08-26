@@ -1,8 +1,6 @@
 import { LYRIC_SELECTOR } from "./lyrics";
 
-export const FLOATING_LYRICS_ID = "spotify-furigana-floating-lyrics";
-export const FLOATING_LYRICS_POSITION_KEY =
-  "spotify-furigana:floating-lyrics-position-v1";
+export const DESKTOP_OVERLAY_URL = "http://127.0.0.1:43841/state";
 
 export const CURRENT_LYRIC_SELECTORS = [
   ".lyrics-lyricsContent-active .lyrics-lyricsContent-text",
@@ -12,14 +10,20 @@ export const CURRENT_LYRIC_SELECTORS = [
   ".lyrics-lyricsContent-active",
 ] as const;
 
-export interface FloatingLyricPosition {
-  left: number;
-  top: number;
-}
-
 export interface TimedLyricLine {
   startTimeMs: number;
   words: string;
+}
+
+export interface DesktopLyricSegment {
+  text: string;
+  reading?: string;
+}
+
+export interface DesktopOverlayState {
+  version: 1;
+  enabled: boolean;
+  segments: DesktopLyricSegment[];
 }
 
 function asRecord(value: unknown): Record<string, unknown> | null {
@@ -102,35 +106,102 @@ export function findCurrentLyricLine(
   return null;
 }
 
-export function parseFloatingLyricPosition(
-  value: string | null,
-): FloatingLyricPosition | null {
-  if (!value) {
-    return null;
+function appendSegment(
+  segments: DesktopLyricSegment[],
+  text: string,
+  reading?: string,
+): void {
+  const normalizedText = text.replace(/\s+/gu, " ");
+  const normalizedReading = reading?.replace(/\s+/gu, " ").trim();
+  if (!normalizedText) {
+    return;
   }
 
-  try {
-    const parsed = JSON.parse(value) as Partial<FloatingLyricPosition>;
-    if (Number.isFinite(parsed.left) && Number.isFinite(parsed.top)) {
-      return { left: Number(parsed.left), top: Number(parsed.top) };
-    }
-  } catch {
-    // Ignore stale or malformed local positions.
+  const previous = segments.at(-1);
+  if (!normalizedReading && previous && !previous.reading) {
+    previous.text += normalizedText;
+    return;
   }
-
-  return null;
+  segments.push(
+    normalizedReading
+      ? { text: normalizedText, reading: normalizedReading }
+      : { text: normalizedText },
+  );
 }
 
-export function clampFloatingLyricPosition(
-  position: FloatingLyricPosition,
-  viewport: { width: number; height: number },
-  card: { width: number; height: number },
-  margin = 12,
-): FloatingLyricPosition {
-  const maxLeft = Math.max(margin, viewport.width - card.width - margin);
-  const maxTop = Math.max(margin, viewport.height - card.height - margin);
-  return {
-    left: Math.min(maxLeft, Math.max(margin, position.left)),
-    top: Math.min(maxTop, Math.max(margin, position.top)),
+function elementTagName(node: Node): string {
+  return "tagName" in node
+    ? String((node as Element).tagName).toLowerCase()
+    : "";
+}
+
+export function extractDesktopLyricSegments(
+  root: Pick<ParentNode, "childNodes">,
+): DesktopLyricSegment[] {
+  const segments: DesktopLyricSegment[] = [];
+
+  const visit = (node: Node): void => {
+    if (node.nodeType === 3) {
+      appendSegment(segments, node.textContent ?? "");
+      return;
+    }
+
+    const tagName = elementTagName(node);
+    if (tagName === "rt" || tagName === "rp") {
+      return;
+    }
+    if (tagName === "ruby") {
+      let base = "";
+      let reading = "";
+      for (const child of node.childNodes) {
+        const childTagName = elementTagName(child);
+        if (childTagName === "rt") {
+          reading += child.textContent ?? "";
+        } else if (childTagName !== "rp") {
+          base += child.textContent ?? "";
+        }
+      }
+      appendSegment(segments, base, reading);
+      return;
+    }
+
+    for (const child of node.childNodes) {
+      visit(child);
+    }
   };
+
+  for (const child of root.childNodes) {
+    visit(child);
+  }
+  return segments;
+}
+
+export function createDesktopOverlayState(
+  enabled: boolean,
+  segments: readonly DesktopLyricSegment[] = [],
+): DesktopOverlayState {
+  return {
+    version: 1,
+    enabled,
+    segments: enabled
+      ? segments
+          .slice(0, 128)
+          .map(({ text, reading }) => ({
+            text: text.slice(0, 512),
+            ...(reading ? { reading: reading.slice(0, 512) } : {}),
+          }))
+          .filter(({ text }) => text.length > 0)
+      : [],
+  };
+}
+
+export function sendDesktopOverlayState(state: DesktopOverlayState): void {
+  void fetch(DESKTOP_OVERLAY_URL, {
+    method: "POST",
+    mode: "no-cors",
+    body: JSON.stringify(state),
+  }).catch(() => {
+    // The native overlay is optional and may not be running when Spotify's
+    // regular shortcut is used. Retry on the next state change without noise.
+  });
 }

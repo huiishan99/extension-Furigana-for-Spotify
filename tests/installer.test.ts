@@ -20,12 +20,14 @@ const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 describe("Windows release installer", () => {
   let installer = "";
   let launcher = "";
+  let overlay = "";
   let uninstaller = "";
 
   beforeAll(async () => {
-    [installer, launcher, uninstaller] = await Promise.all([
+    [installer, launcher, overlay, uninstaller] = await Promise.all([
       readFile(resolve(projectRoot, "packaging", "install.ps1"), "utf8"),
       readFile(resolve(projectRoot, "packaging", "launcher.ps1"), "utf8"),
+      readFile(resolve(projectRoot, "packaging", "overlay.ps1"), "utf8"),
       readFile(resolve(projectRoot, "packaging", "uninstall.ps1"), "utf8"),
     ]);
   });
@@ -55,7 +57,7 @@ describe("Windows release installer", () => {
     expect(installer).toContain('$StandardInput | & $Executable @Arguments');
     expect(installer).toContain('-StandardInput "y"');
     expect(installer).toContain("if ($LASTEXITCODE -ne 0)");
-    expect(installer).toContain('Arguments @("auto")');
+    expect(installer).toContain("-File $installedLauncherScript -SkipUpdateCheck");
   });
 
   it("installs a self-repairing launcher and removes it on uninstall", () => {
@@ -73,6 +75,9 @@ describe("Windows release installer", () => {
       "$shortcut.WorkingDirectory = Split-Path -Parent $LauncherScript",
     );
     expect(launcher).toContain("& $spicetifyExecutable auto");
+    expect(launcher).toContain('$overlayPath = Join-Path $PSScriptRoot "overlay.ps1"');
+    expect(launcher).toContain("Start-Process -FilePath $powerShellExecutable");
+    expect(launcher).toContain("-WindowStyle Hidden");
     expect(launcher).toContain("Set-Location -LiteralPath $resolvedStateRoot");
     expect(launcher).toContain(
       "[Environment]::CurrentDirectory = $resolvedStateRoot",
@@ -84,6 +89,18 @@ describe("Windows release installer", () => {
     expect(uninstaller).toContain("Spotify with Furigana.lnk");
     expect(uninstaller).toContain("removedShortcutPath");
     expect(uninstaller).toContain("automatic-update state and log");
+  });
+
+  it("runs the floating lyric as a loopback-only Windows desktop overlay", () => {
+    expect(installer).toContain('$sourceOverlayScript = Join-Path $sourceApp "overlay.ps1"');
+    expect(overlay).toContain("[Net.IPAddress]::Loopback");
+    expect(overlay).toContain("https://xpui\\.app\\.spotify\\.com");
+    expect(overlay).toContain("FuriganaForSpotifyDesktopOverlay");
+    expect(overlay).toContain("$window.Topmost = $true");
+    expect(overlay).toContain("$window.ShowInTaskbar = $false");
+    expect(overlay).toContain('Join-Path $stateRoot "overlay-position.json"');
+    expect(overlay).toContain('Get-Process -Name "Spotify"');
+    expect(overlay).not.toContain("IPAddress]::Any");
   });
 });
 
