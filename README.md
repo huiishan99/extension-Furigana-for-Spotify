@@ -37,7 +37,7 @@
 > If one chorus feels easier to follow, consider [giving the project a star](https://github.com/huiishan99/spotify-furigana). It helps more Japanese learners find it.
 
 > [!NOTE]
-> **New in v0.6.0:** Windows desktop lyrics are now transparent and show both the current line and a smaller preview of the next line, with a softer transition between them.
+> **New in v0.6.0:** Windows desktop lyrics are transparent and show both the current line and a smaller preview below. When the lyric changes, that preview now rises and grows into the current line instead of flashing into place.
 
 ## Japanese lyrics, made readable
 
@@ -59,7 +59,7 @@ No separate player and no copying lyrics into another app. Open Spotify's lyrics
 ## Built to stay out of the way
 
 - **Read inside Spotify**: furigana follows the lyrics you already use, including known fullscreen layouts.
-- **Keep the next line in sight**: on Windows, a draggable transparent overlay stays above other apps, with the current line large and the next line ready underneath.
+- **Keep the next line in sight**: on Windows, a draggable transparent overlay stays above other apps, with the current line large and the next line ready underneath—then smoothly sliding upward when its turn comes.
 - **Start private and offline**: the bundled local dictionary handles readings on your computer; no Spotify login or credentials are needed.
 - **Use the intended pronunciation when available**: optional synchronized readings improve song-specific, uncommon, and deliberately altered readings, with a safe local fallback.
 - **Handle everyday Japanese better**: common counters such as `一人` / `1人` → `ひとり` and `二人` / `2人` → `ふたり` are corrected locally without changing words such as `一人称` or `二人三脚`.

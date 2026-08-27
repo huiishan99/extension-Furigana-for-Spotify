@@ -102,6 +102,11 @@ describe("Windows release installer", () => {
     expect(overlay).toContain("$base.Effect = [Windows.Media.Effects.DropShadowEffect]");
     expect(overlay).toContain("$nextLyricsPanel");
     expect(overlay).toContain("[Windows.Media.Animation.DoubleAnimation]");
+    expect(overlay).toContain("$promoteFromNext");
+    expect(overlay).toContain("$currentGrowX");
+    expect(overlay).toContain("$outgoingLyricsPanel");
+    expect(overlay).toContain("$lastRenderedStateSignature");
+    expect(overlay).not.toContain("$contentStack.BeginAnimation");
     expect(overlay).toContain('Get-ClampedStateNumber');
     expect(overlay).toContain('-Name "currentFontSize"');
     expect(overlay).toContain('-Name "nextFontSize"');

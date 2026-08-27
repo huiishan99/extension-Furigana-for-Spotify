@@ -32,6 +32,11 @@ $spotifySeen = $false
 $processCheckTick = 0
 $suppressed = $false
 $lastCurrentLyricSignature = ""
+$lastNextLyricSignature = ""
+$lastRenderedStateSignature = ""
+$lastCurrentSegments = @()
+$lastCurrentFontSize = 30
+$lastNextFontSize = 20
 
 function New-Brush {
   param([Parameter(Mandatory = $true)][string]$Color)
@@ -188,6 +193,22 @@ function Get-ClampedStateNumber {
   return [Math]::Min($Maximum, [Math]::Max($Minimum, $value))
 }
 
+function Get-SegmentTextSignature {
+  param([Parameter(Mandatory = $true)][object[]]$Segments)
+
+  $textValues = @()
+  foreach ($segment in $Segments) {
+    if ($null -eq $segment) {
+      continue
+    }
+    $textValue = Get-StateProperty -State $segment -Name "text"
+    if ($textValue -is [string]) {
+      $textValues += $textValue
+    }
+  }
+  return [string]::Join([char]0x001F, $textValues)
+}
+
 function Set-SegmentPanel {
   param(
     [Parameter(Mandatory = $true)][Windows.Controls.StackPanel]$Panel,
@@ -266,7 +287,63 @@ function Set-LyricSegments {
     [Parameter(Mandatory = $true)][double]$NextFontSize
   )
 
-  $currentSignature = $Segments | ConvertTo-Json -Compress -Depth 4
+  $renderSignature = [ordered]@{
+    segments = $Segments
+    nextSegments = $NextSegments
+    currentFontSize = $CurrentFontSize
+    nextFontSize = $NextFontSize
+  } | ConvertTo-Json -Compress -Depth 5
+  if ($renderSignature -eq $lastRenderedStateSignature) {
+    return
+  }
+
+  $currentSignature = Get-SegmentTextSignature -Segments $Segments
+  $nextSignature = Get-SegmentTextSignature -Segments $NextSegments
+  $currentChanged = $currentSignature -ne $lastCurrentLyricSignature
+  $hadPreviousCurrent = @($lastCurrentSegments).Count -gt 0
+  $promoteFromNext = `
+    $currentChanged -and `
+    $hadPreviousCurrent -and `
+    -not [string]::IsNullOrEmpty($lastNextLyricSignature) -and `
+    $lastNextLyricSignature -eq $currentSignature
+  $previousNextFontSize = $lastNextFontSize
+
+  $viewbox.BeginAnimation([Windows.UIElement]::OpacityProperty, $null)
+  $currentTranslate.BeginAnimation([Windows.Media.TranslateTransform]::YProperty, $null)
+  $currentScale.BeginAnimation([Windows.Media.ScaleTransform]::ScaleXProperty, $null)
+  $currentScale.BeginAnimation([Windows.Media.ScaleTransform]::ScaleYProperty, $null)
+  $nextViewbox.BeginAnimation([Windows.UIElement]::OpacityProperty, $null)
+  $nextTranslate.BeginAnimation([Windows.Media.TranslateTransform]::YProperty, $null)
+  $outgoingViewbox.BeginAnimation([Windows.UIElement]::OpacityProperty, $null)
+  $outgoingTranslate.BeginAnimation([Windows.Media.TranslateTransform]::YProperty, $null)
+  $viewbox.Opacity = 1
+  $currentTranslate.Y = 0
+  $currentScale.ScaleX = 1
+  $currentScale.ScaleY = 1
+  $nextViewbox.Opacity = 0.72
+  $nextTranslate.Y = 0
+  $outgoingViewbox.Opacity = 1
+  $outgoingTranslate.Y = 0
+
+  $outgoingCount = 0
+  if ($currentChanged -and $hadPreviousCurrent) {
+    $outgoingCount = Set-SegmentPanel `
+      -Panel $outgoingLyricsPanel `
+      -Segments $lastCurrentSegments `
+      -BaseFontSize $lastCurrentFontSize `
+      -ReadingFontSize ([Math]::Round($lastCurrentFontSize * 0.47, 1)) `
+      -BaseColor "#FFF8F2" `
+      -ReadingColor "#E6B8F5D7"
+    $outgoingViewbox.Visibility = if ($outgoingCount -gt 0) {
+      [Windows.Visibility]::Visible
+    } else {
+      [Windows.Visibility]::Collapsed
+    }
+  } else {
+    $outgoingViewbox.Visibility = [Windows.Visibility]::Collapsed
+    $outgoingLyricsPanel.Children.Clear()
+  }
+
   $currentReadingFontSize = [Math]::Round($CurrentFontSize * 0.47, 1)
   $nextReadingFontSize = [Math]::Round($NextFontSize * 0.5, 1)
   $currentCount = Set-SegmentPanel `
@@ -289,18 +366,66 @@ function Set-LyricSegments {
     [Windows.Visibility]::Collapsed
   }
 
+  $script:lastRenderedStateSignature = $renderSignature
+  $script:lastCurrentLyricSignature = $currentSignature
+  $script:lastNextLyricSignature = $nextSignature
+  $script:lastCurrentSegments = @($Segments)
+  $script:lastCurrentFontSize = $CurrentFontSize
+  $script:lastNextFontSize = $NextFontSize
+
   if ($currentCount -eq 0 -or $suppressed) {
     $window.Hide()
   } else {
     $window.Topmost = $true
     $window.Show()
-    if ($currentSignature -ne $lastCurrentLyricSignature) {
-      $script:lastCurrentLyricSignature = $currentSignature
-      $duration = [Windows.Duration]::new([TimeSpan]::FromMilliseconds(180))
-      $fade = [Windows.Media.Animation.DoubleAnimation]::new(0.3, 1, $duration)
-      $slide = [Windows.Media.Animation.DoubleAnimation]::new(6, 0, $duration)
-      $contentStack.BeginAnimation([Windows.UIElement]::OpacityProperty, $fade)
-      $contentTranslate.BeginAnimation([Windows.Media.TranslateTransform]::YProperty, $slide)
+    if ($currentChanged) {
+      $duration = [Windows.Duration]::new([TimeSpan]::FromMilliseconds(360))
+      $ease = [Windows.Media.Animation.CubicEase]::new()
+      $ease.EasingMode = [Windows.Media.Animation.EasingMode]::EaseOut
+      $startY = if ($promoteFromNext) { 64 } else { 18 }
+      $startScale = if ($promoteFromNext) {
+        [Math]::Min(1, [Math]::Max(0.45, $previousNextFontSize / $CurrentFontSize))
+      } else {
+        0.94
+      }
+      $startOpacity = if ($promoteFromNext) { 0.72 } else { 0.12 }
+
+      $currentFade = [Windows.Media.Animation.DoubleAnimation]::new($startOpacity, 1, $duration)
+      $currentSlide = [Windows.Media.Animation.DoubleAnimation]::new($startY, 0, $duration)
+      $currentGrowX = [Windows.Media.Animation.DoubleAnimation]::new($startScale, 1, $duration)
+      $currentGrowY = [Windows.Media.Animation.DoubleAnimation]::new($startScale, 1, $duration)
+      $currentSlide.EasingFunction = $ease
+      $currentGrowX.EasingFunction = $ease
+      $currentGrowY.EasingFunction = $ease
+      $viewbox.BeginAnimation([Windows.UIElement]::OpacityProperty, $currentFade)
+      $currentTranslate.BeginAnimation([Windows.Media.TranslateTransform]::YProperty, $currentSlide)
+      $currentScale.BeginAnimation([Windows.Media.ScaleTransform]::ScaleXProperty, $currentGrowX)
+      $currentScale.BeginAnimation([Windows.Media.ScaleTransform]::ScaleYProperty, $currentGrowY)
+
+      if ($nextCount -gt 0) {
+        $nextDuration = [Windows.Duration]::new([TimeSpan]::FromMilliseconds(240))
+        $nextFade = [Windows.Media.Animation.DoubleAnimation]::new(0, 0.72, $nextDuration)
+        $nextSlide = [Windows.Media.Animation.DoubleAnimation]::new(18, 0, $nextDuration)
+        $nextFade.BeginTime = [TimeSpan]::FromMilliseconds(100)
+        $nextSlide.BeginTime = [TimeSpan]::FromMilliseconds(100)
+        $nextSlide.EasingFunction = $ease
+        $nextViewbox.BeginAnimation([Windows.UIElement]::OpacityProperty, $nextFade)
+        $nextTranslate.BeginAnimation([Windows.Media.TranslateTransform]::YProperty, $nextSlide)
+      }
+
+      if ($outgoingCount -gt 0) {
+        $outgoingDuration = [Windows.Duration]::new([TimeSpan]::FromMilliseconds(260))
+        $outgoingFade = [Windows.Media.Animation.DoubleAnimation]::new(1, 0, $outgoingDuration)
+        $outgoingSlide = [Windows.Media.Animation.DoubleAnimation]::new(0, -28, $outgoingDuration)
+        $outgoingSlide.EasingFunction = $ease
+        $hideOutgoing = {
+          $outgoingViewbox.Visibility = [Windows.Visibility]::Collapsed
+          $outgoingLyricsPanel.Children.Clear()
+        }.GetNewClosure()
+        $outgoingFade.add_Completed($hideOutgoing)
+        $outgoingViewbox.BeginAnimation([Windows.UIElement]::OpacityProperty, $outgoingFade)
+        $outgoingTranslate.BeginAnimation([Windows.Media.TranslateTransform]::YProperty, $outgoingSlide)
+      }
     }
   }
 }
@@ -317,6 +442,11 @@ function Apply-OverlayState {
     if ($stateEnabled -isnot [bool] -or -not $stateEnabled) {
       $script:suppressed = $false
       $script:lastCurrentLyricSignature = ""
+      $script:lastNextLyricSignature = ""
+      $script:lastRenderedStateSignature = ""
+      $script:lastCurrentSegments = @()
+      $script:lastCurrentFontSize = 30
+      $script:lastNextFontSize = 20
       $window.Hide()
       return
     }
@@ -399,8 +529,6 @@ try {
   $contentStack.Orientation = [Windows.Controls.Orientation]::Vertical
   $contentStack.HorizontalAlignment = [Windows.HorizontalAlignment]::Stretch
   $contentStack.VerticalAlignment = [Windows.VerticalAlignment]::Center
-  $contentTranslate = [Windows.Media.TranslateTransform]::new(0, 0)
-  $contentStack.RenderTransform = $contentTranslate
 
   $viewbox = [Windows.Controls.Viewbox]::new()
   $viewbox.Height = 78
@@ -409,6 +537,13 @@ try {
   $viewbox.HorizontalAlignment = [Windows.HorizontalAlignment]::Center
   $viewbox.VerticalAlignment = [Windows.VerticalAlignment]::Center
   $viewbox.Margin = [Windows.Thickness]::new(4, 0, 4, 0)
+  $viewbox.RenderTransformOrigin = [Windows.Point]::new(0.5, 0.5)
+  $currentTransform = [Windows.Media.TransformGroup]::new()
+  $currentScale = [Windows.Media.ScaleTransform]::new(1, 1)
+  $currentTranslate = [Windows.Media.TranslateTransform]::new(0, 0)
+  [void]$currentTransform.Children.Add($currentScale)
+  [void]$currentTransform.Children.Add($currentTranslate)
+  $viewbox.RenderTransform = $currentTransform
   $lyricsPanel = [Windows.Controls.StackPanel]::new()
   $lyricsPanel.Orientation = [Windows.Controls.Orientation]::Horizontal
   $lyricsPanel.HorizontalAlignment = [Windows.HorizontalAlignment]::Center
@@ -422,6 +557,8 @@ try {
   $nextViewbox.VerticalAlignment = [Windows.VerticalAlignment]::Center
   $nextViewbox.Margin = [Windows.Thickness]::new(4, -4, 4, 0)
   $nextViewbox.Opacity = 0.72
+  $nextTranslate = [Windows.Media.TranslateTransform]::new(0, 0)
+  $nextViewbox.RenderTransform = $nextTranslate
   $nextLyricsPanel = [Windows.Controls.StackPanel]::new()
   $nextLyricsPanel.Orientation = [Windows.Controls.Orientation]::Horizontal
   $nextLyricsPanel.HorizontalAlignment = [Windows.HorizontalAlignment]::Center
@@ -429,7 +566,30 @@ try {
 
   [void]$contentStack.Children.Add($viewbox)
   [void]$contentStack.Children.Add($nextViewbox)
-  [Windows.Controls.Grid]::SetColumn($contentStack, 1)
+
+  $outgoingViewbox = [Windows.Controls.Viewbox]::new()
+  $outgoingViewbox.Height = 78
+  $outgoingViewbox.Stretch = [Windows.Media.Stretch]::Uniform
+  $outgoingViewbox.StretchDirection = [Windows.Controls.StretchDirection]::DownOnly
+  $outgoingViewbox.HorizontalAlignment = [Windows.HorizontalAlignment]::Center
+  $outgoingViewbox.VerticalAlignment = [Windows.VerticalAlignment]::Top
+  $outgoingViewbox.Margin = [Windows.Thickness]::new(4, 0, 4, 0)
+  $outgoingViewbox.Visibility = [Windows.Visibility]::Collapsed
+  $outgoingViewbox.IsHitTestVisible = $false
+  $outgoingTranslate = [Windows.Media.TranslateTransform]::new(0, 0)
+  $outgoingViewbox.RenderTransform = $outgoingTranslate
+  $outgoingLyricsPanel = [Windows.Controls.StackPanel]::new()
+  $outgoingLyricsPanel.Orientation = [Windows.Controls.Orientation]::Horizontal
+  $outgoingLyricsPanel.HorizontalAlignment = [Windows.HorizontalAlignment]::Center
+  $outgoingViewbox.Child = $outgoingLyricsPanel
+
+  $lyricsStage = [Windows.Controls.Grid]::new()
+  $lyricsStage.Height = 122
+  $lyricsStage.HorizontalAlignment = [Windows.HorizontalAlignment]::Stretch
+  $lyricsStage.VerticalAlignment = [Windows.VerticalAlignment]::Center
+  [void]$lyricsStage.Children.Add($contentStack)
+  [void]$lyricsStage.Children.Add($outgoingViewbox)
+  [Windows.Controls.Grid]::SetColumn($lyricsStage, 1)
 
   $closeButton = [Windows.Controls.Button]::new()
   $closeButton.Content = [string][char]0x00D7
@@ -460,7 +620,7 @@ try {
   })
 
   [void]$grid.Children.Add($badge)
-  [void]$grid.Children.Add($contentStack)
+  [void]$grid.Children.Add($lyricsStage)
   [void]$grid.Children.Add($closeButton)
   $card.Child = $grid
   $window.Content = $card

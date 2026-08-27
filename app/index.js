@@ -42,7 +42,7 @@ const translations = {
     turnOn: "Turn on",
     floatingTitle: "Floating current lyric",
     floatingDescription:
-      "Show the current line with a smaller preview of the next line in a transparent, draggable Windows desktop overlay.",
+      "Show the current line and a smaller next-line preview in a transparent Windows overlay. The preview slides upward when the lyric changes.",
     floatingCurrentSize: "Current line size",
     floatingNextSize: "Next line size",
     windowsOnly: "Windows only",
@@ -105,7 +105,7 @@ const translations = {
     turnOn: "开启",
     floatingTitle: "当前句悬浮显示",
     floatingDescription:
-      "在透明、可拖动的 Windows 桌面悬浮窗中显示当前句，并在下方提前显示较小的下一句。",
+      "在透明、可拖动的 Windows 桌面悬浮窗中显示当前句与较小的下一句；换句时，下方预览会自然向上滑动。",
     floatingCurrentSize: "当前句字号",
     floatingNextSize: "下一句字号",
     windowsOnly: "仅支持 Windows",
@@ -166,7 +166,7 @@ const translations = {
     turnOn: "オンにする",
     floatingTitle: "現在の歌詞をフローティング表示",
     floatingDescription:
-      "現在の一行と、その下に小さくした次の一行を、透明で移動可能なWindowsデスクトップウィンドウに表示します。",
+      "現在行と小さな次行プレビューを透明なWindowsオーバーレイに表示し、切り替え時は次行が自然に上へスライドします。",
     floatingCurrentSize: "現在行のサイズ",
     floatingNextSize: "次行のサイズ",
     windowsOnly: "Windowsのみ",
