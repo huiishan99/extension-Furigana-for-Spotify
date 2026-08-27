@@ -6,6 +6,7 @@ import {
   mkdir,
   mkdtemp,
   readFile,
+  realpath,
   rm,
   writeFile,
 } from "node:fs/promises";
@@ -46,6 +47,7 @@ async function runWindowsUpdateScenario(
 ): Promise<{
   installRan: boolean;
   launcherStateRoot: string;
+  spicetifyWorkingDirectory: string;
   spicetifyLog: string;
   updateLog: string;
 }> {
@@ -209,9 +211,22 @@ async function runWindowsUpdateScenario(
       resolve(fakeLocalAppData, "Furigana for Spotify", "update.log"),
       "utf8",
     );
+    const spicetifyWorkingDirectoryFromLog = spicetifyLog.match(
+      /^cwd=(.+) args=auto\r?$/m,
+    )?.[1];
+    if (!spicetifyWorkingDirectoryFromLog) {
+      throw new Error(
+        `Could not read the Spicetify working directory: ${spicetifyLog}`,
+      );
+    }
+    const [launcherStateRoot, spicetifyWorkingDirectory] = await Promise.all([
+      realpath(resolve(fakeLocalAppData, "Furigana for Spotify")),
+      realpath(spicetifyWorkingDirectoryFromLog),
+    ]);
     return {
       installRan,
-      launcherStateRoot: resolve(fakeLocalAppData, "Furigana for Spotify"),
+      launcherStateRoot,
+      spicetifyWorkingDirectory,
       spicetifyLog,
       updateLog,
     };
@@ -270,8 +285,8 @@ describe("release auto-updaters", () => {
       const result = await runWindowsUpdateScenario("valid");
       expect(result.installRan).toBe(true);
       expect(result.spicetifyLog).toContain("auto");
-      expect(result.spicetifyLog.toLowerCase()).toContain(
-        `cwd=${result.launcherStateRoot}`.toLowerCase(),
+      expect(result.spicetifyWorkingDirectory.toLowerCase()).toBe(
+        result.launcherStateRoot.toLowerCase(),
       );
       expect(result.updateLog).toContain(
         "Updated automatically from 0.4.0 to 0.5.0.",
