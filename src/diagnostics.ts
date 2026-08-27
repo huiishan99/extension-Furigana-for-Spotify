@@ -21,6 +21,8 @@ export interface RuntimeDiagnosticsInput {
   readingMode: ReadingMode;
   onlineReadings: boolean;
   floatingLyrics: boolean;
+  floatingCurrentSize: number;
+  floatingNextSize: number;
   onlineStatus: Pick<OnlineReadingStatus, "state" | "code" | "count">;
   trackAvailable: boolean;
   selectorCounts: LyricSelectorCount[];
@@ -61,6 +63,8 @@ export function formatRuntimeDiagnostics(
     `Reading mode: ${diagnostics.readingMode}`,
     `Online readings enabled: ${yesNo(diagnostics.onlineReadings)}`,
     `Floating lyrics enabled: ${yesNo(diagnostics.floatingLyrics)}`,
+    `Floating current line size: ${diagnostics.floatingCurrentSize}px`,
+    `Floating next line size: ${diagnostics.floatingNextSize}px`,
     `Online status: ${diagnostics.onlineStatus.code ?? diagnostics.onlineStatus.state}${onlineCount}`,
     `Spotify track available: ${yesNo(diagnostics.trackAvailable)}`,
     `Reading engine: ${diagnostics.engineState}`,

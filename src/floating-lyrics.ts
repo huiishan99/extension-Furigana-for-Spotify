@@ -1,4 +1,5 @@
 import { LYRIC_SELECTOR } from "./lyrics";
+import { DEFAULT_SETTINGS, SETTING_RANGES } from "./settings";
 
 export const DESKTOP_OVERLAY_URL = "http://127.0.0.1:43841/state";
 
@@ -25,6 +26,8 @@ export interface DesktopOverlayState {
   enabled: boolean;
   segments: DesktopLyricSegment[];
   nextSegments: DesktopLyricSegment[];
+  currentFontSize: number;
+  nextFontSize: number;
 }
 
 export interface TimedLyricContext {
@@ -199,6 +202,8 @@ export function createDesktopOverlayState(
   enabled: boolean,
   segments: readonly DesktopLyricSegment[] = [],
   nextSegments: readonly DesktopLyricSegment[] = [],
+  currentFontSize = DEFAULT_SETTINGS.floatingCurrentSize,
+  nextFontSize = DEFAULT_SETTINGS.floatingNextSize,
 ): DesktopOverlayState {
   const sanitize = (
     values: readonly DesktopLyricSegment[],
@@ -210,12 +215,30 @@ export function createDesktopOverlayState(
         ...(reading ? { reading: reading.slice(0, 512) } : {}),
       }))
       .filter(({ text }) => text.length > 0);
+  const normalizeFontSize = (
+    value: number,
+    fallback: number,
+    range: { min: number; max: number },
+  ): number =>
+    Number.isFinite(value)
+      ? Math.min(range.max, Math.max(range.min, value))
+      : fallback;
 
   return {
     version: 1,
     enabled,
     segments: enabled ? sanitize(segments) : [],
     nextSegments: enabled ? sanitize(nextSegments) : [],
+    currentFontSize: normalizeFontSize(
+      currentFontSize,
+      DEFAULT_SETTINGS.floatingCurrentSize,
+      SETTING_RANGES.floatingCurrentSize,
+    ),
+    nextFontSize: normalizeFontSize(
+      nextFontSize,
+      DEFAULT_SETTINGS.floatingNextSize,
+      SETTING_RANGES.floatingNextSize,
+    ),
   };
 }
 

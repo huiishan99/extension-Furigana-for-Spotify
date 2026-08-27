@@ -114,6 +114,14 @@ describe("floating current lyric", () => {
         { text: "だけ" },
       ],
       nextSegments: [{ text: "次", reading: "つぎ" }],
+      currentFontSize: 30,
+      nextFontSize: 20,
+    });
+    expect(
+      createDesktopOverlayState(true, [], [], 99, -1),
+    ).toMatchObject({
+      currentFontSize: 44,
+      nextFontSize: 12,
     });
   });
 

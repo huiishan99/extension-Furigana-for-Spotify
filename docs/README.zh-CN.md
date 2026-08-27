@@ -156,7 +156,7 @@ macOS 使用 `SPOTIFY_FURIGANA_DISABLE_AUTO_UPDATE=1 sh ./install.sh`。以后�
 - 将注音字号调整为 30%–75%；
 - 将透明度调整为 40%–100%；
 - 增加最多 8 px 的上下间距；
-- 在 Windows 桌面悬浮窗中显示当前歌词及其 Furigana，并在下方预览较小的下一句；
+- 在 Windows 桌面悬浮窗中显示当前歌词及其 Furigana，在下方预览下一句，并分别调整两行字号；
 - 一键恢复默认显示。
 - 开启实验性的在线精准读音，并随时清除其本地缓存。
 

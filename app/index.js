@@ -10,6 +10,8 @@ const settingKeys = {
   gap: "spotify-furigana:gap",
   onlineReadings: "spotify-furigana:online-readings-enabled",
   floatingLyrics: "spotify-furigana:floating-lyrics-enabled",
+  floatingCurrentSize: "spotify-furigana:floating-current-size",
+  floatingNextSize: "spotify-furigana:floating-next-size",
 };
 const onlineStatusKey = "spotify-furigana:online-status";
 const onlineStatusEvent = "spotify-furigana:online-status-change";
@@ -41,6 +43,8 @@ const translations = {
     floatingTitle: "Floating current lyric",
     floatingDescription:
       "Show the current line with a smaller preview of the next line in a transparent, draggable Windows desktop overlay.",
+    floatingCurrentSize: "Current line size",
+    floatingNextSize: "Next line size",
     windowsOnly: "Windows only",
     onlineTitle: "Accurate online readings (experimental)",
     onlineDescription:
@@ -102,6 +106,8 @@ const translations = {
     floatingTitle: "当前句悬浮显示",
     floatingDescription:
       "在透明、可拖动的 Windows 桌面悬浮窗中显示当前句，并在下方提前显示较小的下一句。",
+    floatingCurrentSize: "当前句字号",
+    floatingNextSize: "下一句字号",
     windowsOnly: "仅支持 Windows",
     onlineTitle: "在线精准读音（实验性）",
     onlineDescription:
@@ -161,6 +167,8 @@ const translations = {
     floatingTitle: "現在の歌詞をフローティング表示",
     floatingDescription:
       "現在の一行と、その下に小さくした次の一行を、透明で移動可能なWindowsデスクトップウィンドウに表示します。",
+    floatingCurrentSize: "現在行のサイズ",
+    floatingNextSize: "次行のサイズ",
     windowsOnly: "Windowsのみ",
     onlineTitle: "オンライン高精度読み（実験的）",
     onlineDescription:
@@ -287,6 +295,8 @@ const defaultSettings = {
   gap: 0,
   onlineReadings: false,
   floatingLyrics: false,
+  floatingCurrentSize: 30,
+  floatingNextSize: 20,
 };
 
 const readingModes = ["hiragana", "katakana", "romaji"];
@@ -322,6 +332,18 @@ function readSettings() {
       Spicetify.LocalStorage.get(settingKeys.onlineReadings) === "true",
     floatingLyrics:
       Spicetify.LocalStorage.get(settingKeys.floatingLyrics) === "true",
+    floatingCurrentSize: readNumber(
+      settingKeys.floatingCurrentSize,
+      defaultSettings.floatingCurrentSize,
+      26,
+      44,
+    ),
+    floatingNextSize: readNumber(
+      settingKeys.floatingNextSize,
+      defaultSettings.floatingNextSize,
+      12,
+      24,
+    ),
   };
 }
 
@@ -409,7 +431,16 @@ function persistSettings(settings) {
   );
 }
 
-function SettingSlider({ label, value, min, max, step, valueLabel, onChange }) {
+function SettingSlider({
+  label,
+  value,
+  min,
+  max,
+  step,
+  valueLabel,
+  disabled = false,
+  onChange,
+}) {
   return react.createElement(
     "label",
     { className: "spotify-furigana-app__slider" },
@@ -425,6 +456,7 @@ function SettingSlider({ label, value, min, max, step, valueLabel, onChange }) {
       max,
       step,
       value,
+      disabled,
       onChange: (event) => onChange(Number(event.target.value)),
     }),
   );
@@ -590,25 +622,57 @@ function SpotifyFuriganaApp() {
       },
       react.createElement(
         "div",
-        null,
-        react.createElement("strong", null, text.floatingTitle),
-        react.createElement("p", null, text.floatingDescription),
+        { className: "spotify-furigana-app__floating-header" },
+        react.createElement(
+          "div",
+          null,
+          react.createElement("strong", null, text.floatingTitle),
+          react.createElement("p", null, text.floatingDescription),
+        ),
+        react.createElement(
+          "button",
+          {
+            className: "spotify-furigana-app__toggle",
+            type: "button",
+            disabled: !desktopOverlaySupported,
+            "aria-pressed": settings.floatingLyrics,
+            onClick: () =>
+              updateSettings({ floatingLyrics: !settings.floatingLyrics }),
+          },
+          desktopOverlaySupported
+            ? settings.floatingLyrics
+              ? text.turnOff
+              : text.turnOn
+            : text.windowsOnly,
+        ),
       ),
       react.createElement(
-        "button",
+        "div",
         {
-          className: "spotify-furigana-app__toggle",
-          type: "button",
-          disabled: !desktopOverlaySupported,
-          "aria-pressed": settings.floatingLyrics,
-          onClick: () =>
-            updateSettings({ floatingLyrics: !settings.floatingLyrics }),
+          className: "spotify-furigana-app__floating-sliders",
         },
-        desktopOverlaySupported
-          ? settings.floatingLyrics
-            ? text.turnOff
-            : text.turnOn
-          : text.windowsOnly,
+        react.createElement(SettingSlider, {
+          label: text.floatingCurrentSize,
+          value: settings.floatingCurrentSize,
+          min: 26,
+          max: 44,
+          step: 1,
+          valueLabel: `${settings.floatingCurrentSize}px`,
+          disabled: !desktopOverlaySupported,
+          onChange: (floatingCurrentSize) =>
+            updateSettings({ floatingCurrentSize }),
+        }),
+        react.createElement(SettingSlider, {
+          label: text.floatingNextSize,
+          value: settings.floatingNextSize,
+          min: 12,
+          max: 24,
+          step: 1,
+          valueLabel: `${settings.floatingNextSize}px`,
+          disabled: !desktopOverlaySupported,
+          onChange: (floatingNextSize) =>
+            updateSettings({ floatingNextSize }),
+        }),
       ),
     ),
     react.createElement(

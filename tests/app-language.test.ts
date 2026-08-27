@@ -18,6 +18,11 @@ interface AppLanguageTestApi {
     "zh-CN": Record<string, string>;
     ja: Record<string, string>;
   };
+  readSettings(): {
+    floatingCurrentSize: number;
+    floatingNextSize: number;
+  };
+  settingKeys: Record<string, string>;
 }
 
 async function loadAppLanguageApi(
@@ -37,7 +42,7 @@ async function loadAppLanguageApi(
     },
   };
   return runInNewContext(
-    `${source}\n;({ normalizeUiLanguagePreference, resolveUiLanguage, localizeOnlineStatus, translations })`,
+    `${source}\n;({ normalizeUiLanguagePreference, resolveUiLanguage, localizeOnlineStatus, translations, readSettings, settingKeys })`,
     context,
   ) as AppLanguageTestApi;
 }
@@ -64,6 +69,21 @@ describe("Spicetify app language", () => {
     const englishKeys = Object.keys(api.translations.en).sort();
     expect(Object.keys(api.translations["zh-CN"]).sort()).toEqual(englishKeys);
     expect(Object.keys(api.translations.ja).sort()).toEqual(englishKeys);
+  });
+
+  it("exposes independent default sizes for both floating lyric lines", async () => {
+    const api = await loadAppLanguageApi("en", ["en-US"]);
+
+    expect(api.readSettings()).toMatchObject({
+      floatingCurrentSize: 30,
+      floatingNextSize: 20,
+    });
+    expect(api.settingKeys.floatingCurrentSize).toBe(
+      "spotify-furigana:floating-current-size",
+    );
+    expect(api.settingKeys.floatingNextSize).toBe(
+      "spotify-furigana:floating-next-size",
+    );
   });
 
   it("localizes status codes instead of reusing a stored Chinese message", async () => {

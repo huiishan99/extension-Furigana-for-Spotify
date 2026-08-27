@@ -254,6 +254,8 @@ async function main(): Promise<void> {
       readingMode: settings.readingMode,
       onlineReadings: settings.onlineReadings,
       floatingLyrics: settings.floatingLyrics,
+      floatingCurrentSize: settings.floatingCurrentSize,
+      floatingNextSize: settings.floatingNextSize,
       onlineStatus: {
         state: onlineStatus.state,
         code: onlineStatus.code,
@@ -323,6 +325,8 @@ async function main(): Promise<void> {
       segments.length > 0,
       segments,
       nextSegments,
+      settings.floatingCurrentSize,
+      settings.floatingNextSize,
     );
     const signature = JSON.stringify(state);
     const now = Date.now();
@@ -794,13 +798,17 @@ async function main(): Promise<void> {
       nextSettings.onlineReadings !== settings.onlineReadings;
     const floatingLyricsChanged =
       nextSettings.floatingLyrics !== settings.floatingLyrics;
+    const floatingTypographyChanged =
+      nextSettings.floatingCurrentSize !== settings.floatingCurrentSize ||
+      nextSettings.floatingNextSize !== settings.floatingNextSize;
 
     if (
       !enabledChanged &&
       !readingModeChanged &&
       !appearanceChanged &&
       !onlineReadingsChanged &&
-      !floatingLyricsChanged
+      !floatingLyricsChanged &&
+      !floatingTypographyChanged
     ) {
       return;
     }
@@ -814,6 +822,9 @@ async function main(): Promise<void> {
 
     if (readingModeChanged || onlineReadingsChanged) {
       restoreAll();
+      lastFloatingLyricsSignature = "";
+    }
+    if (floatingTypographyChanged) {
       lastFloatingLyricsSignature = "";
     }
 
@@ -833,7 +844,11 @@ async function main(): Promise<void> {
 
     if (floatingLyricsChanged || enabledChanged) {
       syncFloatingLyricsTimer();
-    } else if (readingModeChanged || onlineReadingsChanged) {
+    } else if (
+      readingModeChanged ||
+      onlineReadingsChanged ||
+      floatingTypographyChanged
+    ) {
       updateFloatingLyrics();
     }
 

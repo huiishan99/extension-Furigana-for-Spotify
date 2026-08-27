@@ -51,7 +51,32 @@
 }
 
 .spotify-furigana-app__floating {
+  align-items: stretch;
+  flex-direction: column;
   margin-top: 18px;
+}
+
+.spotify-furigana-app__floating-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.spotify-furigana-app__floating-header > div {
+  max-width: 560px;
+}
+
+.spotify-furigana-app__floating-sliders {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  padding-top: 18px;
+  border-top: 1px solid color-mix(in srgb, var(--spice-text) 10%, transparent);
+}
+
+.spotify-furigana-app__floating-sliders .spotify-furigana-app__slider-heading strong {
+  font-size: 13px;
 }
 
 .spotify-furigana-app__language {
@@ -248,6 +273,11 @@
   cursor: pointer;
 }
 
+.spotify-furigana-app__slider input:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
 .spotify-furigana-app__status {
   display: flex;
   align-items: center;
@@ -281,6 +311,15 @@
 
 @media (max-width: 720px) {
   .spotify-furigana-app__sliders {
+    grid-template-columns: 1fr;
+  }
+
+  .spotify-furigana-app__floating-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .spotify-furigana-app__floating-sliders {
     grid-template-columns: 1fr;
   }
 

@@ -156,7 +156,7 @@ Open **Furigana for Spotify** from Spotify's sidebar. The settings page lets you
 - adjust reading size from 30% to 75%;
 - adjust opacity from 40% to 100%;
 - add up to 8 px of vertical spacing;
-- on Windows, show the current lyric plus a smaller next-line preview in a draggable, always-on-top desktop overlay;
+- on Windows, show the current lyric plus a smaller next-line preview in a draggable, always-on-top desktop overlay, with independent size controls for both lines;
 - restore the display defaults with one click.
 - enable experimental online accurate readings and clear their local cache.
 

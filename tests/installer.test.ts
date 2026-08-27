@@ -102,6 +102,9 @@ describe("Windows release installer", () => {
     expect(overlay).toContain("$base.Effect = [Windows.Media.Effects.DropShadowEffect]");
     expect(overlay).toContain("$nextLyricsPanel");
     expect(overlay).toContain("[Windows.Media.Animation.DoubleAnimation]");
+    expect(overlay).toContain('Get-ClampedStateNumber');
+    expect(overlay).toContain('-Name "currentFontSize"');
+    expect(overlay).toContain('-Name "nextFontSize"');
     expect(overlay).toContain('Join-Path $stateRoot "overlay-position.json"');
     expect(overlay).toContain('Get-Process -Name "Spotify"');
     expect(overlay).not.toContain("IPAddress]::Any");

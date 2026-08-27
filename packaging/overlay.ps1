@@ -161,6 +161,33 @@ function Get-StateProperty {
   return $null
 }
 
+function Get-ClampedStateNumber {
+  param(
+    [Parameter(Mandatory = $true)][object]$State,
+    [Parameter(Mandatory = $true)][string]$Name,
+    [Parameter(Mandatory = $true)][double]$Default,
+    [Parameter(Mandatory = $true)][double]$Minimum,
+    [Parameter(Mandatory = $true)][double]$Maximum
+  )
+
+  $rawValue = Get-StateProperty -State $State -Name $Name
+  if ($null -eq $rawValue) {
+    return $Default
+  }
+  try {
+    $value = [Convert]::ToDouble(
+      $rawValue,
+      [Globalization.CultureInfo]::InvariantCulture
+    )
+  } catch {
+    return $Default
+  }
+  if ([double]::IsNaN($value) -or [double]::IsInfinity($value)) {
+    return $Default
+  }
+  return [Math]::Min($Maximum, [Math]::Max($Minimum, $value))
+}
+
 function Set-SegmentPanel {
   param(
     [Parameter(Mandatory = $true)][Windows.Controls.StackPanel]$Panel,
@@ -234,22 +261,26 @@ function Set-SegmentPanel {
 function Set-LyricSegments {
   param(
     [Parameter(Mandatory = $true)][object[]]$Segments,
-    [Parameter(Mandatory = $true)][object[]]$NextSegments
+    [Parameter(Mandatory = $true)][object[]]$NextSegments,
+    [Parameter(Mandatory = $true)][double]$CurrentFontSize,
+    [Parameter(Mandatory = $true)][double]$NextFontSize
   )
 
   $currentSignature = $Segments | ConvertTo-Json -Compress -Depth 4
+  $currentReadingFontSize = [Math]::Round($CurrentFontSize * 0.47, 1)
+  $nextReadingFontSize = [Math]::Round($NextFontSize * 0.5, 1)
   $currentCount = Set-SegmentPanel `
     -Panel $lyricsPanel `
     -Segments $Segments `
-    -BaseFontSize 30 `
-    -ReadingFontSize 14 `
+    -BaseFontSize $CurrentFontSize `
+    -ReadingFontSize $currentReadingFontSize `
     -BaseColor "#FFF8F2" `
     -ReadingColor "#E6B8F5D7"
   $nextCount = Set-SegmentPanel `
     -Panel $nextLyricsPanel `
     -Segments $NextSegments `
-    -BaseFontSize 20 `
-    -ReadingFontSize 10 `
+    -BaseFontSize $NextFontSize `
+    -ReadingFontSize $nextReadingFontSize `
     -BaseColor "#BFF8F2" `
     -ReadingColor "#A8B8F5D7"
   $nextViewbox.Visibility = if ($nextCount -gt 0) {
@@ -299,7 +330,23 @@ function Apply-OverlayState {
     } elseif ($nextSegments -isnot [array]) {
       $nextSegments = @($nextSegments)
     }
-    Set-LyricSegments -Segments $segments -NextSegments $nextSegments
+    $currentFontSize = Get-ClampedStateNumber `
+      -State $state `
+      -Name "currentFontSize" `
+      -Default 30 `
+      -Minimum 26 `
+      -Maximum 44
+    $nextFontSize = Get-ClampedStateNumber `
+      -State $state `
+      -Name "nextFontSize" `
+      -Default 20 `
+      -Minimum 12 `
+      -Maximum 24
+    Set-LyricSegments `
+      -Segments $segments `
+      -NextSegments $nextSegments `
+      -CurrentFontSize $currentFontSize `
+      -NextFontSize $nextFontSize
   } catch {
     # Ignore malformed loopback messages without writing lyric content to disk.
   }

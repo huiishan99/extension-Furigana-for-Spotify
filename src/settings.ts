@@ -5,6 +5,9 @@ export const FURIGANA_OPACITY_KEY = "spotify-furigana:opacity";
 export const FURIGANA_GAP_KEY = "spotify-furigana:gap";
 export const ONLINE_READINGS_KEY = "spotify-furigana:online-readings-enabled";
 export const FLOATING_LYRICS_KEY = "spotify-furigana:floating-lyrics-enabled";
+export const FLOATING_CURRENT_SIZE_KEY =
+  "spotify-furigana:floating-current-size";
+export const FLOATING_NEXT_SIZE_KEY = "spotify-furigana:floating-next-size";
 export const SETTING_CHANGE_EVENT = "spotify-furigana:setting-change";
 
 export const READING_MODES = ["hiragana", "katakana", "romaji"] as const;
@@ -19,6 +22,8 @@ export interface FuriganaSettings {
   gap: number;
   onlineReadings: boolean;
   floatingLyrics: boolean;
+  floatingCurrentSize: number;
+  floatingNextSize: number;
 }
 
 export const DEFAULT_SETTINGS: Readonly<FuriganaSettings> = {
@@ -29,12 +34,16 @@ export const DEFAULT_SETTINGS: Readonly<FuriganaSettings> = {
   gap: 0,
   onlineReadings: false,
   floatingLyrics: false,
+  floatingCurrentSize: 30,
+  floatingNextSize: 20,
 };
 
 export const SETTING_RANGES = {
   size: { min: 0.3, max: 0.75 },
   opacity: { min: 0.4, max: 1 },
   gap: { min: 0, max: 8 },
+  floatingCurrentSize: { min: 26, max: 44 },
+  floatingNextSize: { min: 12, max: 24 },
 } as const;
 
 function clamp(value: number, min: number, max: number): number {
@@ -94,6 +103,16 @@ export function getFuriganaSettings(): FuriganaSettings {
       Spicetify.LocalStorage.get(ONLINE_READINGS_KEY) === "true",
     floatingLyrics:
       Spicetify.LocalStorage.get(FLOATING_LYRICS_KEY) === "true",
+    floatingCurrentSize: getNumberSetting(
+      FLOATING_CURRENT_SIZE_KEY,
+      DEFAULT_SETTINGS.floatingCurrentSize,
+      SETTING_RANGES.floatingCurrentSize,
+    ),
+    floatingNextSize: getNumberSetting(
+      FLOATING_NEXT_SIZE_KEY,
+      DEFAULT_SETTINGS.floatingNextSize,
+      SETTING_RANGES.floatingNextSize,
+    ),
   };
 }
 
@@ -110,5 +129,13 @@ export function setFuriganaSettings(settings: FuriganaSettings): void {
   Spicetify.LocalStorage.set(
     FLOATING_LYRICS_KEY,
     String(settings.floatingLyrics),
+  );
+  Spicetify.LocalStorage.set(
+    FLOATING_CURRENT_SIZE_KEY,
+    String(settings.floatingCurrentSize),
+  );
+  Spicetify.LocalStorage.set(
+    FLOATING_NEXT_SIZE_KEY,
+    String(settings.floatingNextSize),
   );
 }

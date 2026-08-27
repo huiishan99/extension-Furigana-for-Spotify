@@ -4,7 +4,9 @@ import {
   FURIGANA_GAP_KEY,
   FURIGANA_OPACITY_KEY,
   FURIGANA_SIZE_KEY,
+  FLOATING_CURRENT_SIZE_KEY,
   FLOATING_LYRICS_KEY,
+  FLOATING_NEXT_SIZE_KEY,
   getFuriganaSettings,
   READING_MODE_KEY,
   setFuriganaSettings,
@@ -38,6 +40,8 @@ describe("furigana settings", () => {
       [FURIGANA_SIZE_KEY]: "99",
       [FURIGANA_OPACITY_KEY]: "0.1",
       [FURIGANA_GAP_KEY]: "not-a-number",
+      [FLOATING_CURRENT_SIZE_KEY]: "99",
+      [FLOATING_NEXT_SIZE_KEY]: "4",
     });
 
     expect(getFuriganaSettings()).toMatchObject({
@@ -45,6 +49,8 @@ describe("furigana settings", () => {
       size: 0.75,
       opacity: 0.4,
       gap: 0,
+      floatingCurrentSize: 44,
+      floatingNextSize: 12,
     });
   });
 
@@ -59,6 +65,8 @@ describe("furigana settings", () => {
       gap: 4,
       onlineReadings: true,
       floatingLyrics: true,
+      floatingCurrentSize: 38,
+      floatingNextSize: 18,
     });
 
     expect(getFuriganaSettings()).toEqual({
@@ -69,8 +77,12 @@ describe("furigana settings", () => {
       gap: 4,
       onlineReadings: true,
       floatingLyrics: true,
+      floatingCurrentSize: 38,
+      floatingNextSize: 18,
     });
     expect(values.get(FLOATING_LYRICS_KEY)).toBe("true");
-    expect(values.size).toBe(7);
+    expect(values.get(FLOATING_CURRENT_SIZE_KEY)).toBe("38");
+    expect(values.get(FLOATING_NEXT_SIZE_KEY)).toBe("18");
+    expect(values.size).toBe(9);
   });
 });
