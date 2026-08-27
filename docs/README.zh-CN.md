@@ -9,9 +9,11 @@
 <h1 align="center">Furigana for Spotify</h1>
 
 <p align="center">
-  <strong>在 Windows 与 macOS Spotify 桌面歌词上，为日语汉字实时显示平假名、片假名或罗马字读音。</strong>
+  <strong>读懂汉字，跟上歌词，不错过喜欢的那一句。</strong>
   <br />
-  默认本地处理 · 可选同步读音 · 无需 Spotify 凭据
+  直接在 Spotify 桌面歌词中显示振假名；Windows 还支持透明双行桌面歌词。
+  <br />
+  默认本地处理 · 自动更新 · 无需 Spotify 凭据
 </p>
 
 <p align="center">
@@ -24,13 +26,20 @@
   <a href="../LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-4338CA" /></a>
 </p>
 
+<p align="center">
+  <a href="https://github.com/huiishan99/spotify-furigana/releases/latest"><img alt="下载最新版本" src="https://img.shields.io/badge/下载-最新版本-00A77D?style=for-the-badge&amp;logo=github" /></a>
+</p>
+
 > [!IMPORTANT]
 > 这是独立社区项目，与 Spotify AB 没有关联，也未获得其赞助或认可。项目自身标志不使用 Spotify 官方 logo；兼容性徽章中的标识仅用于说明目标平台。
 
 > [!TIP]
-> 如果这个项目让你更轻松地读完哪怕一首日语歌，欢迎[给它一个 Star](https://github.com/huiishan99/spotify-furigana)。Star 能帮助更多日语学习者发现它。
+> 如果它让你更轻松地跟上了哪怕一段副歌，欢迎[给项目一个 Star](https://github.com/huiishan99/spotify-furigana)。这会帮助更多日语学习者发现它。
 
-## 效果
+> [!NOTE]
+> **v0.6.0 新功能：**Windows 桌面歌词现已采用透明双行设计——当前句清晰突出，下一句提前以较小字号显示，并以更柔和的动画完成换句。
+
+## 让日语歌词真正读得下去
 
 <p align="center">
   <img src="../assets/marketing/demo.gif" alt="Windows Spotify 歌词页面中的实时日语振假名动态效果" width="100%" />
@@ -40,25 +49,22 @@
   <sub>动图来自真实环境：Windows 11 · Spotify 1.2.97.270 · Spicetify 2.44.0。<a href="../assets/screenshots/lyrics-view.png">查看完整截图。</a>歌词、封面及 Spotify 界面元素的权利归各自权利方所有，仅用于展示插件运行效果。</sub>
 </p>
 
-插件直接增强 Spotify 已经显示的歌词，把汉字转换为标准 HTML `<ruby>` 注音：
+不用另开播放器，也不用把歌词复制到其他工具。打开 Spotify 原本的歌词页面，读音就会出现在你正在看的歌词上。
 
 | 原歌词 | 开启振假名后 |
 | --- | --- |
 | 声も聞かさないで | <ruby>声<rt>こえ</rt></ruby>も<ruby>聞<rt>き</rt></ruby>かさないで |
 | 明日は晴れる | <ruby>明日<rt>あした</rt></ruby>は<ruby>晴<rt>は</rt></ruby>れる |
 
-## 为什么用它
+## 专心听歌，剩下的交给它
 
-- **跟随原生歌词**：自动处理当前桌面歌词页，并兼容已知的全屏歌词布局。
-- **可选 Windows 桌面歌词**：当前句及其 Furigana 跨应用置顶显示，下一句提前以较小字号放在下方，换句时使用短暂过渡减少跳变。
-- **默认完全本地**：Kuroshiro + Kuromoji 在电脑上完成分词与读音转换，不联系歌词服务。
-- **常见人数离线纠正**：本地即可把 `一人` / `1人` 标成 `ひとり`、`二人` / `2人` 标成 `ふたり`，同时避开 `一人称`、`二人三脚` 等不同读法。
-- **可选精准读音**：有同步罗马音时优先采用，用于歌曲特有或刻意变化的唱法。
-- **随时确认读音来源**：把鼠标停在播放器底部的 `ふ` 按钮上，即可看到当前使用本地读音、同步精准读音，还是安全的本地回退。
-- **中日英界面**：可以自动跟随 Spotify，也可以单独选择 English、简体中文或日本語。
-- **自由调整显示**：可切换平假名、片假名与罗马字，并调整字号、透明度和上下间距。
-- **保留 Spotify 原生歌词**：只增强 Spotify 当前显示的文字，不替换播放器或歌词时间轴。
-- **随时开关**：通过播放器底部的歌词图标按钮，或左侧插件页面控制。
+- **直接显示在 Spotify 里**：振假名跟随原生歌词，也兼容已知的全屏歌词布局。
+- **下一句永远提前一步**：Windows 透明悬浮窗可拖到任意位置并跨应用置顶；当前句清晰突出，下一句在下方提前准备。
+- **默认本地、无需登录**：内置词典在电脑上完成读音转换，不需要 Spotify 凭据，也不会默认联系歌词服务。
+- **特殊唱法也有机会读对**：可选同步精准读音用于歌曲特有、少见或刻意变化的发音；无法可靠匹配时自动安全回退到本地读音。
+- **常用日语更可靠**：离线纠正 `一人` / `1人` → `ひとり`、`二人` / `2人` → `ふたり`，同时避免误改 `一人称`、`二人三脚` 等词。
+- **按自己的习惯显示**：可选平假名、片假名或罗马字，并调整注音字号、透明度、间距和界面语言。
+- **安装一次，之后安心听歌**：专属启动器可检查校验过的新版本，并在受支持的 Spotify 更新后自动恢复插件再启动 Spotify。
 
 ## 环境要求
 
@@ -80,13 +86,13 @@ macOS 安装器和生产构建已纳入 macOS CI 自动检查，但目前还没�
 
 更多版本信息请查看[兼容性矩阵](./COMPATIBILITY.md)。
 
-## 安装
+## 几分钟完成安装
 
 <p>
   <a href="https://github.com/huiishan99/spotify-furigana/releases/latest"><img alt="下载最新版本" src="https://img.shields.io/badge/下载-最新版本-00A77D?style=for-the-badge&amp;logo=github" /></a>
 </p>
 
-从[最新 Release](https://github.com/huiishan99/spotify-furigana/releases/latest)下载 `spotify-furigana-vX.Y.Z.zip`，并完整解压。
+从[最新 Release](https://github.com/huiishan99/spotify-furigana/releases/latest)下载 `spotify-furigana-vX.Y.Z.zip`，完整解压后运行对应平台的安装脚本。安装器会自动备份已有版本并配置应用。
 
 ### Windows
 

@@ -9,9 +9,11 @@
 <h1 align="center">Furigana for Spotify</h1>
 
 <p align="center">
-  <strong>Show hiragana, katakana, or romaji readings above Japanese kanji in Spotify lyrics on Windows and macOS.</strong>
+  <strong>Read the kanji. Catch the lyric. Stay with the song.</strong>
   <br />
-  Local by default · Optional synchronized readings · No Spotify credentials required
+  Furigana inside Spotify Desktop — plus a transparent two-line lyric overlay on Windows.
+  <br />
+  Local by default · Automatic updates · No Spotify credentials required
 </p>
 
 <p align="center">
@@ -24,13 +26,20 @@
   <a href="./LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-4338CA" /></a>
 </p>
 
+<p align="center">
+  <a href="https://github.com/huiishan99/spotify-furigana/releases/latest"><img alt="Download the latest release" src="https://img.shields.io/badge/Download-latest%20release-00A77D?style=for-the-badge&amp;logo=github" /></a>
+</p>
+
 > [!IMPORTANT]
 > This is an independent community project. It is not affiliated with, sponsored by, or endorsed by Spotify AB. The project mark does not use the official Spotify logo; the mark inside the compatibility badge only identifies the target platform.
 
 > [!TIP]
-> If this project helps you read even one Japanese song more comfortably, consider [giving it a star](https://github.com/huiishan99/spotify-furigana). Stars help other Japanese learners discover it.
+> If one chorus feels easier to follow, consider [giving the project a star](https://github.com/huiishan99/spotify-furigana). It helps more Japanese learners find it.
 
-## See it in action
+> [!NOTE]
+> **New in v0.6.0:** Windows desktop lyrics are now transparent and show both the current line and a smaller preview of the next line, with a softer transition between them.
+
+## Japanese lyrics, made readable
 
 <p align="center">
   <img src="./assets/marketing/demo.gif" alt="Animated close-up of live Japanese furigana displayed in Spotify lyrics on Windows" width="100%" />
@@ -40,25 +49,22 @@
   <sub>Animated from a real capture on Windows 11 · Spotify 1.2.97.270 · Spicetify 2.44.0. <a href="./assets/screenshots/lyrics-view.png">View the full screenshot.</a> Lyrics, artwork, and Spotify UI elements belong to their respective rights holders and appear here only to demonstrate the extension.</sub>
 </p>
 
-The extension enhances lyrics already displayed by Spotify and uses standard HTML `<ruby>` annotations to place readings above kanji.
+No separate player and no copying lyrics into another app. Open Spotify's lyrics view and the readings appear where you are already listening.
 
 | Original lyric | With furigana |
 | --- | --- |
 | 声も聞かさないで | <ruby>声<rt>こえ</rt></ruby>も<ruby>聞<rt>き</rt></ruby>かさないで |
 | 明日は晴れる | <ruby>明日<rt>あした</rt></ruby>は<ruby>晴<rt>は</rt></ruby>れる |
 
-## Why use it
+## Built to stay out of the way
 
-- **Works with Spotify's lyrics view**: automatically processes the current desktop layout and known fullscreen lyrics layouts.
-- **Optional Windows desktop lyrics**: keep the current line and furigana on top, preview the next line below in smaller text, and soften line changes with a short transition.
-- **Local by default**: Kuroshiro + Kuromoji perform tokenization and reading conversion on your machine without contacting a lyrics service.
-- **Reliable common counters offline**: locally corrects `一人` / `1人` → `ひとり` and `二人` / `2人` → `ふたり`, while preserving terms such as `一人称` and `二人三脚`.
-- **Optional accurate-reading mode**: use synchronized romanization when available for song-specific and intentionally unusual pronunciations.
-- **Know which source is active**: hover the player-bar `ふ` button to see whether the current lyrics use local readings, accurate synchronized readings, or a safe local fallback.
-- **English, Chinese, and Japanese UI**: follow Spotify automatically or choose a language independently in the app.
-- **Choose how readings appear**: switch between hiragana, katakana, and romaji, then tune size, opacity, and vertical spacing.
-- **Keeps Spotify's lyrics view**: it enhances the text already visible in Spotify instead of replacing the player or its timing.
-- **Easy to toggle**: use the lyrics button in the player bar or the custom app page in the sidebar.
+- **Read inside Spotify**: furigana follows the lyrics you already use, including known fullscreen layouts.
+- **Keep the next line in sight**: on Windows, a draggable transparent overlay stays above other apps, with the current line large and the next line ready underneath.
+- **Start private and offline**: the bundled local dictionary handles readings on your computer; no Spotify login or credentials are needed.
+- **Use the intended pronunciation when available**: optional synchronized readings improve song-specific, uncommon, and deliberately altered readings, with a safe local fallback.
+- **Handle everyday Japanese better**: common counters such as `一人` / `1人` → `ひとり` and `二人` / `2人` → `ふたり` are corrected locally without changing words such as `一人称` or `二人三脚`.
+- **Make it comfortable**: choose hiragana, katakana, or romaji and tune reading size, opacity, spacing, and interface language.
+- **Install once, keep listening**: the branded launcher can check verified releases, recover the extension after supported Spotify updates, and then open Spotify normally.
 
 ## Requirements
 
@@ -80,13 +86,13 @@ The macOS installer and production bundle are covered by automated checks on mac
 
 See the [compatibility matrix](./docs/COMPATIBILITY.md) for more version information.
 
-## Install
+## Install in a few minutes
 
 <p>
   <a href="https://github.com/huiishan99/spotify-furigana/releases/latest"><img alt="Download the latest release" src="https://img.shields.io/badge/Download-latest%20release-00A77D?style=for-the-badge&amp;logo=github" /></a>
 </p>
 
-Download `spotify-furigana-vX.Y.Z.zip` from the [latest release](https://github.com/huiishan99/spotify-furigana/releases/latest), then extract it completely.
+Download `spotify-furigana-vX.Y.Z.zip` from the [latest release](https://github.com/huiishan99/spotify-furigana/releases/latest), extract it completely, and run the installer for your platform. It backs up an existing installation and configures the app for you.
 
 ### Windows
 
