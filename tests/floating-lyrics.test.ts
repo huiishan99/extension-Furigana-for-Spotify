@@ -216,10 +216,10 @@ describe("floating current lyric", () => {
       current: { startTimeMs: 800, words: "一人きり" },
       next: { startTimeMs: 2200, words: "二人だけ" },
     });
-    expect(findTimedLyricContext(lines, 2079, 120)?.current.words).toBe(
+    expect(findTimedLyricContext(lines, 1899, 300)?.current.words).toBe(
       "一人きり",
     );
-    expect(findTimedLyricContext(lines, 2080, 120)?.current.words).toBe(
+    expect(findTimedLyricContext(lines, 1900, 300)?.current.words).toBe(
       "二人だけ",
     );
     expect(findTimedLyricContext(lines, 2200)?.next).toBeNull();

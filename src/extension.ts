@@ -57,7 +57,7 @@ const STYLE_ID = "spotify-furigana-styles";
 const READY_INTERVAL_MS = 100;
 const ONLINE_REQUEST_TIMEOUT_MS = 10_000;
 const FLOATING_LYRICS_SYNC_INTERVAL_MS = 125;
-const FLOATING_LYRICS_LOOKAHEAD_MS = 120;
+const FLOATING_LYRICS_LOOKAHEAD_MS = 300;
 
 interface DesktopLyricSegmentCacheEntry {
   promise: Promise<DesktopLyricSegment[]>;
