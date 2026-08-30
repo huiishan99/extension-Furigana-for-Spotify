@@ -57,6 +57,7 @@ const STYLE_ID = "spotify-furigana-styles";
 const READY_INTERVAL_MS = 100;
 const ONLINE_REQUEST_TIMEOUT_MS = 10_000;
 const FLOATING_LYRICS_SYNC_INTERVAL_MS = 125;
+const FLOATING_LYRICS_LOOKAHEAD_MS = 120;
 
 interface DesktopLyricSegmentCacheEntry {
   promise: Promise<DesktopLyricSegment[]>;
@@ -479,12 +480,34 @@ async function main(): Promise<void> {
     const timedContext = findTimedLyricContext(
       floatingTimedLyrics,
       Spicetify.Player.getProgress(),
+      FLOATING_LYRICS_LOOKAHEAD_MS,
     );
     const nextSource = timedContext?.next?.words ?? "";
     const currentLine = findCurrentLyricLine(document);
+    const currentLineSource = currentLine
+      ? currentLine.querySelector("ruby.spotify-furigana__ruby")
+        ? getAnnotatedSource(currentLine)
+        : normalizeLyricText(currentLine.textContent)
+      : "";
+    const timedCurrentSource = normalizeLyricText(
+      timedContext?.current.words ?? "",
+    );
+    if (
+      timedContext &&
+      currentLine &&
+      currentLineSource !== timedCurrentSource
+    ) {
+      void renderDesktopLyricPair(
+        timedContext.current.words,
+        timedContext.next?.words ?? "",
+        undefined,
+        "timed-lookahead",
+      );
+      return;
+    }
     if (currentLine?.querySelector("ruby.spotify-furigana__ruby")) {
       void renderDesktopLyricPair(
-        getAnnotatedSource(currentLine),
+        currentLineSource,
         nextSource,
         extractDesktopLyricSegments(currentLine),
         `dom:${currentLine.innerHTML}`,
@@ -493,7 +516,7 @@ async function main(): Promise<void> {
     }
     if (currentLine) {
       void renderDesktopLyricPair(
-        currentLine.textContent ?? "",
+        currentLineSource,
         nextSource,
         undefined,
         "dom-text",

@@ -125,17 +125,23 @@ export function findTimedLyricLine(
 export function findTimedLyricContext(
   lines: readonly TimedLyricLine[],
   progressMs: number,
+  lookaheadMs = 0,
 ): TimedLyricContext | null {
-  if (!Number.isFinite(progressMs) || lines.length === 0) {
+  if (
+    !Number.isFinite(progressMs) ||
+    !Number.isFinite(lookaheadMs) ||
+    lines.length === 0
+  ) {
     return null;
   }
+  const effectiveProgressMs = Math.max(0, progressMs + lookaheadMs);
 
   let low = 0;
   let high = lines.length - 1;
   let currentIndex = -1;
   while (low <= high) {
     const middle = Math.floor((low + high) / 2);
-    if (lines[middle]!.startTimeMs <= progressMs) {
+    if (lines[middle]!.startTimeMs <= effectiveProgressMs) {
       currentIndex = middle;
       low = middle + 1;
     } else {
