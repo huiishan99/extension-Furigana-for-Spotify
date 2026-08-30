@@ -470,7 +470,9 @@ async function main(): Promise<void> {
     );
   }
 
-  function updateFloatingLyrics(): void {
+  function updateFloatingLyrics(
+    progressMs = Spicetify.Player.getProgress(),
+  ): void {
     if (!enabled || !settings.floatingLyrics || !desktopOverlaySupported) {
       hideDesktopOverlay();
       return;
@@ -479,7 +481,7 @@ async function main(): Promise<void> {
 
     const timedContext = findTimedLyricContext(
       floatingTimedLyrics,
-      Spicetify.Player.getProgress(),
+      progressMs,
       FLOATING_LYRICS_LOOKAHEAD_MS,
     );
     const nextSource = timedContext?.next?.words ?? "";
@@ -952,6 +954,14 @@ async function main(): Promise<void> {
 
   applyAppearance(settings);
   syncFloatingLyricsTimer();
+  Spicetify.Player.addEventListener("onprogress", (event) => {
+    const progressMs = event?.data;
+    updateFloatingLyrics(
+      typeof progressMs === "number" && Number.isFinite(progressMs)
+        ? progressMs
+        : Spicetify.Player.getProgress(),
+    );
+  });
   Spicetify.Player.addEventListener("songchange", () => {
     restoreAll();
     hideFloatingLyricsUntilAvailable();

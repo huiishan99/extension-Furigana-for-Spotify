@@ -19,7 +19,15 @@ interface SpicetifyGlobal {
         metadata?: Record<string, string | undefined>;
       };
     };
+    addEventListener(
+      type: "onprogress",
+      callback: (event?: Event & { data: number }) => void,
+    ): void;
     addEventListener(type: string, callback: () => void): void;
+    removeEventListener(
+      type: "onprogress",
+      callback: (event?: Event & { data: number }) => void,
+    ): void;
     removeEventListener(type: string, callback: () => void): void;
     getProgress(): number;
   };

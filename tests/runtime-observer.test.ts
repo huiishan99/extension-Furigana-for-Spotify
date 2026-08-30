@@ -31,4 +31,17 @@ describe("Spotify runtime observation", () => {
     );
     expect(extension).not.toContain("requestAnimationFrame(");
   });
+
+  it("uses player progress events when background timers are throttled", async () => {
+    const extension = await readFile(
+      resolve(projectRoot, "src", "extension.ts"),
+      "utf8",
+    );
+
+    expect(extension).toContain(
+      'Spicetify.Player.addEventListener("onprogress"',
+    );
+    expect(extension).toContain("updateFloatingLyrics(");
+    expect(extension).toContain("floatingLyricsTimer = window.setInterval(");
+  });
 });
