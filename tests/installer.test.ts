@@ -101,8 +101,9 @@ describe("Windows release installer", () => {
     expect(overlay).toContain("$window.ShowInTaskbar = $false");
     expect(overlay).toContain("$card.Background = [Windows.Media.Brushes]::Transparent");
     expect(overlay).toContain("$base.Effect = [Windows.Media.Effects.DropShadowEffect]");
-    expect(overlay).toContain("$badge.Width = 30");
-    expect(overlay).toContain("$badgeText.FontSize = 17");
+    expect(overlay).toContain("$badge.Width = 34");
+    expect(overlay).toContain("$badge.Height = 34");
+    expect(overlay).toContain("$badgeText.FontSize = 19");
     expect(overlay).toContain(
       "$badge.HorizontalAlignment = [Windows.HorizontalAlignment]::Right",
     );

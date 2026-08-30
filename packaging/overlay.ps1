@@ -514,10 +514,10 @@ try {
   [void]$grid.ColumnDefinitions.Add([Windows.Controls.ColumnDefinition]@{ Width = [Windows.GridLength]::new(28) })
 
   $badge = [Windows.Controls.Border]::new()
-  $badge.Width = 30
-  $badge.Height = 30
+  $badge.Width = 34
+  $badge.Height = 34
   $badge.Background = New-Brush "#8001CA95"
-  $badge.CornerRadius = [Windows.CornerRadius]::new(9)
+  $badge.CornerRadius = [Windows.CornerRadius]::new(10)
   $badge.Opacity = 0.3
   $badge.ToolTip = "Drag to move desktop lyrics"
   $badge.HorizontalAlignment = [Windows.HorizontalAlignment]::Right
@@ -526,7 +526,7 @@ try {
   $badgeText = [Windows.Controls.TextBlock]::new()
   $badgeText.Text = [string][char]0x3075
   $badgeText.FontFamily = [Windows.Media.FontFamily]::new("Yu Gothic UI, Meiryo UI")
-  $badgeText.FontSize = 17
+  $badgeText.FontSize = 19
   $badgeText.FontWeight = [Windows.FontWeights]::Bold
   $badgeText.Foreground = New-Brush "#FFF8F2"
   $badgeText.HorizontalAlignment = [Windows.HorizontalAlignment]::Center
