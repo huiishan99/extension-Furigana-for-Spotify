@@ -648,7 +648,7 @@ try {
   $listener.Start()
 
   $timer = [Windows.Threading.DispatcherTimer]::new()
-  $timer.Interval = [TimeSpan]::FromMilliseconds(100)
+  $timer.Interval = [TimeSpan]::FromMilliseconds(50)
   $timer.Add_Tick({
     while ($listener.Pending()) {
       $client = $listener.AcceptTcpClient()
@@ -663,7 +663,7 @@ try {
     }
 
     $script:processCheckTick += 1
-    if ($processCheckTick -lt 10) {
+    if ($processCheckTick -lt 20) {
       return
     }
     $script:processCheckTick = 0

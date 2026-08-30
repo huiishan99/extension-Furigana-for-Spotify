@@ -30,6 +30,52 @@ export interface DesktopOverlayState {
   nextFontSize: number;
 }
 
+export async function publishDesktopLyricPairProgressively(
+  currentSegmentsPromise: Promise<readonly DesktopLyricSegment[]>,
+  nextSegmentsPromise: Promise<readonly DesktopLyricSegment[]>,
+  resolvedNextSegments: readonly DesktopLyricSegment[] | undefined,
+  canPublish: () => boolean,
+  publish: (
+    currentSegments: readonly DesktopLyricSegment[],
+    nextSegments: readonly DesktopLyricSegment[],
+  ) => void,
+  previewGraceMs = 16,
+): Promise<void> {
+  const currentSegments = await currentSegmentsPromise;
+  if (!canPublish()) {
+    return;
+  }
+
+  if (resolvedNextSegments !== undefined) {
+    publish(currentSegments, resolvedNextSegments);
+    return;
+  }
+
+  let graceTimer: number | undefined;
+  const nextWithinGrace = await Promise.race([
+    nextSegmentsPromise,
+    new Promise<undefined>((resolve) => {
+      graceTimer = setTimeout(resolve, Math.max(0, previewGraceMs));
+    }),
+  ]);
+  if (graceTimer !== undefined) {
+    clearTimeout(graceTimer);
+  }
+  if (!canPublish()) {
+    return;
+  }
+  if (nextWithinGrace !== undefined) {
+    publish(currentSegments, nextWithinGrace);
+    return;
+  }
+
+  publish(currentSegments, []);
+  const nextSegments = await nextSegmentsPromise;
+  if (canPublish()) {
+    publish(currentSegments, nextSegments);
+  }
+}
+
 export interface TimedLyricContext {
   current: TimedLyricLine;
   next: TimedLyricLine | null;

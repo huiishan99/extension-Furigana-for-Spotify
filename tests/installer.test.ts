@@ -106,6 +106,10 @@ describe("Windows release installer", () => {
     expect(overlay).toContain("$currentGrowX");
     expect(overlay).toContain("$outgoingLyricsPanel");
     expect(overlay).toContain("$lastRenderedStateSignature");
+    expect(overlay).toContain(
+      "$timer.Interval = [TimeSpan]::FromMilliseconds(50)",
+    );
+    expect(overlay).toContain("$processCheckTick -lt 20");
     expect(overlay).not.toContain("$contentStack.BeginAnimation");
     expect(overlay).toContain('Get-ClampedStateNumber');
     expect(overlay).toContain('-Name "currentFontSize"');

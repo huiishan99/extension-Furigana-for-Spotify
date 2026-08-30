@@ -45,6 +45,7 @@ import {
   findCurrentLyricLine,
   getSpotifyLyricsUrl,
   parseSpotifyTimedLyrics,
+  publishDesktopLyricPairProgressively,
   sendDesktopOverlayState,
   type DesktopLyricSegment,
   type DesktopOverlayState,
@@ -55,7 +56,12 @@ const STATE_ATTRIBUTE = "data-spotify-furigana";
 const STYLE_ID = "spotify-furigana-styles";
 const READY_INTERVAL_MS = 100;
 const ONLINE_REQUEST_TIMEOUT_MS = 10_000;
-const FLOATING_LYRICS_SYNC_INTERVAL_MS = 250;
+const FLOATING_LYRICS_SYNC_INTERVAL_MS = 125;
+
+interface DesktopLyricSegmentCacheEntry {
+  promise: Promise<DesktopLyricSegment[]>;
+  resolved?: DesktopLyricSegment[];
+}
 
 declare const __SPOTIFY_FURIGANA_VERSION__: string;
 
@@ -203,7 +209,7 @@ async function main(): Promise<void> {
   let lastDesktopOverlaySentAt = 0;
   const desktopLyricSegmentCache = new Map<
     string,
-    Promise<DesktopLyricSegment[]>
+    DesktopLyricSegmentCacheEntry
   >();
   let floatingLyricsRenderGeneration = 0;
   let floatingLyricsLoadGeneration = 0;
@@ -358,9 +364,9 @@ async function main(): Promise<void> {
     publishDesktopOverlay();
   }
 
-  function getDesktopLyricSegments(
+  function getDesktopLyricSegmentEntry(
     sourceValue: string,
-  ): Promise<DesktopLyricSegment[]> {
+  ): DesktopLyricSegmentCacheEntry {
     const source = normalizeLyricText(sourceValue);
     const sungRomanization =
       activeOnlineTrackUri === Spicetify.Player.data?.item?.uri
@@ -372,7 +378,10 @@ async function main(): Promise<void> {
       return cached;
     }
 
-    const result = (async (): Promise<DesktopLyricSegment[]> => {
+    const entry: DesktopLyricSegmentCacheEntry = {
+      promise: Promise.resolve([]),
+    };
+    entry.promise = (async (): Promise<DesktopLyricSegment[]> => {
       if (!source) {
         return [];
       }
@@ -395,15 +404,27 @@ async function main(): Promise<void> {
         );
         return [{ text: source }];
       }
-    })();
-    desktopLyricSegmentCache.set(cacheKey, result);
+    })().then((segments) => {
+      entry.resolved = segments;
+      return segments;
+    });
+    desktopLyricSegmentCache.set(cacheKey, entry);
     if (desktopLyricSegmentCache.size > 24) {
       const oldestKey = desktopLyricSegmentCache.keys().next().value;
       if (typeof oldestKey === "string") {
         desktopLyricSegmentCache.delete(oldestKey);
       }
     }
-    return result;
+    return entry;
+  }
+
+  function canPublishDesktopLyrics(generation: number): boolean {
+    return (
+      generation === floatingLyricsRenderGeneration &&
+      enabled &&
+      settings.floatingLyrics &&
+      desktopOverlaySupported
+    );
   }
 
   async function renderDesktopLyricPair(
@@ -434,21 +455,18 @@ async function main(): Promise<void> {
       return;
     }
 
-    const [resolvedCurrentSegments, resolvedNextSegments] = await Promise.all([
+    // Start the preview conversion immediately, but never make the current lyric
+    // wait for it. This matters most while the local dictionary is warming up.
+    const nextEntry = getDesktopLyricSegmentEntry(nextSource);
+    await publishDesktopLyricPairProgressively(
       currentSegments
         ? Promise.resolve([...currentSegments])
-        : getDesktopLyricSegments(currentSource),
-      getDesktopLyricSegments(nextSource),
-    ]);
-    if (
-      generation !== floatingLyricsRenderGeneration ||
-      !enabled ||
-      !settings.floatingLyrics ||
-      !desktopOverlaySupported
-    ) {
-      return;
-    }
-    publishDesktopOverlay(resolvedCurrentSegments, resolvedNextSegments);
+        : getDesktopLyricSegmentEntry(currentSource).promise,
+      nextEntry.promise,
+      nextEntry.resolved,
+      () => canPublishDesktopLyrics(generation),
+      publishDesktopOverlay,
+    );
   }
 
   function updateFloatingLyrics(): void {

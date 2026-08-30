@@ -9,6 +9,7 @@ import {
   findTimedLyricLine,
   getSpotifyLyricsUrl,
   parseSpotifyTimedLyrics,
+  publishDesktopLyricPairProgressively,
   sendDesktopOverlayState,
 } from "../src/floating-lyrics";
 
@@ -32,6 +33,73 @@ afterEach(() => {
 });
 
 describe("floating current lyric", () => {
+  it("publishes the current lyric without waiting for its preview", async () => {
+    let resolveNext!: (segments: { text: string }[]) => void;
+    const nextSegments = new Promise<{ text: string }[]>((resolve) => {
+      resolveNext = resolve;
+    });
+    const publish = vi.fn();
+    const publishing = publishDesktopLyricPairProgressively(
+      Promise.resolve([{ text: "現在" }]),
+      nextSegments,
+      undefined,
+      () => true,
+      publish,
+    );
+
+    await vi.waitFor(() => {
+      expect(publish).toHaveBeenCalledWith([{ text: "現在" }], []);
+    });
+    expect(publish).toHaveBeenCalledOnce();
+
+    resolveNext([{ text: "次" }]);
+    await publishing;
+    expect(publish).toHaveBeenLastCalledWith(
+      [{ text: "現在" }],
+      [{ text: "次" }],
+    );
+    expect(publish).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not publish a stale preview after the lyric changes", async () => {
+    let active = true;
+    let resolveNext!: (segments: { text: string }[]) => void;
+    const nextSegments = new Promise<{ text: string }[]>((resolve) => {
+      resolveNext = resolve;
+    });
+    const publish = vi.fn();
+    const publishing = publishDesktopLyricPairProgressively(
+      Promise.resolve([{ text: "現在" }]),
+      nextSegments,
+      undefined,
+      () => active,
+      publish,
+    );
+
+    await vi.waitFor(() => expect(publish).toHaveBeenCalledOnce());
+    active = false;
+    resolveNext([{ text: "古い次の行" }]);
+    await publishing;
+    expect(publish).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps a fast preview in the first publish to preserve one transition", async () => {
+    const publish = vi.fn();
+    await publishDesktopLyricPairProgressively(
+      Promise.resolve([{ text: "現在" }]),
+      Promise.resolve([{ text: "次" }]),
+      undefined,
+      () => true,
+      publish,
+    );
+
+    expect(publish).toHaveBeenCalledOnce();
+    expect(publish).toHaveBeenCalledWith(
+      [{ text: "現在" }],
+      [{ text: "次" }],
+    );
+  });
+
   it("targets Spotify's active lyric class before generic fallbacks", () => {
     vi.stubGlobal("HTMLElement", FakeElement);
     const activeLine = new FakeElement(true);
