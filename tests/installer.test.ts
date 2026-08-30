@@ -97,9 +97,16 @@ describe("Windows release installer", () => {
     expect(overlay).toContain("https://xpui\\.app\\.spotify\\.com");
     expect(overlay).toContain("FuriganaForSpotifyDesktopOverlay");
     expect(overlay).toContain("$window.Topmost = $true");
+    expect(overlay).toContain("$window.Width = 720");
     expect(overlay).toContain("$window.ShowInTaskbar = $false");
     expect(overlay).toContain("$card.Background = [Windows.Media.Brushes]::Transparent");
     expect(overlay).toContain("$base.Effect = [Windows.Media.Effects.DropShadowEffect]");
+    expect(overlay).toContain("$badge.Width = 30");
+    expect(overlay).toContain("$badgeText.FontSize = 17");
+    expect(overlay).toContain("$viewbox.MaxWidth = 650");
+    expect(overlay).toContain("$currentRow.Children.Add($badge)");
+    expect(overlay).toContain("$currentRow.Children.Add($lyricsPanel)");
+    expect(overlay).toContain("$viewbox.Child = $currentRow");
     expect(overlay).toContain("$nextLyricsPanel");
     expect(overlay).toContain("[Windows.Media.Animation.DoubleAnimation]");
     expect(overlay).toContain("$promoteFromNext");
