@@ -110,6 +110,8 @@ describe("Windows release installer", () => {
       "$timer.Interval = [TimeSpan]::FromMilliseconds(50)",
     );
     expect(overlay).toContain("$processCheckTick -lt 20");
+    expect(overlay).toContain("catch [IO.IOException]");
+    expect(overlay).toContain("catch [ObjectDisposedException]");
     expect(overlay).not.toContain("$contentStack.BeginAnimation");
     expect(overlay).toContain('Get-ClampedStateNumber');
     expect(overlay).toContain('-Name "currentFontSize"');

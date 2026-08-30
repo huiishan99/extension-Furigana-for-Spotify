@@ -140,6 +140,13 @@ function Get-RequestBody {
       }
     }
     return $null
+  } catch [IO.IOException] {
+    # A browser request can be abandoned while Spotify is being backgrounded,
+    # restarted, or re-applied. Treat the partial loopback message as noise so
+    # one interrupted sender cannot terminate the desktop overlay.
+    return $null
+  } catch [ObjectDisposedException] {
+    return $null
   } finally {
     $response = [Text.Encoding]::ASCII.GetBytes(
       "HTTP/1.1 204 No Content`r`nConnection: close`r`nContent-Length: 0`r`n`r`n"
