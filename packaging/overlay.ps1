@@ -509,6 +509,7 @@ try {
   $card.Padding = [Windows.Thickness]::new(6, 5, 6, 5)
 
   $grid = [Windows.Controls.Grid]::new()
+  [void]$grid.ColumnDefinitions.Add([Windows.Controls.ColumnDefinition]@{ Width = [Windows.GridLength]::new(44) })
   [void]$grid.ColumnDefinitions.Add([Windows.Controls.ColumnDefinition]@{ Width = [Windows.GridLength]::new(1, [Windows.GridUnitType]::Star) })
   [void]$grid.ColumnDefinitions.Add([Windows.Controls.ColumnDefinition]@{ Width = [Windows.GridLength]::new(28) })
 
@@ -519,9 +520,9 @@ try {
   $badge.CornerRadius = [Windows.CornerRadius]::new(9)
   $badge.Opacity = 0.3
   $badge.ToolTip = "Drag to move desktop lyrics"
-  $badge.HorizontalAlignment = [Windows.HorizontalAlignment]::Center
+  $badge.HorizontalAlignment = [Windows.HorizontalAlignment]::Right
   $badge.VerticalAlignment = [Windows.VerticalAlignment]::Center
-  $badge.Margin = [Windows.Thickness]::new(0, 0, 8, 0)
+  $badge.Margin = [Windows.Thickness]::new(0, 0, 2, 0)
   $badgeText = [Windows.Controls.TextBlock]::new()
   $badgeText.Text = [string][char]0x3075
   $badgeText.FontFamily = [Windows.Media.FontFamily]::new("Yu Gothic UI, Meiryo UI")
@@ -542,10 +543,9 @@ try {
   $viewbox.Height = 78
   $viewbox.Stretch = [Windows.Media.Stretch]::Uniform
   $viewbox.StretchDirection = [Windows.Controls.StretchDirection]::DownOnly
-  $viewbox.MaxWidth = 650
   $viewbox.HorizontalAlignment = [Windows.HorizontalAlignment]::Center
   $viewbox.VerticalAlignment = [Windows.VerticalAlignment]::Center
-  $viewbox.Margin = [Windows.Thickness]::new(0)
+  $viewbox.Margin = [Windows.Thickness]::new(2, 0, 2, 0)
   $viewbox.RenderTransformOrigin = [Windows.Point]::new(0.5, 0.5)
   $currentTransform = [Windows.Media.TransformGroup]::new()
   $currentScale = [Windows.Media.ScaleTransform]::new(1, 1)
@@ -556,14 +556,7 @@ try {
   $lyricsPanel = [Windows.Controls.StackPanel]::new()
   $lyricsPanel.Orientation = [Windows.Controls.Orientation]::Horizontal
   $lyricsPanel.HorizontalAlignment = [Windows.HorizontalAlignment]::Center
-  $lyricsPanel.VerticalAlignment = [Windows.VerticalAlignment]::Bottom
-  $currentRow = [Windows.Controls.StackPanel]::new()
-  $currentRow.Orientation = [Windows.Controls.Orientation]::Horizontal
-  $currentRow.HorizontalAlignment = [Windows.HorizontalAlignment]::Center
-  $currentRow.VerticalAlignment = [Windows.VerticalAlignment]::Bottom
-  [void]$currentRow.Children.Add($badge)
-  [void]$currentRow.Children.Add($lyricsPanel)
-  $viewbox.Child = $currentRow
+  $viewbox.Child = $lyricsPanel
 
   $nextViewbox = [Windows.Controls.Viewbox]::new()
   $nextViewbox.Height = 48
@@ -605,7 +598,7 @@ try {
   $lyricsStage.VerticalAlignment = [Windows.VerticalAlignment]::Center
   [void]$lyricsStage.Children.Add($contentStack)
   [void]$lyricsStage.Children.Add($outgoingViewbox)
-  [Windows.Controls.Grid]::SetColumn($lyricsStage, 0)
+  [Windows.Controls.Grid]::SetColumn($lyricsStage, 1)
 
   $closeButton = [Windows.Controls.Button]::new()
   $closeButton.Content = [string][char]0x00D7
@@ -620,7 +613,7 @@ try {
   $closeButton.Cursor = [Windows.Input.Cursors]::Hand
   $closeButton.ToolTip = "Hide until the desktop lyric setting is turned off and on"
   $closeButton.VerticalAlignment = [Windows.VerticalAlignment]::Top
-  [Windows.Controls.Grid]::SetColumn($closeButton, 1)
+  [Windows.Controls.Grid]::SetColumn($closeButton, 2)
   $closeButton.Add_Click({
     $script:suppressed = $true
     $window.Hide()
@@ -635,6 +628,7 @@ try {
     $closeButton.Opacity = 0.25
   })
 
+  [void]$grid.Children.Add($badge)
   [void]$grid.Children.Add($lyricsStage)
   [void]$grid.Children.Add($closeButton)
   $card.Child = $grid

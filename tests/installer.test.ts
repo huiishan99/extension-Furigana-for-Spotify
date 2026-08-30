@@ -103,10 +103,13 @@ describe("Windows release installer", () => {
     expect(overlay).toContain("$base.Effect = [Windows.Media.Effects.DropShadowEffect]");
     expect(overlay).toContain("$badge.Width = 30");
     expect(overlay).toContain("$badgeText.FontSize = 17");
-    expect(overlay).toContain("$viewbox.MaxWidth = 650");
-    expect(overlay).toContain("$currentRow.Children.Add($badge)");
-    expect(overlay).toContain("$currentRow.Children.Add($lyricsPanel)");
-    expect(overlay).toContain("$viewbox.Child = $currentRow");
+    expect(overlay).toContain(
+      "$badge.HorizontalAlignment = [Windows.HorizontalAlignment]::Right",
+    );
+    expect(overlay).toContain("[Windows.Controls.Grid]::SetColumn($badge, 0)");
+    expect(overlay).toContain("[Windows.Controls.Grid]::SetColumn($lyricsStage, 1)");
+    expect(overlay).toContain("$grid.Children.Add($badge)");
+    expect(overlay).toContain("$viewbox.Child = $lyricsPanel");
     expect(overlay).toContain("$nextLyricsPanel");
     expect(overlay).toContain("[Windows.Media.Animation.DoubleAnimation]");
     expect(overlay).toContain("$promoteFromNext");
