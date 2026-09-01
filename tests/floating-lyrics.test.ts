@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
-  createDesktopOverlayState,
   CURRENT_LYRIC_SELECTORS,
+  createDesktopOverlayState,
   DESKTOP_OVERLAY_URL,
   extractDesktopLyricSegments,
   findCurrentLyricLine,
@@ -54,10 +54,7 @@ describe("floating current lyric", () => {
 
     resolveNext([{ text: "次" }]);
     await publishing;
-    expect(publish).toHaveBeenLastCalledWith(
-      [{ text: "現在" }],
-      [{ text: "次" }],
-    );
+    expect(publish).toHaveBeenLastCalledWith([{ text: "現在" }], [{ text: "次" }]);
     expect(publish).toHaveBeenCalledTimes(2);
   });
 
@@ -94,10 +91,7 @@ describe("floating current lyric", () => {
     );
 
     expect(publish).toHaveBeenCalledOnce();
-    expect(publish).toHaveBeenCalledWith(
-      [{ text: "現在" }],
-      [{ text: "次" }],
-    );
+    expect(publish).toHaveBeenCalledWith([{ text: "現在" }], [{ text: "次" }]);
   });
 
   it("targets Spotify's active lyric class before generic fallbacks", () => {
@@ -109,9 +103,9 @@ describe("floating current lyric", () => {
       ),
     };
 
-    expect(
-      findCurrentLyricLine(root as unknown as Pick<ParentNode, "querySelector">),
-    ).toBe(activeLine);
+    expect(findCurrentLyricLine(root as unknown as Pick<ParentNode, "querySelector">)).toBe(
+      activeLine,
+    );
     expect(root.querySelector).toHaveBeenCalledOnce();
     expect(CURRENT_LYRIC_SELECTORS[0]).toBe(
       ".lyrics-lyricsContent-active .lyrics-lyricsContent-text",
@@ -128,9 +122,9 @@ describe("floating current lyric", () => {
       ),
     };
 
-    expect(
-      findCurrentLyricLine(root as unknown as Pick<ParentNode, "querySelector">),
-    ).toBe(nestedLine);
+    expect(findCurrentLyricLine(root as unknown as Pick<ParentNode, "querySelector">)).toBe(
+      nestedLine,
+    );
   });
 
   it("serializes base text and ruby readings for the native overlay", () => {
@@ -142,7 +136,9 @@ describe("floating current lyric", () => {
     const element = (tagName: string, childNodes: object[]) => ({
       nodeType: 1,
       tagName,
-      textContent: childNodes.map((child) => (child as { textContent: string }).textContent).join(""),
+      textContent: childNodes
+        .map((child) => (child as { textContent: string }).textContent)
+        .join(""),
       childNodes,
     });
     const root = {
@@ -157,37 +153,25 @@ describe("floating current lyric", () => {
       ],
     };
 
-    expect(
-      extractDesktopLyricSegments(
-        root as unknown as Pick<ParentNode, "childNodes">,
-      ),
-    ).toEqual([
+    expect(extractDesktopLyricSegments(root as unknown as Pick<ParentNode, "childNodes">)).toEqual([
       { text: "二人", reading: "ふたり" },
       { text: "だけの空" },
     ]);
     expect(
       createDesktopOverlayState(
         true,
-        [
-          { text: "二人", reading: "ふたり" },
-          { text: "だけ" },
-        ],
+        [{ text: "二人", reading: "ふたり" }, { text: "だけ" }],
         [{ text: "次", reading: "つぎ" }],
       ),
     ).toEqual({
       version: 1,
       enabled: true,
-      segments: [
-        { text: "二人", reading: "ふたり" },
-        { text: "だけ" },
-      ],
+      segments: [{ text: "二人", reading: "ふたり" }, { text: "だけ" }],
       nextSegments: [{ text: "次", reading: "つぎ" }],
       currentFontSize: 30,
       nextFontSize: 20,
     });
-    expect(
-      createDesktopOverlayState(true, [], [], 99, -1),
-    ).toMatchObject({
+    expect(createDesktopOverlayState(true, [], [], 99, -1)).toMatchObject({
       currentFontSize: 44,
       nextFontSize: 12,
     });
@@ -216,12 +200,8 @@ describe("floating current lyric", () => {
       current: { startTimeMs: 800, words: "一人きり" },
       next: { startTimeMs: 2200, words: "二人だけ" },
     });
-    expect(findTimedLyricContext(lines, 1899, 300)?.current.words).toBe(
-      "一人きり",
-    );
-    expect(findTimedLyricContext(lines, 1900, 300)?.current.words).toBe(
-      "二人だけ",
-    );
+    expect(findTimedLyricContext(lines, 1899, 300)?.current.words).toBe("一人きり");
+    expect(findTimedLyricContext(lines, 1900, 300)?.current.words).toBe("二人だけ");
     expect(findTimedLyricContext(lines, 2200)?.next).toBeNull();
   });
 
@@ -235,9 +215,7 @@ describe("floating current lyric", () => {
   it("posts only to the fixed loopback overlay without CORS proxying", () => {
     const fetchMock = vi.fn(() => Promise.resolve(new Response(null)));
     vi.stubGlobal("fetch", fetchMock);
-    const state = createDesktopOverlayState(true, [
-      { text: "二人", reading: "ふたり" },
-    ]);
+    const state = createDesktopOverlayState(true, [{ text: "二人", reading: "ふたり" }]);
 
     sendDesktopOverlayState(state);
 

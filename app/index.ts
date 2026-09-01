@@ -7,22 +7,22 @@ import {
   FURIGANA_GAP_KEY,
   FURIGANA_OPACITY_KEY,
   FURIGANA_SIZE_KEY,
+  type FuriganaSettings,
   normalizeReadingMode,
   ONLINE_READINGS_KEY,
   READING_MODE_KEY,
-  READING_MODES as readingModes,
-  SETTING_CHANGE_EVENT as settingEvent,
-  SETTING_RANGES,
-  type FuriganaSettings,
   type ReadingMode,
+  READING_MODES as readingModes,
+  SETTING_RANGES,
+  SETTING_CHANGE_EVENT as settingEvent,
 } from "../src/settings";
 import {
   normalizeUiLanguagePreference,
   resolveUiLanguage as resolveStoredUiLanguage,
-  UI_LANGUAGE_CHANGE_EVENT as uiLanguageChangeEvent,
-  UI_LANGUAGE_KEY as uiLanguageKey,
   type UiLanguage,
   type UiLanguagePreference,
+  UI_LANGUAGE_CHANGE_EVENT as uiLanguageChangeEvent,
+  UI_LANGUAGE_KEY as uiLanguageKey,
 } from "../src/ui-language";
 
 export { normalizeUiLanguagePreference } from "../src/ui-language";
@@ -45,17 +45,14 @@ const onlineStatusKey = "spotify-furigana:online-status";
 const onlineStatusEvent = "spotify-furigana:online-status-change";
 const onlineCacheClearEvent = "spotify-furigana:online-cache-clear";
 const runtimeDiagnosticsKey = "spotify-furigana:runtime-diagnostics-v1";
-const runtimeDiagnosticsEvent =
-  "spotify-furigana:runtime-diagnostics-change";
+const runtimeDiagnosticsEvent = "spotify-furigana:runtime-diagnostics-change";
 
 export const translations = {
   en: {
     eyebrow: "Japanese lyric companion",
-    lead:
-      "Show hiragana, katakana, or romaji above Japanese kanji lyrics in Spotify Desktop for Windows and macOS. Local analysis is the default, with optional synchronized pronunciation matching.",
+    lead: "Show hiragana, katakana, or romaji above Japanese kanji lyrics in Spotify Desktop for Windows and macOS. Local analysis is the default, with optional synchronized pronunciation matching.",
     interfaceLanguage: "Interface language",
-    interfaceLanguageDescription:
-      "Follow Spotify automatically or choose a language for this app.",
+    interfaceLanguageDescription: "Follow Spotify automatically or choose a language for this app.",
     automatic: "Auto",
     english: "English",
     chinese: "简体中文",
@@ -90,8 +87,7 @@ export const translations = {
     runtimeReady: "Runtime ready · Spicetify {version}",
     runtimeMissing: "Runtime API incomplete; run spicetify apply again",
     diagnosticsTitle: "Troubleshooting diagnostics",
-    diagnosticsDescription:
-      "Copy a compact runtime report when opening an issue.",
+    diagnosticsDescription: "Copy a compact runtime report when opening an issue.",
     diagnosticsPrivacy:
       "The report contains versions, settings, reading status, and selector counts—never track titles, artists, lyrics, account data, or credentials.",
     diagnosticsSummary: "{annotated} annotated lines · {source}",
@@ -99,24 +95,20 @@ export const translations = {
     copyDiagnostics: "Copy diagnostics",
     diagnosticsCopied: "Diagnostics copied",
     diagnosticsCopyFailed: "Could not copy diagnostics",
-    hint:
-      "You can also use the ふ button in the player bar. Changing the reading style regenerates the current lyrics; the local dictionary may take a moment to load the first time.",
+    hint: "You can also use the ふ button in the player bar. Changing the reading style regenerates the current lyrics; the local dictionary may take a moment to load the first time.",
     statusOnlineDisabled: "Accurate online readings are off",
     statusNoTrack: "No Spotify track is available; using local readings",
     statusCacheReady: "Loaded synchronized readings from the local cache",
-    statusNotFound:
-      "No synchronized readings found for this track; using local readings",
+    statusNotFound: "No synchronized readings found for this track; using local readings",
     statusLoading: "Looking up synchronized readings…",
     statusMatched: "Matched {count} synchronized lyric lines",
-    statusUnavailable:
-      "Online readings are temporarily unavailable; using local readings",
+    statusUnavailable: "Online readings are temporarily unavailable; using local readings",
     statusCacheCleared: "Online reading cache cleared",
     statusWaiting: "Waiting for the current track status",
   },
   "zh-CN": {
     eyebrow: "日本語歌词辅助",
-    lead:
-      "在 Windows 与 macOS Spotify 桌面端的日语歌词汉字上方显示平假名、片假名或罗马字。默认本地分析，也可主动开启同步读音匹配。",
+    lead: "在 Windows 与 macOS Spotify 桌面端的日语歌词汉字上方显示平假名、片假名或罗马字。默认本地分析，也可主动开启同步读音匹配。",
     interfaceLanguage: "界面语言",
     interfaceLanguageDescription: "自动跟随 Spotify，或单独选择本应用的语言。",
     automatic: "自动",
@@ -135,8 +127,7 @@ export const translations = {
     floatingNextSize: "下一句字号",
     windowsOnly: "仅支持 Windows",
     onlineTitle: "在线精准读音（实验性）",
-    onlineDescription:
-      "使用同步罗马音修正歌词中的特殊唱法；无结果时自动回退本地词典。",
+    onlineDescription: "使用同步罗马音修正歌词中的特殊唱法；无结果时自动回退本地词典。",
     privacy:
       "开启后会向 GD Studio 发送公开的歌曲名和歌手；文字不同而无法匹配时，会向 MusicBrainz 查询公开歌手别名，再从网易云音乐读取歌词与罗马音。“同步”指时间戳配对，不会分析音频；结果仅缓存在本机。",
     clearCache: "清除缓存",
@@ -161,8 +152,7 @@ export const translations = {
     copyDiagnostics: "复制诊断信息",
     diagnosticsCopied: "诊断信息已复制",
     diagnosticsCopyFailed: "无法复制诊断信息",
-    hint:
-      "也可以点击播放器底部的 ふ 按钮快速开关。切换读音形式时会重新生成当前歌词；本地词典首次加载可能需要片刻。",
+    hint: "也可以点击播放器底部的 ふ 按钮快速开关。切换读音形式时会重新生成当前歌词；本地词典首次加载可能需要片刻。",
     statusOnlineDisabled: "在线精准读音未开启",
     statusNoTrack: "当前没有可查询的 Spotify 曲目，使用本地词典",
     statusCacheReady: "已从本地缓存加载同步读音",
@@ -175,11 +165,9 @@ export const translations = {
   },
   ja: {
     eyebrow: "日本語歌詞サポート",
-    lead:
-      "WindowsとmacOSのSpotifyデスクトップ版で、日本語歌詞の漢字にひらがな、カタカナ、またはローマ字の読みを表示します。通常はローカル解析を使い、同期発音の照合も任意で有効にできます。",
+    lead: "WindowsとmacOSのSpotifyデスクトップ版で、日本語歌詞の漢字にひらがな、カタカナ、またはローマ字の読みを表示します。通常はローカル解析を使い、同期発音の照合も任意で有効にできます。",
     interfaceLanguage: "表示言語",
-    interfaceLanguageDescription:
-      "Spotifyに自動で合わせるか、このアプリの言語を選択します。",
+    interfaceLanguageDescription: "Spotifyに自動で合わせるか、このアプリの言語を選択します。",
     automatic: "自動",
     english: "English",
     chinese: "简体中文",
@@ -214,8 +202,7 @@ export const translations = {
     runtimeReady: "ランタイム正常 · Spicetify {version}",
     runtimeMissing: "ランタイムAPIが不足しています。spicetify applyを再実行してください",
     diagnosticsTitle: "トラブルシューティング診断",
-    diagnosticsDescription:
-      "Issueを作成するときに、簡潔な実行状態レポートをコピーできます。",
+    diagnosticsDescription: "Issueを作成するときに、簡潔な実行状態レポートをコピーできます。",
     diagnosticsPrivacy:
       "レポートに含まれるのはバージョン、設定、読みの状態、セレクター数だけです。曲名、アーティスト、歌詞、アカウント情報、認証情報は含まれません。",
     diagnosticsSummary: "{annotated}行に読みを表示 · {source}",
@@ -223,25 +210,21 @@ export const translations = {
     copyDiagnostics: "診断情報をコピー",
     diagnosticsCopied: "診断情報をコピーしました",
     diagnosticsCopyFailed: "診断情報をコピーできませんでした",
-    hint:
-      "プレーヤーバーの「ふ」ボタンでも切り替えられます。読みの形式を変えると現在の歌詞を再生成します。ローカル辞書の初回読み込みには少し時間がかかる場合があります。",
+    hint: "プレーヤーバーの「ふ」ボタンでも切り替えられます。読みの形式を変えると現在の歌詞を再生成します。ローカル辞書の初回読み込みには少し時間がかかる場合があります。",
     statusOnlineDisabled: "オンライン高精度読みはオフです",
     statusNoTrack: "検索できるSpotify曲がないため、ローカル読みを使用します",
     statusCacheReady: "同期読みをローカルキャッシュから読み込みました",
     statusNotFound: "同期読みが見つからないため、ローカル読みを使用します",
     statusLoading: "現在の曲の同期読みを検索しています…",
     statusMatched: "{count}行の同期読みを照合しました",
-    statusUnavailable:
-      "オンライン読みを一時的に利用できないため、ローカル読みを使用します",
+    statusUnavailable: "オンライン読みを一時的に利用できないため、ローカル読みを使用します",
     statusCacheCleared: "オンライン読みのキャッシュを消去しました",
     statusWaiting: "現在の曲の状態を待っています",
   },
 };
 
 function readUiLanguagePreference(): UiLanguagePreference {
-  return normalizeUiLanguagePreference(
-    Spicetify.LocalStorage.get(uiLanguageKey),
-  );
+  return normalizeUiLanguagePreference(Spicetify.LocalStorage.get(uiLanguageKey));
 }
 
 function getLocaleCandidates(): string[] {
@@ -266,10 +249,7 @@ type AppText = {
   [Key in keyof (typeof translations)["en"]]: string;
 };
 
-function formatText(
-  template: string,
-  values: Record<string, string | number> = {},
-): string {
+function formatText(template: string, values: Record<string, string | number> = {}): string {
   return template.replace(/\{(\w+)\}/gu, (placeholder, name: string) =>
     Object.hasOwn(values, name) ? String(values[name]) : placeholder,
   );
@@ -289,10 +269,7 @@ interface RuntimeDiagnostics {
   onlineStatus: OnlineStatus;
 }
 
-export function localizeOnlineStatus(
-  status: OnlineStatus,
-  text: AppText,
-): string {
+export function localizeOnlineStatus(status: OnlineStatus, text: AppText): string {
   const statusKeys: Record<string, keyof AppText> = {
     "online-disabled": "statusOnlineDisabled",
     "no-track": "statusNoTrack",
@@ -321,12 +298,7 @@ function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
 }
 
-function readNumber(
-  key: string,
-  fallback: number,
-  min: number,
-  max: number,
-): number {
+function readNumber(key: string, fallback: number, min: number, max: number): number {
   const raw = Spicetify.LocalStorage.get(key);
   if (raw === null || raw.trim() === "") {
     return fallback;
@@ -359,10 +331,8 @@ export function readSettings(): FuriganaSettings {
       SETTING_RANGES.gap.min,
       SETTING_RANGES.gap.max,
     ),
-    onlineReadings:
-      Spicetify.LocalStorage.get(settingKeys.onlineReadings) === "true",
-    floatingLyrics:
-      Spicetify.LocalStorage.get(settingKeys.floatingLyrics) === "true",
+    onlineReadings: Spicetify.LocalStorage.get(settingKeys.onlineReadings) === "true",
+    floatingLyrics: Spicetify.LocalStorage.get(settingKeys.floatingLyrics) === "true",
     floatingCurrentSize: readNumber(
       settingKeys.floatingCurrentSize,
       defaultSettings.floatingCurrentSize,
@@ -437,10 +407,7 @@ function readRuntimeDiagnostics(): RuntimeDiagnostics | null {
   return null;
 }
 
-function formatDiagnosticsSummary(
-  diagnostics: RuntimeDiagnostics | null,
-  text: AppText,
-): string {
+function formatDiagnosticsSummary(diagnostics: RuntimeDiagnostics | null, text: AppText): string {
   if (!diagnostics) {
     return text.diagnosticsWaiting;
   }
@@ -519,8 +486,7 @@ function SettingSlider({
       step,
       value,
       disabled,
-      onChange: (event: Event) =>
-        onChange(Number((event.target as HTMLInputElement).value)),
+      onChange: (event: Event) => onChange(Number((event.target as HTMLInputElement).value)),
     }),
   );
 }
@@ -528,12 +494,8 @@ function SettingSlider({
 function SpotifyFuriganaApp(): unknown {
   const [settings, setSettings] = react.useState(readSettings);
   const [onlineStatus, setOnlineStatus] = react.useState(readOnlineStatus);
-  const [runtimeDiagnostics, setRuntimeDiagnostics] = react.useState(
-    readRuntimeDiagnostics,
-  );
-  const [uiLanguagePreference, setUiLanguagePreference] = react.useState(
-    readUiLanguagePreference,
-  );
+  const [runtimeDiagnostics, setRuntimeDiagnostics] = react.useState(readRuntimeDiagnostics);
+  const [uiLanguagePreference, setUiLanguagePreference] = react.useState(readUiLanguagePreference);
   const settingsRef = react.useRef(settings);
   settingsRef.current = settings;
   const uiLanguage = resolveUiLanguage(uiLanguagePreference);
@@ -590,11 +552,7 @@ function SpotifyFuriganaApp(): unknown {
       setRuntimeDiagnostics(detail ?? readRuntimeDiagnostics());
     };
     window.addEventListener(runtimeDiagnosticsEvent, syncRuntimeDiagnostics);
-    return () =>
-      window.removeEventListener(
-        runtimeDiagnosticsEvent,
-        syncRuntimeDiagnostics,
-      );
+    return () => window.removeEventListener(runtimeDiagnosticsEvent, syncRuntimeDiagnostics);
   }, []);
 
   react.useEffect(() => {
@@ -607,29 +565,18 @@ function SpotifyFuriganaApp(): unknown {
   }, []);
 
   const runtimeVersion = Spicetify.Config?.version || "unknown";
-  const runtimeReady = Boolean(
-    Spicetify.Player && Spicetify.LocalStorage && Spicetify.Playbar,
-  );
+  const runtimeReady = Boolean(Spicetify.Player && Spicetify.LocalStorage && Spicetify.Playbar);
 
   return react.createElement(
     "section",
     { className: "contentSpacing spotify-furigana-app" },
-    react.createElement(
-      "p",
-      { className: "spotify-furigana-app__eyebrow" },
-      text.eyebrow,
-    ),
+    react.createElement("p", { className: "spotify-furigana-app__eyebrow" }, text.eyebrow),
     react.createElement("h1", null, "Furigana for Spotify"),
-    react.createElement(
-      "p",
-      { className: "spotify-furigana-app__lead" },
-      text.lead,
-    ),
+    react.createElement("p", { className: "spotify-furigana-app__lead" }, text.lead),
     react.createElement(
       "div",
       {
-        className:
-          "spotify-furigana-app__card spotify-furigana-app__language",
+        className: "spotify-furigana-app__card spotify-furigana-app__language",
       },
       react.createElement(
         "div",
@@ -643,19 +590,16 @@ function SpotifyFuriganaApp(): unknown {
           className: "spotify-furigana-app__language-select",
           value: uiLanguagePreference,
           "aria-label": text.interfaceLanguage,
-          onChange: (event: Event) =>
-            updateUiLanguage((event.target as HTMLSelectElement).value),
+          onChange: (event: Event) => updateUiLanguage((event.target as HTMLSelectElement).value),
         },
         react.createElement(
           "option",
           { value: "auto" },
-          `${text.automatic} (${translations[uiLanguage][
-            uiLanguage === "en"
-              ? "english"
-              : uiLanguage === "ja"
-                ? "japanese"
-                : "chinese"
-          ]})`,
+          `${text.automatic} (${
+            translations[uiLanguage][
+              uiLanguage === "en" ? "english" : uiLanguage === "ja" ? "japanese" : "chinese"
+            ]
+          })`,
         ),
         react.createElement("option", { value: "en" }, text.english),
         react.createElement("option", { value: "zh-CN" }, text.chinese),
@@ -669,11 +613,7 @@ function SpotifyFuriganaApp(): unknown {
         "div",
         null,
         react.createElement("strong", null, text.annotationTitle),
-        react.createElement(
-          "p",
-          null,
-          settings.enabled ? text.currentlyOn : text.currentlyOff,
-        ),
+        react.createElement("p", null, settings.enabled ? text.currentlyOn : text.currentlyOff),
       ),
       react.createElement(
         "button",
@@ -689,8 +629,7 @@ function SpotifyFuriganaApp(): unknown {
     react.createElement(
       "div",
       {
-        className:
-          "spotify-furigana-app__card spotify-furigana-app__floating",
+        className: "spotify-furigana-app__card spotify-furigana-app__floating",
       },
       react.createElement(
         "div",
@@ -708,8 +647,7 @@ function SpotifyFuriganaApp(): unknown {
             type: "button",
             disabled: !desktopOverlaySupported,
             "aria-pressed": settings.floatingLyrics,
-            onClick: () =>
-              updateSettings({ floatingLyrics: !settings.floatingLyrics }),
+            onClick: () => updateSettings({ floatingLyrics: !settings.floatingLyrics }),
           },
           desktopOverlaySupported
             ? settings.floatingLyrics
@@ -731,8 +669,7 @@ function SpotifyFuriganaApp(): unknown {
           step: 1,
           valueLabel: `${settings.floatingCurrentSize}px`,
           disabled: !desktopOverlaySupported,
-          onChange: (floatingCurrentSize) =>
-            updateSettings({ floatingCurrentSize }),
+          onChange: (floatingCurrentSize) => updateSettings({ floatingCurrentSize }),
         }),
         react.createElement(SettingSlider, {
           label: text.floatingNextSize,
@@ -742,8 +679,7 @@ function SpotifyFuriganaApp(): unknown {
           step: 1,
           valueLabel: `${settings.floatingNextSize}px`,
           disabled: !desktopOverlaySupported,
-          onChange: (floatingNextSize) =>
-            updateSettings({ floatingNextSize }),
+          onChange: (floatingNextSize) => updateSettings({ floatingNextSize }),
         }),
       ),
     ),
@@ -754,21 +690,13 @@ function SpotifyFuriganaApp(): unknown {
         "div",
         null,
         react.createElement("strong", null, text.onlineTitle),
-        react.createElement(
-          "p",
-          null,
-          text.onlineDescription,
-        ),
+        react.createElement("p", null, text.onlineDescription),
         react.createElement(
           "p",
           { className: "spotify-furigana-app__online-status" },
           localizeOnlineStatus(onlineStatus, text),
         ),
-        react.createElement(
-          "p",
-          { className: "spotify-furigana-app__privacy" },
-          text.privacy,
-        ),
+        react.createElement("p", { className: "spotify-furigana-app__privacy" }, text.privacy),
       ),
       react.createElement(
         "div",
@@ -778,8 +706,7 @@ function SpotifyFuriganaApp(): unknown {
           {
             className: "spotify-furigana-app__reset",
             type: "button",
-            onClick: () =>
-              window.dispatchEvent(new CustomEvent(onlineCacheClearEvent)),
+            onClick: () => window.dispatchEvent(new CustomEvent(onlineCacheClearEvent)),
           },
           text.clearCache,
         ),
@@ -789,8 +716,7 @@ function SpotifyFuriganaApp(): unknown {
             className: "spotify-furigana-app__toggle",
             type: "button",
             "aria-pressed": settings.onlineReadings,
-            onClick: () =>
-              updateSettings({ onlineReadings: !settings.onlineReadings }),
+            onClick: () => updateSettings({ onlineReadings: !settings.onlineReadings }),
           },
           settings.onlineReadings ? text.turnOff : text.turnOn,
         ),
@@ -887,8 +813,7 @@ function SpotifyFuriganaApp(): unknown {
     react.createElement(
       "div",
       {
-        className:
-          "spotify-furigana-app__card spotify-furigana-app__diagnostics",
+        className: "spotify-furigana-app__card spotify-furigana-app__diagnostics",
       },
       react.createElement(
         "div",
@@ -931,11 +856,7 @@ function SpotifyFuriganaApp(): unknown {
           : text.runtimeMissing,
       ),
     ),
-    react.createElement(
-      "p",
-      { className: "spotify-furigana-app__hint" },
-      text.hint,
-    ),
+    react.createElement("p", { className: "spotify-furigana-app__hint" }, text.hint),
   );
 }
 

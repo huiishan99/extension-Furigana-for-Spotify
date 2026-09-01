@@ -29,38 +29,28 @@ function displayReading(value: string, mode: ReadingMode): string {
   return value;
 }
 
-function renderRuby(
-  surface: string,
-  reading: string,
-  mode: ReadingMode,
-): string {
+function renderRuby(surface: string, reading: string, mode: ReadingMode): string {
   return `<ruby>${surface}<rp>(</rp><rt>${displayReading(reading, mode)}</rt><rp>)</rp></ruby>`;
 }
 
-export function protectLocalReadings(
-  value: string,
-  mode: ReadingMode,
-): ProtectedLocalReadings {
+export function protectLocalReadings(value: string, mode: ReadingMode): ProtectedLocalReadings {
   const replacements: LocalReadingReplacement[] = [];
   let tokenSequence = 0;
 
-  const protectedValue = value.replace(
-    PEOPLE_COUNTER_PATTERN,
-    (surface: string) => {
-      let token: string;
-      do {
-        token = `SPOTIFYFURIGANALOCAL${tokenSequence}TOKEN`;
-        tokenSequence += 1;
-      } while (value.includes(token));
+  const protectedValue = value.replace(PEOPLE_COUNTER_PATTERN, (surface: string) => {
+    let token: string;
+    do {
+      token = `SPOTIFYFURIGANALOCAL${tokenSequence}TOKEN`;
+      tokenSequence += 1;
+    } while (value.includes(token));
 
-      replacements.push({
-        token,
-        surface,
-        reading: getPeopleCounterReading(surface),
-      });
-      return token;
-    },
-  );
+    replacements.push({
+      token,
+      surface,
+      reading: getPeopleCounterReading(surface),
+    });
+    return token;
+  });
 
   return {
     value: protectedValue,

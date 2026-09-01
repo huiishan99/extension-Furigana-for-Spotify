@@ -1,23 +1,25 @@
 import { getDictionaryPath } from "./assets";
 import {
-  convertToFurigana,
-  createSafeFuriganaFragment,
-} from "./reading-engine";
-import {
-  type FuriganaSettings,
-  getFuriganaSettings,
-  setFuriganaSettings,
-  SETTING_CHANGE_EVENT,
-} from "./settings";
-import { LYRIC_SELECTOR, LYRIC_SELECTORS } from "./lyrics";
-import { PLAYBAR_FU_ICON } from "./icon";
-import { normalizeLyricText, shouldAnnotateLyric } from "./text";
-import {
   createRuntimeDiagnostics,
   RUNTIME_DIAGNOSTICS_EVENT,
   RUNTIME_DIAGNOSTICS_KEY,
   type RuntimeDiagnosticsInput,
 } from "./diagnostics";
+import {
+  createDesktopOverlayState,
+  type DesktopLyricSegment,
+  type DesktopOverlayState,
+  extractDesktopLyricSegments,
+  findCurrentLyricLine,
+  findTimedLyricContext,
+  getSpotifyLyricsUrl,
+  parseSpotifyTimedLyrics,
+  publishDesktopLyricPairProgressively,
+  sendDesktopOverlayState,
+  type TimedLyricLine,
+} from "./floating-lyrics";
+import { PLAYBAR_FU_ICON } from "./icon";
+import { LYRIC_SELECTOR, LYRIC_SELECTORS } from "./lyrics";
 import {
   clearOnlineReadingCache,
   fetchOnlineReadingResult,
@@ -31,26 +33,21 @@ import {
   type OnlineTrackMetadata,
   setCachedOnlineReading,
 } from "./online-readings";
+import { convertToFurigana, createSafeFuriganaFragment } from "./reading-engine";
+import {
+  type FuriganaSettings,
+  getFuriganaSettings,
+  SETTING_CHANGE_EVENT,
+  setFuriganaSettings,
+} from "./settings";
+import { normalizeLyricText, shouldAnnotateLyric } from "./text";
 import {
   getRuntimeUiLanguage,
+  type RuntimeMessageKey,
   translateRuntimeMessage,
   UI_LANGUAGE_CHANGE_EVENT,
-  type RuntimeMessageKey,
   type UiLanguage,
 } from "./ui-language";
-import {
-  createDesktopOverlayState,
-  extractDesktopLyricSegments,
-  findTimedLyricContext,
-  findCurrentLyricLine,
-  getSpotifyLyricsUrl,
-  parseSpotifyTimedLyrics,
-  publishDesktopLyricPairProgressively,
-  sendDesktopOverlayState,
-  type DesktopLyricSegment,
-  type DesktopOverlayState,
-  type TimedLyricLine,
-} from "./floating-lyrics";
 
 const STATE_ATTRIBUTE = "data-spotify-furigana";
 const STYLE_ID = "spotify-furigana-styles";
@@ -100,10 +97,7 @@ function injectStyles(): void {
 function applyAppearance(settings: FuriganaSettings): void {
   const rootStyle = document.documentElement.style;
   rootStyle.setProperty("--spotify-furigana-size", `${settings.size}em`);
-  rootStyle.setProperty(
-    "--spotify-furigana-opacity",
-    String(settings.opacity),
-  );
+  rootStyle.setProperty("--spotify-furigana-opacity", String(settings.opacity));
   rootStyle.setProperty("--spotify-furigana-gap", `${settings.gap}px`);
 }
 
@@ -130,8 +124,7 @@ function getCurrentTrackMetadata(): OnlineTrackMetadata | null {
   const metadata = item?.metadata ?? {};
   const uri = item?.uri;
   const title = item?.name ?? metadata.title;
-  const artist =
-    metadata.artist_name ?? metadata.artist ?? metadata.artist_names;
+  const artist = metadata.artist_name ?? metadata.artist ?? metadata.artist_names;
   const album = metadata.album_title ?? metadata.album_name ?? "";
 
   if (
@@ -153,10 +146,7 @@ function getCurrentTrackMetadata(): OnlineTrackMetadata | null {
   };
 }
 
-async function requestOnlineJson(
-  url: string,
-  headers?: Record<string, string>,
-): Promise<unknown> {
+async function requestOnlineJson(url: string, headers?: Record<string, string>): Promise<unknown> {
   let timeoutId: number | undefined;
   const timeout = new Promise<never>((_, reject) => {
     timeoutId = window.setTimeout(
@@ -166,10 +156,7 @@ async function requestOnlineJson(
   });
 
   try {
-    return await Promise.race([
-      Spicetify.CosmosAsync.get(url, null, headers),
-      timeout,
-    ]);
+    return await Promise.race([Spicetify.CosmosAsync.get(url, null, headers), timeout]);
   } finally {
     if (timeoutId !== undefined) {
       window.clearTimeout(timeoutId);
@@ -208,20 +195,14 @@ async function main(): Promise<void> {
   let lastDesktopOverlayStateSignature = "";
   let lastDesktopOverlayState: DesktopOverlayState | undefined;
   let lastDesktopOverlaySentAt = 0;
-  const desktopLyricSegmentCache = new Map<
-    string,
-    DesktopLyricSegmentCacheEntry
-  >();
+  const desktopLyricSegmentCache = new Map<string, DesktopLyricSegmentCacheEntry>();
   let floatingLyricsRenderGeneration = 0;
   let floatingLyricsLoadGeneration = 0;
   let floatingLyricsTrackUri: string | undefined;
   let floatingTimedLyrics: TimedLyricLine[] = [];
   let floatingLyricsTimer: number | undefined;
 
-  function t(
-    key: RuntimeMessageKey,
-    values?: Record<string, string | number>,
-  ): string {
+  function t(key: RuntimeMessageKey, values?: Record<string, string | number>): string {
     return translateRuntimeMessage(uiLanguage, key, values);
   }
 
@@ -273,12 +254,8 @@ async function main(): Promise<void> {
         selector,
         count: document.querySelectorAll(selector).length,
       })),
-      annotatedLines: document.querySelectorAll(
-        `[${STATE_ATTRIBUTE}="ready"]`,
-      ).length,
-      pendingLines: document.querySelectorAll(
-        `[${STATE_ATTRIBUTE}="pending"]`,
-      ).length,
+      annotatedLines: document.querySelectorAll(`[${STATE_ATTRIBUTE}="ready"]`).length,
+      pendingLines: document.querySelectorAll(`[${STATE_ATTRIBUTE}="pending"]`).length,
       engineState: engineUnavailable ? "error" : "ready",
     };
   }
@@ -292,13 +269,8 @@ async function main(): Promise<void> {
     }
     lastDiagnosticsSignature = signature;
     const diagnostics = createRuntimeDiagnostics(input);
-    Spicetify.LocalStorage.set(
-      RUNTIME_DIAGNOSTICS_KEY,
-      JSON.stringify(diagnostics),
-    );
-    window.dispatchEvent(
-      new CustomEvent(RUNTIME_DIAGNOSTICS_EVENT, { detail: diagnostics }),
-    );
+    Spicetify.LocalStorage.set(RUNTIME_DIAGNOSTICS_KEY, JSON.stringify(diagnostics));
+    window.dispatchEvent(new CustomEvent(RUNTIME_DIAGNOSTICS_EVENT, { detail: diagnostics }));
   }
 
   function scheduleRuntimeDiagnostics(): void {
@@ -310,9 +282,7 @@ async function main(): Promise<void> {
   function publishOnlineStatus(status: OnlineReadingStatus): void {
     onlineStatus = status;
     Spicetify.LocalStorage.set(ONLINE_STATUS_KEY, JSON.stringify(status));
-    window.dispatchEvent(
-      new CustomEvent(ONLINE_STATUS_EVENT, { detail: status }),
-    );
+    window.dispatchEvent(new CustomEvent(ONLINE_STATUS_EVENT, { detail: status }));
     playbarButton.label = getPlaybarLabel();
     scheduleRuntimeDiagnostics();
   }
@@ -337,10 +307,7 @@ async function main(): Promise<void> {
     );
     const signature = JSON.stringify(state);
     const now = Date.now();
-    if (
-      signature === lastDesktopOverlayStateSignature &&
-      now - lastDesktopOverlaySentAt < 5_000
-    ) {
+    if (signature === lastDesktopOverlayStateSignature && now - lastDesktopOverlaySentAt < 5_000) {
       return;
     }
     lastDesktopOverlayStateSignature = signature;
@@ -350,10 +317,7 @@ async function main(): Promise<void> {
   }
 
   function retryDesktopOverlayState(): void {
-    if (
-      lastDesktopOverlayState &&
-      Date.now() - lastDesktopOverlaySentAt >= 5_000
-    ) {
+    if (lastDesktopOverlayState && Date.now() - lastDesktopOverlaySentAt >= 5_000) {
       lastDesktopOverlaySentAt = Date.now();
       sendDesktopOverlayState(lastDesktopOverlayState);
     }
@@ -365,9 +329,7 @@ async function main(): Promise<void> {
     publishDesktopOverlay();
   }
 
-  function getDesktopLyricSegmentEntry(
-    sourceValue: string,
-  ): DesktopLyricSegmentCacheEntry {
+  function getDesktopLyricSegmentEntry(sourceValue: string): DesktopLyricSegmentCacheEntry {
     const source = normalizeLyricText(sourceValue);
     const sungRomanization =
       activeOnlineTrackUri === Spicetify.Player.data?.item?.uri
@@ -399,10 +361,7 @@ async function main(): Promise<void> {
         const fragment = createSafeFuriganaFragment(converted, document);
         return extractDesktopLyricSegments(fragment);
       } catch (error: unknown) {
-        console.warn(
-          "[Furigana for Spotify] Desktop lyric conversion failed.",
-          error,
-        );
+        console.warn("[Furigana for Spotify] Desktop lyric conversion failed.", error);
         return [{ text: source }];
       }
     })().then((segments) => {
@@ -436,14 +395,8 @@ async function main(): Promise<void> {
   ): Promise<void> {
     const currentSource = normalizeLyricText(currentSourceValue);
     const nextSource = normalizeLyricText(nextSourceValue);
-    const currentSungRomanization = findOnlineRomanization(
-      onlineReadings,
-      currentSource,
-    );
-    const nextSungRomanization = findOnlineRomanization(
-      onlineReadings,
-      nextSource,
-    );
+    const currentSungRomanization = findOnlineRomanization(onlineReadings, currentSource);
+    const nextSungRomanization = findOnlineRomanization(onlineReadings, nextSource);
     const signature = `${signaturePrefix}:${settings.readingMode}:${currentSungRomanization ?? ""}:${nextSungRomanization ?? ""}:${currentSource}:${nextSource}`;
     if (signature === lastFloatingLyricsSignature) {
       return;
@@ -470,9 +423,7 @@ async function main(): Promise<void> {
     );
   }
 
-  function updateFloatingLyrics(
-    progressMs = Spicetify.Player.getProgress(),
-  ): void {
+  function updateFloatingLyrics(progressMs = Spicetify.Player.getProgress()): void {
     if (!enabled || !settings.floatingLyrics || !desktopOverlaySupported) {
       hideDesktopOverlay();
       return;
@@ -491,14 +442,8 @@ async function main(): Promise<void> {
         ? getAnnotatedSource(currentLine)
         : normalizeLyricText(currentLine.textContent)
       : "";
-    const timedCurrentSource = normalizeLyricText(
-      timedContext?.current.words ?? "",
-    );
-    if (
-      timedContext &&
-      currentLine &&
-      currentLineSource !== timedCurrentSource
-    ) {
+    const timedCurrentSource = normalizeLyricText(timedContext?.current.words ?? "");
+    if (timedContext && currentLine && currentLineSource !== timedCurrentSource) {
       void renderDesktopLyricPair(
         timedContext.current.words,
         timedContext.next?.words ?? "",
@@ -517,12 +462,7 @@ async function main(): Promise<void> {
       return;
     }
     if (currentLine) {
-      void renderDesktopLyricPair(
-        currentLineSource,
-        nextSource,
-        undefined,
-        "dom-text",
-      );
+      void renderDesktopLyricPair(currentLineSource, nextSource, undefined, "dom-text");
       return;
     }
 
@@ -530,10 +470,7 @@ async function main(): Promise<void> {
       hideDesktopOverlay();
       return;
     }
-    void renderDesktopLyricPair(
-      timedContext.current.words,
-      timedContext.next?.words ?? "",
-    );
+    void renderDesktopLyricPair(timedContext.current.words, timedContext.next?.words ?? "");
   }
 
   async function refreshFloatingTimedLyrics(): Promise<void> {
@@ -551,10 +488,7 @@ async function main(): Promise<void> {
 
     try {
       const response = await requestOnlineJson(url);
-      if (
-        generation !== floatingLyricsLoadGeneration ||
-        floatingLyricsTrackUri !== trackUri
-      ) {
+      if (generation !== floatingLyricsLoadGeneration || floatingLyricsTrackUri !== trackUri) {
         return;
       }
       floatingTimedLyrics = parseSpotifyTimedLyrics(response);
@@ -562,10 +496,7 @@ async function main(): Promise<void> {
       if (generation !== floatingLyricsLoadGeneration) {
         return;
       }
-      console.warn(
-        "[Furigana for Spotify] Spotify timed lyrics were unavailable.",
-        error,
-      );
+      console.warn("[Furigana for Spotify] Spotify timed lyrics were unavailable.", error);
     }
 
     updateFloatingLyrics();
@@ -612,9 +543,7 @@ async function main(): Promise<void> {
   }
 
   function restoreAll(): void {
-    document
-      .querySelectorAll<HTMLElement>(`[${STATE_ATTRIBUTE}]`)
-      .forEach(restoreLine);
+    document.querySelectorAll<HTMLElement>(`[${STATE_ATTRIBUTE}]`).forEach(restoreLine);
   }
 
   async function refreshOnlineReadings(): Promise<void> {
@@ -671,10 +600,7 @@ async function main(): Promise<void> {
 
     try {
       const result = await fetchOnlineReadingResult(track, requestOnlineJson);
-      if (
-        generation !== onlineLoadGeneration ||
-        activeOnlineTrackUri !== track.uri
-      ) {
+      if (generation !== onlineLoadGeneration || activeOnlineTrackUri !== track.uri) {
         return;
       }
 
@@ -700,10 +626,7 @@ async function main(): Promise<void> {
       if (generation !== onlineLoadGeneration) {
         return;
       }
-      console.warn(
-        "[Furigana for Spotify] Online readings were unavailable.",
-        error,
-      );
+      console.warn("[Furigana for Spotify] Online readings were unavailable.", error);
       publishOnlineStatus({
         state: "error",
         code: "unavailable",
@@ -717,7 +640,9 @@ async function main(): Promise<void> {
 
   function getAnnotatedSource(line: HTMLElement): string {
     const copy = line.cloneNode(true) as HTMLElement;
-    copy.querySelectorAll("rt, rp").forEach((annotation) => annotation.remove());
+    copy.querySelectorAll("rt, rp").forEach((annotation) => {
+      annotation.remove();
+    });
     return normalizeLyricText(copy.textContent);
   }
 
@@ -788,9 +713,7 @@ async function main(): Promise<void> {
         return;
       }
 
-      line.replaceChildren(
-        createSafeFuriganaFragment(converted, line.ownerDocument),
-      );
+      line.replaceChildren(createSafeFuriganaFragment(converted, line.ownerDocument));
       line.setAttribute(STATE_ATTRIBUTE, "ready");
     } catch (error: unknown) {
       if (lineGeneration.get(line) !== generation) {
@@ -837,10 +760,8 @@ async function main(): Promise<void> {
       nextSettings.size !== settings.size ||
       nextSettings.opacity !== settings.opacity ||
       nextSettings.gap !== settings.gap;
-    const onlineReadingsChanged =
-      nextSettings.onlineReadings !== settings.onlineReadings;
-    const floatingLyricsChanged =
-      nextSettings.floatingLyrics !== settings.floatingLyrics;
+    const onlineReadingsChanged = nextSettings.onlineReadings !== settings.onlineReadings;
+    const floatingLyricsChanged = nextSettings.floatingLyrics !== settings.floatingLyrics;
     const floatingTypographyChanged =
       nextSettings.floatingCurrentSize !== settings.floatingCurrentSize ||
       nextSettings.floatingNextSize !== settings.floatingNextSize;
@@ -887,18 +808,12 @@ async function main(): Promise<void> {
 
     if (floatingLyricsChanged || enabledChanged) {
       syncFloatingLyricsTimer();
-    } else if (
-      readingModeChanged ||
-      onlineReadingsChanged ||
-      floatingTypographyChanged
-    ) {
+    } else if (readingModeChanged || onlineReadingsChanged || floatingTypographyChanged) {
       updateFloatingLyrics();
     }
 
     if (announce) {
-      Spicetify.showNotification(
-        enabled ? t("enabledNotice") : t("disabledNotice"),
-      );
+      Spicetify.showNotification(enabled ? t("enabledNotice") : t("disabledNotice"));
     }
 
     if (broadcast) {

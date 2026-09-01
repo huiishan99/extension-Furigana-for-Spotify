@@ -1,8 +1,8 @@
 import Kuroshiro from "kuroshiro";
 import KuromojiAnalyzer from "kuroshiro-analyzer-kuromoji";
-import type { ReadingMode } from "./settings";
-import { convertSungReadingToFurigana } from "./online-readings";
 import { protectLocalReadings } from "./local-readings";
+import { convertSungReadingToFurigana } from "./online-readings";
+import type { ReadingMode } from "./settings";
 
 let enginePromise: Promise<Kuroshiro> | undefined;
 let activeDictionaryPath: string | undefined;
@@ -34,11 +34,7 @@ export async function convertToFurigana(
   sungRomanization?: string,
 ): Promise<string> {
   if (sungRomanization) {
-    const aligned = convertSungReadingToFurigana(
-      value,
-      sungRomanization,
-      readingMode,
-    );
+    const aligned = convertSungReadingToFurigana(value, sungRomanization, readingMode);
     if (aligned) {
       return aligned;
     }
@@ -67,15 +63,9 @@ export function createSafeFuriganaFragment(
   return fragment;
 }
 
-function appendSafeNode(
-  source: Node,
-  destination: Node,
-  targetDocument: Document,
-): void {
+function appendSafeNode(source: Node, destination: Node, targetDocument: Document): void {
   if (source.nodeType === Node.TEXT_NODE) {
-    destination.appendChild(
-      targetDocument.createTextNode(source.textContent ?? ""),
-    );
+    destination.appendChild(targetDocument.createTextNode(source.textContent ?? ""));
     return;
   }
 
@@ -85,9 +75,7 @@ function appendSafeNode(
 
   const tagName = source.tagName.toLowerCase();
   if (tagName !== "ruby" && tagName !== "rt" && tagName !== "rp") {
-    destination.appendChild(
-      targetDocument.createTextNode(source.textContent ?? ""),
-    );
+    destination.appendChild(targetDocument.createTextNode(source.textContent ?? ""));
     return;
   }
 

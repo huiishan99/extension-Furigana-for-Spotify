@@ -27,18 +27,14 @@ describe("runtime UI language", () => {
   });
 
   it("localizes runtime controls, statuses, and dynamic counts", () => {
-    expect(translateRuntimeMessage("en", "enableFurigana")).toBe(
-      "Turn on lyric furigana",
+    expect(translateRuntimeMessage("en", "enableFurigana")).toBe("Turn on lyric furigana");
+    expect(translateRuntimeMessage("zh-CN", "cacheCleared")).toBe("在线缓存已清除");
+    expect(translateRuntimeMessage("ja", "matched", { count: 35 })).toBe(
+      "35行の同期読みを照合しました",
     );
-    expect(translateRuntimeMessage("zh-CN", "cacheCleared")).toBe(
-      "在线缓存已清除",
+    expect(translateRuntimeMessage("zh-CN", "sourceAccurate", { count: 35 })).toBe(
+      "精准读音 · 35 行",
     );
-    expect(
-      translateRuntimeMessage("ja", "matched", { count: 35 }),
-    ).toBe("35行の同期読みを照合しました");
-    expect(
-      translateRuntimeMessage("zh-CN", "sourceAccurate", { count: 35 }),
-    ).toBe("精准读音 · 35 行");
     expect(translateRuntimeMessage("en", "sourceFallback")).toBe(
       "Local fallback · online unavailable",
     );

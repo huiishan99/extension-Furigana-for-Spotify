@@ -5,10 +5,14 @@ import { describe, expect, it } from "vitest";
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const powerShell = process.platform === "win32" ? "pwsh.exe" : "pwsh";
-const probe = spawnSync(powerShell, ["-NoProfile", "-Command", "$PSVersionTable.PSVersion.ToString()"], {
-  encoding: "utf8",
-  windowsHide: true,
-});
+const probe = spawnSync(
+  powerShell,
+  ["-NoProfile", "-Command", "$PSVersionTable.PSVersion.ToString()"],
+  {
+    encoding: "utf8",
+    windowsHide: true,
+  },
+);
 const hasPowerShell = probe.status === 0;
 
 describe("native overlay core", () => {

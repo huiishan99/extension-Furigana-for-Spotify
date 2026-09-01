@@ -1,9 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  hasKanji,
-  normalizeLyricText,
-  shouldAnnotateLyric,
-} from "../src/text";
+import { hasKanji, normalizeLyricText, shouldAnnotateLyric } from "../src/text";
 
 describe("Japanese lyric detection", () => {
   it("detects common and iteration kanji", () => {

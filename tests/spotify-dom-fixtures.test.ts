@@ -6,11 +6,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { findCurrentLyricLine } from "../src/floating-lyrics";
 import { LYRIC_SELECTOR } from "../src/lyrics";
 
-const fixtureRoot = resolve(
-  dirname(fileURLToPath(import.meta.url)),
-  "fixtures",
-  "spotify-dom",
-);
+const fixtureRoot = resolve(dirname(fileURLToPath(import.meta.url)), "fixtures", "spotify-dom");
 
 async function loadFixture(name: string) {
   const html = await readFile(resolve(fixtureRoot, name), "utf8");
@@ -51,9 +47,7 @@ describe("Spotify DOM compatibility fixtures", () => {
   );
 
   it("finds an active line when Spotify class names carry generated prefixes", async () => {
-    const { document, HTMLElement } = await loadFixture(
-      "generated-classes.html",
-    );
+    const { document, HTMLElement } = await loadFixture("generated-classes.html");
     vi.stubGlobal("HTMLElement", HTMLElement);
 
     const activeLine = findCurrentLyricLine(document);

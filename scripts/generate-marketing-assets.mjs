@@ -15,12 +15,7 @@ if (!outputRoot.startsWith(expectedPrefix) || !outputRoot.endsWith("marketing"))
 }
 
 const logoPath = resolve(projectRoot, "assets", "logo.png");
-const screenshotPath = resolve(
-  projectRoot,
-  "assets",
-  "screenshots",
-  "lyrics-view.png",
-);
+const screenshotPath = resolve(projectRoot, "assets", "screenshots", "lyrics-view.png");
 const [logoBuffer, screenshotBuffer] = await Promise.all([
   readFile(logoPath),
   readFile(screenshotPath),
@@ -91,9 +86,7 @@ function socialPreviewSvg(logoHref, screenshotHref) {
 }
 
 function easeInOut(value) {
-  return value < 0.5
-    ? 4 * value * value * value
-    : 1 - Math.pow(-2 * value + 2, 3) / 2;
+  return value < 0.5 ? 4 * value * value * value : 1 - (-2 * value + 2) ** 3 / 2;
 }
 
 function demoFrameSvg(frameIndex, frameCount) {
@@ -144,10 +137,7 @@ function demoFrameSvg(frameIndex, frameCount) {
 }
 
 const socialSvg = socialPreviewSvg(logoUri, screenshotUri);
-const editableSocialSvg = socialPreviewSvg(
-  "../logo.png",
-  "../screenshots/lyrics-view.png",
-);
+const editableSocialSvg = socialPreviewSvg("../logo.png", "../screenshots/lyrics-view.png");
 const socialSvgPath = resolve(outputRoot, "social-preview.svg");
 const socialPngPath = resolve(outputRoot, "social-preview.png");
 await writeFile(socialSvgPath, editableSocialSvg, "utf8");

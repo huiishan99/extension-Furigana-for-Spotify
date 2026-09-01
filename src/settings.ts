@@ -5,8 +5,7 @@ export const FURIGANA_OPACITY_KEY = "spotify-furigana:opacity";
 export const FURIGANA_GAP_KEY = "spotify-furigana:gap";
 export const ONLINE_READINGS_KEY = "spotify-furigana:online-readings-enabled";
 export const FLOATING_LYRICS_KEY = "spotify-furigana:floating-lyrics-enabled";
-export const FLOATING_CURRENT_SIZE_KEY =
-  "spotify-furigana:floating-current-size";
+export const FLOATING_CURRENT_SIZE_KEY = "spotify-furigana:floating-current-size";
 export const FLOATING_NEXT_SIZE_KEY = "spotify-furigana:floating-next-size";
 export const SETTING_CHANGE_EVENT = "spotify-furigana:setting-change";
 
@@ -81,28 +80,16 @@ export function setFuriganaEnabled(enabled: boolean): void {
 export function getFuriganaSettings(): FuriganaSettings {
   return {
     enabled: isFuriganaEnabled(),
-    readingMode: normalizeReadingMode(
-      Spicetify.LocalStorage.get(READING_MODE_KEY),
-    ),
-    size: getNumberSetting(
-      FURIGANA_SIZE_KEY,
-      DEFAULT_SETTINGS.size,
-      SETTING_RANGES.size,
-    ),
+    readingMode: normalizeReadingMode(Spicetify.LocalStorage.get(READING_MODE_KEY)),
+    size: getNumberSetting(FURIGANA_SIZE_KEY, DEFAULT_SETTINGS.size, SETTING_RANGES.size),
     opacity: getNumberSetting(
       FURIGANA_OPACITY_KEY,
       DEFAULT_SETTINGS.opacity,
       SETTING_RANGES.opacity,
     ),
-    gap: getNumberSetting(
-      FURIGANA_GAP_KEY,
-      DEFAULT_SETTINGS.gap,
-      SETTING_RANGES.gap,
-    ),
-    onlineReadings:
-      Spicetify.LocalStorage.get(ONLINE_READINGS_KEY) === "true",
-    floatingLyrics:
-      Spicetify.LocalStorage.get(FLOATING_LYRICS_KEY) === "true",
+    gap: getNumberSetting(FURIGANA_GAP_KEY, DEFAULT_SETTINGS.gap, SETTING_RANGES.gap),
+    onlineReadings: Spicetify.LocalStorage.get(ONLINE_READINGS_KEY) === "true",
+    floatingLyrics: Spicetify.LocalStorage.get(FLOATING_LYRICS_KEY) === "true",
     floatingCurrentSize: getNumberSetting(
       FLOATING_CURRENT_SIZE_KEY,
       DEFAULT_SETTINGS.floatingCurrentSize,
@@ -122,20 +109,8 @@ export function setFuriganaSettings(settings: FuriganaSettings): void {
   Spicetify.LocalStorage.set(FURIGANA_SIZE_KEY, String(settings.size));
   Spicetify.LocalStorage.set(FURIGANA_OPACITY_KEY, String(settings.opacity));
   Spicetify.LocalStorage.set(FURIGANA_GAP_KEY, String(settings.gap));
-  Spicetify.LocalStorage.set(
-    ONLINE_READINGS_KEY,
-    String(settings.onlineReadings),
-  );
-  Spicetify.LocalStorage.set(
-    FLOATING_LYRICS_KEY,
-    String(settings.floatingLyrics),
-  );
-  Spicetify.LocalStorage.set(
-    FLOATING_CURRENT_SIZE_KEY,
-    String(settings.floatingCurrentSize),
-  );
-  Spicetify.LocalStorage.set(
-    FLOATING_NEXT_SIZE_KEY,
-    String(settings.floatingNextSize),
-  );
+  Spicetify.LocalStorage.set(ONLINE_READINGS_KEY, String(settings.onlineReadings));
+  Spicetify.LocalStorage.set(FLOATING_LYRICS_KEY, String(settings.floatingLyrics));
+  Spicetify.LocalStorage.set(FLOATING_CURRENT_SIZE_KEY, String(settings.floatingCurrentSize));
+  Spicetify.LocalStorage.set(FLOATING_NEXT_SIZE_KEY, String(settings.floatingNextSize));
 }

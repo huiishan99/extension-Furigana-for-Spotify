@@ -38,20 +38,14 @@ describe("Marketplace publishing metadata", () => {
   });
 
   it("keeps launch artwork at its documented dimensions", async () => {
-    const socialPreview = resolve(
-      projectRoot,
-      "assets",
-      "marketing",
-      "social-preview.png",
-    );
+    const socialPreview = resolve(projectRoot, "assets", "marketing", "social-preview.png");
     const demo = resolve(projectRoot, "assets", "marketing", "demo.gif");
-    const [socialMetadata, demoMetadata, socialStat, demoStat] =
-      await Promise.all([
-        sharp(socialPreview).metadata(),
-        sharp(demo, { animated: true }).metadata(),
-        stat(socialPreview),
-        stat(demo),
-      ]);
+    const [socialMetadata, demoMetadata, socialStat, demoStat] = await Promise.all([
+      sharp(socialPreview).metadata(),
+      sharp(demo, { animated: true }).metadata(),
+      stat(socialPreview),
+      stat(demo),
+    ]);
 
     expect(socialMetadata.width).toBe(1280);
     expect(socialMetadata.height).toBe(640);

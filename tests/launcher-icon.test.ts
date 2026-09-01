@@ -35,18 +35,8 @@ describe("desktop launcher icons", () => {
   });
 
   it("contains the expected macOS PNG icon entries", async () => {
-    const icon = await readFile(
-      resolve(projectRoot, "assets", "launcher.icns"),
-    );
-    const expectedTypes = [
-      "icp4",
-      "icp5",
-      "icp6",
-      "ic07",
-      "ic08",
-      "ic09",
-      "ic10",
-    ];
+    const icon = await readFile(resolve(projectRoot, "assets", "launcher.icns"));
+    const expectedTypes = ["icp4", "icp5", "icp6", "ic07", "ic08", "ic09", "ic10"];
     const types = [];
     let offset = 8;
 

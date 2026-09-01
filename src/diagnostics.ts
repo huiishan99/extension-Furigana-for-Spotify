@@ -2,10 +2,8 @@ import type { OnlineReadingStatus } from "./online-readings";
 import type { ReadingMode } from "./settings";
 import type { UiLanguage } from "./ui-language";
 
-export const RUNTIME_DIAGNOSTICS_KEY =
-  "spotify-furigana:runtime-diagnostics-v1";
-export const RUNTIME_DIAGNOSTICS_EVENT =
-  "spotify-furigana:runtime-diagnostics-change";
+export const RUNTIME_DIAGNOSTICS_KEY = "spotify-furigana:runtime-diagnostics-v1";
+export const RUNTIME_DIAGNOSTICS_EVENT = "spotify-furigana:runtime-diagnostics-change";
 
 export interface LyricSelectorCount {
   selector: string;
@@ -41,9 +39,7 @@ function yesNo(value: boolean): string {
   return value ? "yes" : "no";
 }
 
-export function formatRuntimeDiagnostics(
-  diagnostics: Omit<RuntimeDiagnostics, "report">,
-): string {
+export function formatRuntimeDiagnostics(diagnostics: Omit<RuntimeDiagnostics, "report">): string {
   const selectorLines = diagnostics.selectorCounts.map(
     ({ selector, count }) => `  ${selector}: ${count}`,
   );

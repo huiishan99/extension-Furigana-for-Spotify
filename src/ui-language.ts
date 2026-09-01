@@ -29,20 +29,15 @@ export type RuntimeMessageKey =
   | "sourceAccurate"
   | "sourceFallback";
 
-const runtimeMessages: Record<
-  UiLanguage,
-  Record<RuntimeMessageKey, string>
-> = {
+const runtimeMessages: Record<UiLanguage, Record<RuntimeMessageKey, string>> = {
   en: {
     onlineDisabled: "Accurate online readings are off",
     noTrackFallback: "No Spotify track is available; using local readings",
     cachedReady: "Loaded synchronized readings from the local cache",
-    notFoundFallback:
-      "No synchronized readings found for this track; using local readings",
+    notFoundFallback: "No synchronized readings found for this track; using local readings",
     loading: "Looking up synchronized readings…",
     matched: "Matched {count} synchronized lyric lines",
-    unavailableFallback:
-      "Online readings are temporarily unavailable; using local readings",
+    unavailableFallback: "Online readings are temporarily unavailable; using local readings",
     dictionaryFailed: "The Furigana dictionary failed to load",
     disableFurigana: "Turn off lyric furigana",
     enableFurigana: "Turn on lyric furigana",
@@ -80,8 +75,7 @@ const runtimeMessages: Record<
     notFoundFallback: "同期読みが見つからないため、ローカル読みを使用します",
     loading: "現在の曲の同期読みを検索しています…",
     matched: "{count}行の同期読みを照合しました",
-    unavailableFallback:
-      "オンライン読みを一時的に利用できないため、ローカル読みを使用します",
+    unavailableFallback: "オンライン読みを一時的に利用できないため、ローカル読みを使用します",
     dictionaryFailed: "ふりがな辞書を読み込めませんでした",
     disableFurigana: "歌詞のふりがなをオフにする",
     enableFurigana: "歌詞のふりがなをオンにする",
@@ -95,9 +89,7 @@ const runtimeMessages: Record<
   },
 };
 
-export function normalizeUiLanguagePreference(
-  value: unknown,
-): UiLanguagePreference {
+export function normalizeUiLanguagePreference(value: unknown): UiLanguagePreference {
   return UI_LANGUAGE_PREFERENCES.includes(value as UiLanguagePreference)
     ? (value as UiLanguagePreference)
     : "auto";
@@ -142,9 +134,7 @@ export function translateRuntimeMessage(
   key: RuntimeMessageKey,
   values: Record<string, string | number> = {},
 ): string {
-  return runtimeMessages[language][key].replace(
-    /\{(\w+)\}/gu,
-    (placeholder, name: string) =>
-      Object.hasOwn(values, name) ? String(values[name]) : placeholder,
+  return runtimeMessages[language][key].replace(/\{(\w+)\}/gu, (placeholder, name: string) =>
+    Object.hasOwn(values, name) ? String(values[name]) : placeholder,
   );
 }

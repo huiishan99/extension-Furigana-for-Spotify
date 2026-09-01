@@ -55,12 +55,8 @@ describe("Spicetify app language", () => {
       floatingCurrentSize: 30,
       floatingNextSize: 20,
     });
-    expect(api.settingKeys.floatingCurrentSize).toBe(
-      "spotify-furigana:floating-current-size",
-    );
-    expect(api.settingKeys.floatingNextSize).toBe(
-      "spotify-furigana:floating-next-size",
-    );
+    expect(api.settingKeys.floatingCurrentSize).toBe("spotify-furigana:floating-current-size");
+    expect(api.settingKeys.floatingNextSize).toBe("spotify-furigana:floating-next-size");
   });
 
   it("localizes status codes instead of reusing a stored Chinese message", async () => {

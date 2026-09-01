@@ -1,12 +1,12 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   DEFAULT_SETTINGS,
-  FURIGANA_GAP_KEY,
-  FURIGANA_OPACITY_KEY,
-  FURIGANA_SIZE_KEY,
   FLOATING_CURRENT_SIZE_KEY,
   FLOATING_LYRICS_KEY,
   FLOATING_NEXT_SIZE_KEY,
+  FURIGANA_GAP_KEY,
+  FURIGANA_OPACITY_KEY,
+  FURIGANA_SIZE_KEY,
   getFuriganaSettings,
   READING_MODE_KEY,
   setFuriganaSettings,

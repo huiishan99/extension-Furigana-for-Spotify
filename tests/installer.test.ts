@@ -4,9 +4,9 @@ import {
   copyFile,
   mkdir,
   mkdtemp,
+  readdir,
   readFile,
   realpath,
-  readdir,
   rm,
   writeFile,
 } from "node:fs/promises";
@@ -35,17 +35,13 @@ describe("Windows release installer", () => {
   });
 
   it("detects one unambiguous Spotify installation and its preferences", () => {
-    expect(installer).toContain(
-      'Get-AppxPackage -Name "SpotifyAB.SpotifyMusic"',
-    );
+    expect(installer).toContain('Get-AppxPackage -Name "SpotifyAB.SpotifyMusic"');
     expect(installer).toContain(
       "Both Microsoft Store Spotify and spotify.com Spotify are installed",
     );
     expect(installer).toContain('$spotifyInstallType = "Microsoft Store"');
     expect(installer).toContain("$storeSpotify.PackageFamilyName");
-    expect(installer).toContain(
-      '$spotifyInstallType = "spotify.com desktop"',
-    );
+    expect(installer).toContain('$spotifyInstallType = "spotify.com desktop"');
     expect(installer).toContain('Join-Path $env:APPDATA "Spotify"');
     expect(installer).toContain('Join-Path $spotifyRoot "prefs"');
   });
@@ -56,7 +52,7 @@ describe("Windows release installer", () => {
     expect(installer).toContain('"prefs_path", $prefsPath');
     expect(installer).toContain("& $spicetifyExecutable -n apply");
     expect(installer).toContain('@("-n", "backup", "apply")');
-    expect(installer).toContain('$StandardInput | & $Executable @Arguments');
+    expect(installer).toContain("$StandardInput | & $Executable @Arguments");
     expect(installer).toContain('-StandardInput "y"');
     expect(installer).toContain("if ($LASTEXITCODE -ne 0)");
     expect(installer).toContain("-File $installedLauncherScript -SkipUpdateCheck");
@@ -81,9 +77,7 @@ describe("Windows release installer", () => {
     expect(launcher).toContain("Start-Process -FilePath $powerShellExecutable");
     expect(launcher).toContain("-WindowStyle Hidden");
     expect(launcher).toContain("Set-Location -LiteralPath $resolvedStateRoot");
-    expect(launcher).toContain(
-      "[Environment]::CurrentDirectory = $resolvedStateRoot",
-    );
+    expect(launcher).toContain("[Environment]::CurrentDirectory = $resolvedStateRoot");
     expect(installer).toContain('$sourceLauncherIcon = Join-Path $sourceApp "launcher.ico"');
     expect(installer).toContain('$shortcut.IconLocation = "${IconPath},0"');
     expect(installer).not.toContain('$shortcut.IconLocation = "${SpotifyExecutable},0"');
@@ -107,9 +101,7 @@ describe("Windows release installer", () => {
     expect(overlay).toContain("$badge.Width = 34");
     expect(overlay).toContain("$badge.Height = 34");
     expect(overlay).toContain("$badgeText.FontSize = 19");
-    expect(overlay).toContain(
-      "$badge.HorizontalAlignment = [Windows.HorizontalAlignment]::Right",
-    );
+    expect(overlay).toContain("$badge.HorizontalAlignment = [Windows.HorizontalAlignment]::Right");
     expect(overlay).toContain("[Windows.Controls.Grid]::SetColumn($badge, 0)");
     expect(overlay).toContain("[Windows.Controls.Grid]::SetColumn($lyricsStage, 1)");
     expect(overlay).toContain("$grid.Children.Add($badge)");
@@ -120,17 +112,15 @@ describe("Windows release installer", () => {
     expect(overlay).toContain("$currentGrowX");
     expect(overlay).toContain("$outgoingLyricsPanel");
     expect(overlay).toContain("$lastRenderedStateSignature");
-    expect(overlay).toContain(
-      "$timer.Interval = [TimeSpan]::FromMilliseconds(50)",
-    );
+    expect(overlay).toContain("$timer.Interval = [TimeSpan]::FromMilliseconds(50)");
     expect(overlay).toContain("$processCheckTick -lt 20");
     expect(overlay).toContain("catch [IO.IOException]");
     expect(overlay).toContain("catch [ObjectDisposedException]");
     expect(overlay).not.toContain("$contentStack.BeginAnimation");
-    expect(overlayCore).toContain('Get-ClampedStateNumber');
+    expect(overlayCore).toContain("Get-ClampedStateNumber");
     expect(overlayCore).toContain('-Name "currentFontSize"');
     expect(overlayCore).toContain('-Name "nextFontSize"');
-    expect(overlayCore).toContain('Get-OverlayTransition');
+    expect(overlayCore).toContain("Get-OverlayTransition");
     expect(overlay).toContain('Join-Path $stateRoot "overlay-position.json"');
     expect(overlay).toContain('Get-Process -Name "Spotify"');
     expect(overlay).not.toContain("IPAddress]::Any");
@@ -159,10 +149,7 @@ describe("macOS release installer", () => {
 
     for (const script of ["install.sh", "launcher.sh", "uninstall.sh"]) {
       expect(() =>
-        execFileSync("/bin/sh", [
-          "-n",
-          resolve(projectRoot, "packaging", script),
-        ]),
+        execFileSync("/bin/sh", ["-n", resolve(projectRoot, "packaging", script)]),
       ).not.toThrow();
     }
   });
@@ -172,12 +159,8 @@ describe("macOS release installer", () => {
     expect(installer).toContain('"/Applications/Spotify.app"');
     expect(installer).toContain('"$HOME/Applications/Spotify.app"');
     expect(installer).toContain('spotify_root="$spotify_app/Contents/Resources"');
-    expect(installer).toContain(
-      'prefs_path="$HOME/Library/Application Support/Spotify/prefs"',
-    );
-    expect(installer).toContain(
-      'config_root="${XDG_CONFIG_HOME:-$HOME/.config}/spicetify"',
-    );
+    expect(installer).toContain('prefs_path="$HOME/Library/Application Support/Spotify/prefs"');
+    expect(installer).toContain('config_root="${XDG_CONFIG_HOME:-$HOME/.config}/spicetify"');
     expect(installer).toContain('custom_apps "$app_name"');
   });
 
@@ -190,9 +173,7 @@ describe("macOS release installer", () => {
   });
 
   it("creates a branded self-repairing app launcher", () => {
-    expect(installer).toContain(
-      'launcher_app="$HOME/Applications/Furigana for Spotify.app"',
-    );
+    expect(installer).toContain('launcher_app="$HOME/Applications/Furigana for Spotify.app"');
     expect(installer).toContain("CFBundleIdentifier");
     expect(installer).toContain("launcher.icns");
     expect(installer).toContain('cp "$installed_launcher" "$launcher_executable"');
@@ -243,34 +224,20 @@ describe("macOS release installer", () => {
     const releaseInstaller = resolve(releaseRoot, "install.sh");
     const releaseUninstaller = resolve(releaseRoot, "uninstall.sh");
     const fakeSpicetify = resolve(fakeBin, "spicetify");
-    const fakeSpotifyExecutable = resolve(
-      fakeSpotify,
-      "Contents",
-      "MacOS",
-      "Spotify",
-    );
+    const fakeSpotifyExecutable = resolve(fakeSpotify, "Contents", "MacOS", "Spotify");
 
     await Promise.all([
       copyFile(resolve(projectRoot, "packaging", "install.sh"), releaseInstaller),
-      copyFile(
-        resolve(projectRoot, "packaging", "uninstall.sh"),
-        releaseUninstaller,
-      ),
+      copyFile(resolve(projectRoot, "packaging", "uninstall.sh"), releaseUninstaller),
       copyFile(
         resolve(projectRoot, "assets", "launcher.icns"),
         resolve(sourceApp, "launcher.icns"),
       ),
-      copyFile(
-        resolve(projectRoot, "packaging", "launcher.sh"),
-        resolve(sourceApp, "launcher.sh"),
-      ),
+      copyFile(resolve(projectRoot, "packaging", "launcher.sh"), resolve(sourceApp, "launcher.sh")),
       writeFile(resolve(sourceApp, "manifest.json"), '{"name":"test"}\n'),
       writeFile(resolve(sourceApp, "version.txt"), "0.5.0\n"),
       writeFile(fakeSpotifyExecutable, "#!/bin/sh\nexit 0\n"),
-      writeFile(
-        resolve(fakeHome, "Library", "Application Support", "Spotify", "prefs"),
-        "test\n",
-      ),
+      writeFile(resolve(fakeHome, "Library", "Application Support", "Spotify", "prefs"), "test\n"),
       writeFile(
         fakeSpicetify,
         [
@@ -308,70 +275,42 @@ describe("macOS release installer", () => {
       env: environment,
     });
 
-    const installedApp = resolve(
-      configHome,
-      "spicetify",
-      "CustomApps",
-      "spotify-furigana",
-    );
-    const launcherApp = resolve(
-      fakeHome,
-      "Applications",
-      "Furigana for Spotify.app",
-    );
+    const installedApp = resolve(configHome, "spicetify", "CustomApps", "spotify-furigana");
+    const launcherApp = resolve(fakeHome, "Applications", "Furigana for Spotify.app");
     await Promise.all([
       readFile(resolve(installedApp, "manifest.json")),
       readFile(resolve(launcherApp, "Contents", "Info.plist")),
-      readFile(
-        resolve(launcherApp, "Contents", "MacOS", "spotify-furigana"),
-      ),
+      readFile(resolve(launcherApp, "Contents", "MacOS", "spotify-furigana")),
       readFile(resolve(launcherApp, "Contents", "Resources", "launcher.icns")),
       readFile(resolve(launcherApp, "Contents", "Resources", "version.txt")),
     ]);
-    execFileSync("/usr/bin/plutil", [
-      "-lint",
-      resolve(launcherApp, "Contents", "Info.plist"),
-    ]);
-    execFileSync(
-      resolve(launcherApp, "Contents", "MacOS", "spotify-furigana"),
-      [],
-      { env: environment },
-    );
+    execFileSync("/usr/bin/plutil", ["-lint", resolve(launcherApp, "Contents", "Info.plist")]);
+    execFileSync(resolve(launcherApp, "Contents", "MacOS", "spotify-furigana"), [], {
+      env: environment,
+    });
 
     execFileSync("/bin/sh", [releaseInstaller], {
       cwd: releaseRoot,
       env: environment,
     });
-    const installedEntries = await readdir(
-      resolve(configHome, "spicetify", "CustomApps"),
+    const installedEntries = await readdir(resolve(configHome, "spicetify", "CustomApps"));
+    expect(installedEntries.some((entry) => entry.startsWith("spotify-furigana.backup-"))).toBe(
+      true,
     );
-    expect(
-      installedEntries.some((entry) =>
-        entry.startsWith("spotify-furigana.backup-"),
-      ),
-    ).toBe(true);
 
     execFileSync("/bin/sh", [releaseUninstaller], {
       cwd: releaseRoot,
       env: environment,
     });
-    const removedEntries = await readdir(
-      resolve(configHome, "spicetify", "CustomApps"),
+    const removedEntries = await readdir(resolve(configHome, "spicetify", "CustomApps"));
+    expect(removedEntries.some((entry) => entry.startsWith("spotify-furigana.removed-"))).toBe(
+      true,
     );
-    expect(
-      removedEntries.some((entry) =>
-        entry.startsWith("spotify-furigana.removed-"),
-      ),
-    ).toBe(true);
 
     const log = await readFile(commandLog, "utf8");
     const resolvedFakeSpotify = await realpath(fakeSpotify);
-    expect(log).toContain(
-      `spotify_path ${resolvedFakeSpotify}/Contents/Resources`,
-    );
-    expect(log).toContain(
-      `prefs_path ${fakeHome}/Library/Application Support/Spotify/prefs`,
-    );
+    expect(log).toContain(`spotify_path ${resolvedFakeSpotify}/Contents/Resources`);
+    expect(log).toContain(`prefs_path ${fakeHome}/Library/Application Support/Spotify/prefs`);
     expect(log).toContain("custom_apps spotify-furigana");
     expect(log).toContain("custom_apps spotify-furigana-");
     expect(log).toContain("-n apply");

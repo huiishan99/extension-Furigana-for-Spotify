@@ -1,4 +1,4 @@
-import { spawn } from "node:child_process";
+import { execFileSync, spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
   access,
@@ -14,7 +14,6 @@ import { createServer } from "node:http";
 import { tmpdir } from "node:os";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { execFileSync } from "node:child_process";
 import { describe, expect, it } from "vitest";
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -42,9 +41,7 @@ async function runProcess(
   });
 }
 
-async function runWindowsUpdateScenario(
-  mode: "valid" | "checksum-failure" | "offline",
-): Promise<{
+async function runWindowsUpdateScenario(mode: "valid" | "checksum-failure" | "offline"): Promise<{
   installRan: boolean;
   launcherStateRoot: string;
   spicetifyWorkingDirectory: string;
@@ -91,12 +88,7 @@ async function runWindowsUpdateScenario(
     ),
     writeFile(
       resolve(fakeBin, "spicetify.cmd"),
-      [
-        "@echo off",
-        'echo cwd=%CD% args=%*>>"%SPICETIFY_TEST_LOG%"',
-        "exit /b 0",
-        "",
-      ].join("\r\n"),
+      ["@echo off", 'echo cwd=%CD% args=%*>>"%SPICETIFY_TEST_LOG%"', "exit /b 0", ""].join("\r\n"),
     ),
     writeFile(
       zipScript,
@@ -159,9 +151,7 @@ async function runWindowsUpdateScenario(
     const releaseApiUrl = `http://127.0.0.1:${address.port}/latest`;
     const downloadBase = `http://127.0.0.1:${address.port}/download`;
     if (mode === "offline") {
-      await new Promise<void>((resolveClose) =>
-        server.close(() => resolveClose()),
-      );
+      await new Promise<void>((resolveClose) => server.close(() => resolveClose()));
       serverClosed = true;
     }
 
@@ -211,13 +201,9 @@ async function runWindowsUpdateScenario(
       resolve(fakeLocalAppData, "Furigana for Spotify", "update.log"),
       "utf8",
     );
-    const spicetifyWorkingDirectoryFromLog = spicetifyLog.match(
-      /^cwd=(.+) args=auto\r?$/m,
-    )?.[1];
+    const spicetifyWorkingDirectoryFromLog = spicetifyLog.match(/^cwd=(.+) args=auto\r?$/m)?.[1];
     if (!spicetifyWorkingDirectoryFromLog) {
-      throw new Error(
-        `Could not read the Spicetify working directory: ${spicetifyLog}`,
-      );
+      throw new Error(`Could not read the Spicetify working directory: ${spicetifyLog}`);
     }
     const [launcherStateRoot, spicetifyWorkingDirectory] = await Promise.all([
       realpath(resolve(fakeLocalAppData, "Furigana for Spotify")),
@@ -232,9 +218,7 @@ async function runWindowsUpdateScenario(
     };
   } finally {
     if (!serverClosed) {
-      await new Promise<void>((resolveClose) =>
-        server.close(() => resolveClose()),
-      );
+      await new Promise<void>((resolveClose) => server.close(() => resolveClose()));
     }
     await rm(testRoot, { recursive: true, force: true });
   }
@@ -242,26 +226,21 @@ async function runWindowsUpdateScenario(
 
 describe("release auto-updaters", () => {
   it("pins official release sources and verifies packages before install", async () => {
-    const [windowsLauncher, macLauncher, buildScript, packageScript] =
-      await Promise.all([
-        readFile(resolve(projectRoot, "packaging", "launcher.ps1"), "utf8"),
-        readFile(resolve(projectRoot, "packaging", "launcher.sh"), "utf8"),
-        readFile(resolve(projectRoot, "scripts", "build.mjs"), "utf8"),
-        readFile(resolve(projectRoot, "scripts", "package.ps1"), "utf8"),
-      ]);
+    const [windowsLauncher, macLauncher, buildScript, packageScript] = await Promise.all([
+      readFile(resolve(projectRoot, "packaging", "launcher.ps1"), "utf8"),
+      readFile(resolve(projectRoot, "packaging", "launcher.sh"), "utf8"),
+      readFile(resolve(projectRoot, "scripts", "build.mjs"), "utf8"),
+      readFile(resolve(projectRoot, "scripts", "package.ps1"), "utf8"),
+    ]);
 
     expect(windowsLauncher).toContain(
       "https://github.com/huiishan99/spotify-furigana/releases/latest",
     );
-    expect(windowsLauncher).toContain(
-      "[System.Security.Cryptography.SHA256]::Create()",
-    );
+    expect(windowsLauncher).toContain("[System.Security.Cryptography.SHA256]::Create()");
     expect(windowsLauncher).toContain("Expand-Archive");
     expect(windowsLauncher).toContain("-NoLaunch");
     expect(windowsLauncher).toContain("continuing with the installed version");
-    expect(macLauncher).toContain(
-      "https://github.com/huiishan99/spotify-furigana/releases/latest",
-    );
+    expect(macLauncher).toContain("https://github.com/huiishan99/spotify-furigana/releases/latest");
     expect(macLauncher).toContain("shasum -a 256");
     expect(macLauncher).toContain("SPOTIFY_FURIGANA_NO_LAUNCH=1");
     expect(macLauncher).toContain('exec "$spicetify_executable" auto');
@@ -277,25 +256,19 @@ describe("release auto-updaters", () => {
     expect(packageScript).toContain('(Join-Path $builtApp "version.txt")');
   });
 
-  it(
-    "installs a checksum-verified newer release and still launches Spotify",
-    async () => {
-      if (process.platform !== "win32") {
-        return;
-      }
+  it("installs a checksum-verified newer release and still launches Spotify", async () => {
+    if (process.platform !== "win32") {
+      return;
+    }
 
-      const result = await runWindowsUpdateScenario("valid");
-      expect(result.installRan).toBe(true);
-      expect(result.spicetifyLog).toContain("auto");
-      expect(result.spicetifyWorkingDirectory.toLowerCase()).toBe(
-        result.launcherStateRoot.toLowerCase(),
-      );
-      expect(result.updateLog).toContain(
-        "Updated automatically from 0.4.0 to 0.5.0.",
-      );
-    },
-    20_000,
-  );
+    const result = await runWindowsUpdateScenario("valid");
+    expect(result.installRan).toBe(true);
+    expect(result.spicetifyLog).toContain("auto");
+    expect(result.spicetifyWorkingDirectory.toLowerCase()).toBe(
+      result.launcherStateRoot.toLowerCase(),
+    );
+    expect(result.updateLog).toContain("Updated automatically from 0.4.0 to 0.5.0.");
+  }, 20_000);
 
   it("rejects a bad checksum but still launches the installed version", async () => {
     if (process.platform !== "win32") {

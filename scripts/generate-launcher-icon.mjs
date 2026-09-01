@@ -70,10 +70,7 @@ windowsImages.forEach((image, index) => {
   imageOffset += image.length;
 });
 
-await writeFile(
-  windowsOutputPath,
-  Buffer.concat([header, directory, ...windowsImages]),
-);
+await writeFile(windowsOutputPath, Buffer.concat([header, directory, ...windowsImages]));
 
 const macImages = await renderIcons(macIconTypes.map(([, size]) => size));
 const macChunks = macImages.map((image, index) => {

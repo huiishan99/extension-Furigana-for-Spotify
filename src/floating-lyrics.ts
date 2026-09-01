@@ -82,9 +82,7 @@ export interface TimedLyricContext {
 }
 
 function asRecord(value: unknown): Record<string, unknown> | null {
-  return value !== null && typeof value === "object"
-    ? (value as Record<string, unknown>)
-    : null;
+  return value !== null && typeof value === "object" ? (value as Record<string, unknown>) : null;
 }
 
 export function getSpotifyLyricsUrl(trackUri: string): string | null {
@@ -127,11 +125,7 @@ export function findTimedLyricContext(
   progressMs: number,
   lookaheadMs = 0,
 ): TimedLyricContext | null {
-  if (
-    !Number.isFinite(progressMs) ||
-    !Number.isFinite(lookaheadMs) ||
-    lines.length === 0
-  ) {
+  if (!Number.isFinite(progressMs) || !Number.isFinite(lookaheadMs) || lines.length === 0) {
     return null;
   }
   const effectiveProgressMs = Math.max(0, progressMs + lookaheadMs);
@@ -141,7 +135,11 @@ export function findTimedLyricContext(
   let currentIndex = -1;
   while (low <= high) {
     const middle = Math.floor((low + high) / 2);
-    if (lines[middle]!.startTimeMs <= effectiveProgressMs) {
+    const middleLine = lines[middle];
+    if (!middleLine) {
+      return null;
+    }
+    if (middleLine.startTimeMs <= effectiveProgressMs) {
       currentIndex = middle;
       low = middle + 1;
     } else {
@@ -152,15 +150,17 @@ export function findTimedLyricContext(
   if (currentIndex < 0) {
     return null;
   }
+  const current = lines[currentIndex];
+  if (!current) {
+    return null;
+  }
   return {
-    current: lines[currentIndex]!,
+    current,
     next: lines[currentIndex + 1] ?? null,
   };
 }
 
-export function findCurrentLyricLine(
-  root: Pick<ParentNode, "querySelector">,
-): HTMLElement | null {
+export function findCurrentLyricLine(root: Pick<ParentNode, "querySelector">): HTMLElement | null {
   for (const selector of CURRENT_LYRIC_SELECTORS) {
     const match = root.querySelector(selector);
     if (!(match instanceof HTMLElement)) {
@@ -180,11 +180,7 @@ export function findCurrentLyricLine(
   return null;
 }
 
-function appendSegment(
-  segments: DesktopLyricSegment[],
-  text: string,
-  reading?: string,
-): void {
+function appendSegment(segments: DesktopLyricSegment[], text: string, reading?: string): void {
   const normalizedText = text.replace(/\s+/gu, " ");
   const normalizedReading = reading?.replace(/\s+/gu, " ").trim();
   if (!normalizedText) {
@@ -204,9 +200,7 @@ function appendSegment(
 }
 
 function elementTagName(node: Node): string {
-  return "tagName" in node
-    ? String((node as Element).tagName).toLowerCase()
-    : "";
+  return "tagName" in node ? String((node as Element).tagName).toLowerCase() : "";
 }
 
 export function extractDesktopLyricSegments(
@@ -257,9 +251,7 @@ export function createDesktopOverlayState(
   currentFontSize = DEFAULT_SETTINGS.floatingCurrentSize,
   nextFontSize = DEFAULT_SETTINGS.floatingNextSize,
 ): DesktopOverlayState {
-  const sanitize = (
-    values: readonly DesktopLyricSegment[],
-  ): DesktopLyricSegment[] =>
+  const sanitize = (values: readonly DesktopLyricSegment[]): DesktopLyricSegment[] =>
     values
       .slice(0, 128)
       .map(({ text, reading }) => ({
@@ -272,9 +264,7 @@ export function createDesktopOverlayState(
     fallback: number,
     range: { min: number; max: number },
   ): number =>
-    Number.isFinite(value)
-      ? Math.min(range.max, Math.max(range.min, value))
-      : fallback;
+    Number.isFinite(value) ? Math.min(range.max, Math.max(range.min, value)) : fallback;
 
   return {
     version: 1,

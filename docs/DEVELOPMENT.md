@@ -51,6 +51,7 @@ Key entry points:
 - `app/index.ts`: renders the type-checked Spicetify settings page and reuses the runtime setting schema;
 - `packaging/launcher.ps1` and `packaging/launcher.sh`: check the official stable GitHub Release, verify its SHA-256, run a no-recursion upgrade, and fall back to the installed version before launching through Spicetify; the Windows launcher changes to its local state directory before `spicetify auto` so the installed app remains replaceable;
 - `packaging/overlay.ps1`: hosts the Windows WPF always-on-top lyric window and accepts bounded state messages only from the fixed IPv4 loopback listener; it persists coordinates but never lyric content;
+- `packaging/overlay-core.ps1`: contains the platform-neutral request validation, state normalization, clamping, deduplication, and transition decisions exercised directly from the test suite;
 - `scripts/build.mjs`: bundles the extension with the package version injected for diagnostics, copies the local dictionary and platform launchers, and writes `version.txt` for release comparison.
 
 ## Build and verify
@@ -62,11 +63,12 @@ npm run marketing-assets
 npm run package
 ```
 
-- `npm run check` runs TypeScript checks, app syntax validation, Vitest, and the production build.
+- `npm run check` runs Biome formatting/lint checks, TypeScript checks, Vitest with a regression coverage floor, app syntax validation, native overlay-core tests when PowerShell is available, and the production build.
 - `npm run marketing-assets` deterministically rebuilds launch artwork from the project logo and real screenshot.
 - `npm run package` creates the installable ZIP and SHA-256 checksum under the ignored `release/` directory.
 - `packaging/install.ps1` and `packaging/uninstall.ps1` implement the Windows lifecycle; `packaging/install.sh` and `packaging/uninstall.sh` implement the macOS lifecycle and create a branded app launcher under `~/Applications`.
 - Auto-update launchers check at most once per 24 hours, accept stable `vX.Y.Z` tags only, require exact versioned ZIP/checksum assets, and invoke installers with launch suppression so the original launcher performs one final `spicetify auto`. Test-only source overrides require `SPOTIFY_FURIGANA_TEST_MODE=1` and are never used by installed shortcuts.
+- Release builds pin every GitHub Action to an immutable commit and publish a GitHub build-provenance attestation for the ZIP. Dependabot groups weekly npm and Actions maintenance updates, while the scheduled compatibility canary verifies that the canonical Release endpoint still resolves to this repository before running the fixture suite.
 
 ## Install a source build
 

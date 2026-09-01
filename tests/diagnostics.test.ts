@@ -34,10 +34,7 @@ const input = {
 
 describe("privacy-safe runtime diagnostics", () => {
   it("creates a stable report with useful runtime and selector state", () => {
-    const diagnostics = createRuntimeDiagnostics(
-      input,
-      "2026-08-26T00:00:00.000Z",
-    );
+    const diagnostics = createRuntimeDiagnostics(input, "2026-08-26T00:00:00.000Z");
 
     expect(diagnostics.schemaVersion).toBe(1);
     expect(diagnostics.report).toContain("App version: 0.5.1");
@@ -45,9 +42,7 @@ describe("privacy-safe runtime diagnostics", () => {
     expect(diagnostics.report).toContain("Floating current line size: 30px");
     expect(diagnostics.report).toContain("Floating next line size: 20px");
     expect(diagnostics.report).toContain("Online status: matched (35 matched lines)");
-    expect(diagnostics.report).toContain(
-      "  .lyrics-lyricsContent-text: 32",
-    );
+    expect(diagnostics.report).toContain("  .lyrics-lyricsContent-text: 32");
     expect(formatRuntimeDiagnostics(diagnostics)).toBe(diagnostics.report);
   });
 
@@ -70,11 +65,7 @@ describe("privacy-safe runtime diagnostics", () => {
   });
 
   it("uses versioned storage and event names", () => {
-    expect(RUNTIME_DIAGNOSTICS_KEY).toBe(
-      "spotify-furigana:runtime-diagnostics-v1",
-    );
-    expect(RUNTIME_DIAGNOSTICS_EVENT).toBe(
-      "spotify-furigana:runtime-diagnostics-change",
-    );
+    expect(RUNTIME_DIAGNOSTICS_KEY).toBe("spotify-furigana:runtime-diagnostics-v1");
+    expect(RUNTIME_DIAGNOSTICS_EVENT).toBe("spotify-furigana:runtime-diagnostics-change");
   });
 });

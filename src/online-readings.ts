@@ -55,10 +55,7 @@ export interface OnlineReadingStatus {
   count?: number;
 }
 
-export type JsonRequest = (
-  url: string,
-  headers?: Record<string, string>,
-) => Promise<unknown>;
+export type JsonRequest = (url: string, headers?: Record<string, string>) => Promise<unknown>;
 
 interface TimestampedLine {
   startTimeMs: number;
@@ -97,11 +94,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function getNestedString(
-  value: unknown,
-  firstKey: string,
-  secondKey: string,
-): string | undefined {
+function getNestedString(value: unknown, firstKey: string, secondKey: string): string | undefined {
   if (!isRecord(value)) {
     return undefined;
   }
@@ -129,9 +122,7 @@ function normalizeComparable(value: string): string {
 }
 
 function normalizeTitle(value: string): string {
-  return normalizeComparable(
-    value.replace(/[（([]\s*(?:feat\.?|ft\.?|with)\s+.*?[）)\]]/giu, ""),
-  );
+  return normalizeComparable(value.replace(/[（([]\s*(?:feat\.?|ft\.?|with)\s+.*?[）)\]]/giu, ""));
 }
 
 export function parseTimestampedLyrics(value: string): TimestampedLine[] {
@@ -182,7 +173,7 @@ export function romanizationToHiragana(value: string): string | null {
     .normalize("NFKC")
     .toLowerCase()
     .replace(/[’]/gu, "'")
-    .replace(/[^a-zぁ-ゖァ-ヺー'\-]+/gu, "");
+    .replace(/[^a-zぁ-ゖァ-ヺー'-]+/gu, "");
 
   if (!compact) {
     return null;
@@ -244,10 +235,7 @@ function getMusicBrainzNames(artist: MusicBrainzArtist): string[] {
   return names;
 }
 
-export function getVerifiedArtistAliases(
-  response: unknown,
-  expectedArtist: string,
-): string[] {
+export function getVerifiedArtistAliases(response: unknown, expectedArtist: string): string[] {
   if (!isRecord(response) || !Array.isArray(response.artists)) {
     return [];
   }
@@ -267,30 +255,22 @@ export function getVerifiedArtistAliases(
       continue;
     }
 
-    return Array.from(
-      new Set(names.map((name) => name.trim()).filter(Boolean)),
-    );
+    return Array.from(new Set(names.map((name) => name.trim()).filter(Boolean)));
   }
 
   return [];
 }
 
-async function fetchVerifiedArtistAliases(
-  artist: string,
-  request: JsonRequest,
-): Promise<string[]> {
+async function fetchVerifiedArtistAliases(artist: string, request: JsonRequest): Promise<string[]> {
   const key = normalizeComparable(artist);
   const cached = artistAliasCache.get(key);
   if (cached) {
     return cached;
   }
 
-  const url =
-    `${MUSICBRAINZ_ARTIST_ENDPOINT}?query=${encodeURIComponent(artist)}` +
-    "&fmt=json&limit=5";
+  const url = `${MUSICBRAINZ_ARTIST_ENDPOINT}?query=${encodeURIComponent(artist)}&fmt=json&limit=5`;
   const response = await request(url, {
-    "User-Agent":
-      "FuriganaForSpotify/0.6.1 (https://github.com/huiishan99/spotify-furigana)",
+    "User-Agent": "FuriganaForSpotify/0.6.1 (https://github.com/huiishan99/spotify-furigana)",
   });
   const aliases = getVerifiedArtistAliases(response, artist);
   if (aliases.length > 0) {
@@ -330,9 +310,7 @@ function selectSearchCandidates(
 
     let score = 90;
     const candidateAlbum =
-      typeof candidate.album === "string"
-        ? normalizeComparable(candidate.album)
-        : "";
+      typeof candidate.album === "string" ? normalizeComparable(candidate.album) : "";
     if (expectedAlbum && candidateAlbum === expectedAlbum) {
       score += 20;
     }
@@ -345,9 +323,7 @@ function selectSearchCandidates(
     matches.push({ candidate, score });
   }
 
-  return matches
-    .sort((left, right) => right.score - left.score)
-    .map(({ candidate }) => candidate);
+  return matches.sort((left, right) => right.score - left.score).map(({ candidate }) => candidate);
 }
 
 export function selectBestSearchCandidate(
@@ -369,23 +345,13 @@ export async function fetchOnlineReadingResult(
     return null;
   }
 
-  let candidates = selectSearchCandidates(
-    searchResponse as SearchCandidate[],
-    track,
-  );
+  let candidates = selectSearchCandidates(searchResponse as SearchCandidate[], track);
   if (candidates.length === 0) {
     try {
       const aliases = await fetchVerifiedArtistAliases(track.artist, request);
-      candidates = selectSearchCandidates(
-        searchResponse as SearchCandidate[],
-        track,
-        aliases,
-      );
+      candidates = selectSearchCandidates(searchResponse as SearchCandidate[], track, aliases);
     } catch (error: unknown) {
-      console.warn(
-        "[Furigana for Spotify] Artist alias verification was unavailable.",
-        error,
-      );
+      console.warn("[Furigana for Spotify] Artist alias verification was unavailable.", error);
     }
   }
 
@@ -400,11 +366,7 @@ export async function fetchOnlineReadingResult(
       "&lv=-1&kv=-1&tv=-1&rv=-1";
     const lyricResponse = await request(lyricUrl);
     const lyrics = getNestedString(lyricResponse, "lrc", "lyric");
-    const romanizedLyrics = getNestedString(
-      lyricResponse,
-      "romalrc",
-      "lyric",
-    );
+    const romanizedLyrics = getNestedString(lyricResponse, "romalrc", "lyric");
     if (!lyrics || !romanizedLyrics) {
       continue;
     }
@@ -436,11 +398,7 @@ function readCache(storage: StorageAdapter): CacheDocument {
 
   try {
     const parsed: unknown = JSON.parse(raw);
-    if (
-      !isRecord(parsed) ||
-      parsed.version !== 1 ||
-      !isRecord(parsed.entries)
-    ) {
+    if (!isRecord(parsed) || parsed.version !== 1 || !isRecord(parsed.entries)) {
       return createEmptyCache();
     }
     return parsed as unknown as CacheDocument;
@@ -476,8 +434,7 @@ export function setCachedOnlineReading(
   cache.entries = Object.fromEntries(validEntries);
   cache.entries[trackUri] = {
     storedAt: now,
-    expiresAt:
-      now + (result ? POSITIVE_CACHE_TTL_MS : NEGATIVE_CACHE_TTL_MS),
+    expiresAt: now + (result ? POSITIVE_CACHE_TTL_MS : NEGATIVE_CACHE_TTL_MS),
     result,
   };
   storage.set(ONLINE_CACHE_KEY, JSON.stringify(cache));
@@ -519,9 +476,7 @@ function anchorAlternatives(value: string): string[] {
       continue;
     }
     for (const current of Array.from(alternatives)) {
-      alternatives.add(
-        `${current.slice(0, index)}${replacement}${current.slice(index + 1)}`,
-      );
+      alternatives.add(`${current.slice(0, index)}${replacement}${current.slice(index + 1)}`);
     }
   }
 
@@ -610,9 +565,7 @@ export function convertSungReadingToFurigana(
       continue;
     }
 
-    const nextAnchor = segments
-      .slice(index + 1)
-      .find((candidate) => candidate.kind === "anchor");
+    const nextAnchor = segments.slice(index + 1).find((candidate) => candidate.kind === "anchor");
     const nextMatch = nextAnchor
       ? findAnchor(reading, cursor, nextAnchor.text)
       : { index: reading.length, length: 0 };

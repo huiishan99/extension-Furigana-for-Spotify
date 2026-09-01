@@ -6,6 +6,8 @@
 - 新增四组隐私安全的 Spotify 歌词 DOM fixture，覆盖当前桌面歌词、旧版标准歌词、旧版全屏歌词和带生成式类名前缀的布局；选择器测试现在会解析真实 HTML 结构，而不是只检查字符串常量。
 - 将悬浮层的请求校验、JSON 状态归一化、字号限制、心跳去重和换句类型判断拆入无 WPF 依赖的 `overlay-core.ps1`；Vitest 会调用 PowerShell 执行真实协议与状态机测试，构建和 Release 包也强制包含该核心文件。
 - 设置页由直接复制的 JavaScript 改为经 TypeScript 严格检查和 esbuild 打包的入口；设置键、默认值、数值范围、读音模式和界面语言解析直接复用运行时模块，消除两份配置独立漂移的风险，最终产物仍保留 Spicetify 所需的全局 `render()`。
+- 工程检查新增 Biome、包含全部 `src`/`app` 文件的 V8 覆盖率基线和每周兼容性 canary；Node 22 类型定义与 CI 对齐，TypeScript、Vitest、Sharp 更新到当前版本，Dependabot 会分组维护 npm 与 Actions 依赖。
+- CI/Release 使用不可变 commit 固定全部 Actions，Release 动作升级到 Node 24 版本并为 ZIP 生成 GitHub build-provenance attestation；这补充了现有 SHA-256 完整性校验，也消除了 v0.6.1 工作流中的 Node 20 弃用警告来源。
 
 ## 2026-08-30 — More responsive desktop lyrics
 

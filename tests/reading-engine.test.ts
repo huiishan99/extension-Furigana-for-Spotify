@@ -2,9 +2,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { convertToFurigana } from "../src/reading-engine";
 
-const dictionaryPath = fileURLToPath(
-  new URL("../node_modules/kuromoji/dict/", import.meta.url),
-);
+const dictionaryPath = fileURLToPath(new URL("../node_modules/kuromoji/dict/", import.meta.url));
 
 describe("local reading engine", () => {
   it("converts Japanese kanji without a remote API", async () => {
@@ -38,10 +36,7 @@ describe("local reading engine", () => {
   });
 
   it("corrects one- and two-person counters during local fallback", async () => {
-    const converted = await convertToFurigana(
-      "一人で歩く、二人だけの空、1人2人",
-      dictionaryPath,
-    );
+    const converted = await convertToFurigana("一人で歩く、二人だけの空、1人2人", dictionaryPath);
 
     expect(converted).toContain("<ruby>一人<rp>(</rp><rt>ひとり</rt>");
     expect(converted).toContain("<ruby>二人<rp>(</rp><rt>ふたり</rt>");

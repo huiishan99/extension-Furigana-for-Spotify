@@ -9,12 +9,12 @@ import {
   getVerifiedArtistAliases,
   normalizeLyricLookupText,
   ONLINE_CACHE_KEY,
+  type OnlineReadingResult,
   parseTimestampedLyrics,
   romanizationToHiragana,
+  type StorageAdapter,
   selectBestSearchCandidate,
   setCachedOnlineReading,
-  type OnlineReadingResult,
-  type StorageAdapter,
 } from "../src/online-readings";
 
 function createStorage(): { storage: StorageAdapter; values: Map<string, string> } {
@@ -73,9 +73,7 @@ describe("online synchronized readings", () => {
       "hiragana",
     );
 
-    expect(converted).toContain(
-      "<ruby>二人<rp>(</rp><rt>ふたり</rt><rp>)</rp></ruby>だけの",
-    );
+    expect(converted).toContain("<ruby>二人<rp>(</rp><rt>ふたり</rt><rp>)</rp></ruby>だけの");
     expect(converted).toContain("<ruby>空<rp>(</rp><rt>そら</rt>");
     expect(converted).toContain("<ruby>夜<rp>(</rp><rt>よる</rt>");
   });
@@ -236,9 +234,7 @@ describe("online synchronized readings", () => {
     expect(request).toHaveBeenCalledTimes(3);
     expect(request.mock.calls[1]?.[0]).toContain("id=100");
     expect(request.mock.calls[2]?.[0]).toContain("id=200");
-    expect(request.mock.calls.some(([url]) => url.includes("id=300"))).toBe(
-      false,
-    );
+    expect(request.mock.calls.some(([url]) => url.includes("id=300"))).toBe(false);
   });
 
   it("uses a verified artist alias before fetching synchronized lyrics", async () => {
@@ -329,9 +325,7 @@ describe("online synchronized readings", () => {
     };
 
     expect(await fetchOnlineReadingResult(retryTrack, request)).toBeNull();
-    expect((await fetchOnlineReadingResult(retryTrack, request))?.providerTrackId).toBe(
-      "400",
-    );
+    expect((await fetchOnlineReadingResult(retryTrack, request))?.providerTrackId).toBe("400");
     expect(aliasRequests).toBe(2);
   });
 
@@ -345,26 +339,19 @@ describe("online synchronized readings", () => {
     const now = 1_000_000;
 
     setCachedOnlineReading(storage, track.uri, result, now);
-    expect(getCachedOnlineReading(storage, track.uri, now + 1).result).toEqual(
-      result,
-    );
+    expect(getCachedOnlineReading(storage, track.uri, now + 1).result).toEqual(result);
     expect(values.get(ONLINE_CACHE_KEY)).toContain("1409311773");
 
     setCachedOnlineReading(storage, "spotify:track:missing", null, now);
+    expect(getCachedOnlineReading(storage, "spotify:track:missing", now + 1)).toEqual({
+      found: true,
+      result: null,
+    });
     expect(
-      getCachedOnlineReading(storage, "spotify:track:missing", now + 1),
-    ).toEqual({ found: true, result: null });
-    expect(
-      getCachedOnlineReading(
-        storage,
-        "spotify:track:missing",
-        now + 7 * 60 * 60 * 1000,
-      ).found,
+      getCachedOnlineReading(storage, "spotify:track:missing", now + 7 * 60 * 60 * 1000).found,
     ).toBe(false);
 
     clearOnlineReadingCache(storage);
-    expect(getCachedOnlineReading(storage, track.uri, now + 1).found).toBe(
-      false,
-    );
+    expect(getCachedOnlineReading(storage, track.uri, now + 1).found).toBe(false);
   });
 });
