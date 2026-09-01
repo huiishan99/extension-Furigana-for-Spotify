@@ -21,13 +21,15 @@ describe("Windows release installer", () => {
   let installer = "";
   let launcher = "";
   let overlay = "";
+  let overlayCore = "";
   let uninstaller = "";
 
   beforeAll(async () => {
-    [installer, launcher, overlay, uninstaller] = await Promise.all([
+    [installer, launcher, overlay, overlayCore, uninstaller] = await Promise.all([
       readFile(resolve(projectRoot, "packaging", "install.ps1"), "utf8"),
       readFile(resolve(projectRoot, "packaging", "launcher.ps1"), "utf8"),
       readFile(resolve(projectRoot, "packaging", "overlay.ps1"), "utf8"),
+      readFile(resolve(projectRoot, "packaging", "overlay-core.ps1"), "utf8"),
       readFile(resolve(projectRoot, "packaging", "uninstall.ps1"), "utf8"),
     ]);
   });
@@ -94,7 +96,8 @@ describe("Windows release installer", () => {
   it("runs the floating lyric as a loopback-only Windows desktop overlay", () => {
     expect(installer).toContain('$sourceOverlayScript = Join-Path $sourceApp "overlay.ps1"');
     expect(overlay).toContain("[Net.IPAddress]::Loopback");
-    expect(overlay).toContain("https://xpui\\.app\\.spotify\\.com");
+    expect(overlay).toContain('$corePath = Join-Path $PSScriptRoot "overlay-core.ps1"');
+    expect(overlayCore).toContain("https://xpui\\.app\\.spotify\\.com");
     expect(overlay).toContain("FuriganaForSpotifyDesktopOverlay");
     expect(overlay).toContain("$window.Topmost = $true");
     expect(overlay).toContain("$window.Width = 720");
@@ -124,9 +127,10 @@ describe("Windows release installer", () => {
     expect(overlay).toContain("catch [IO.IOException]");
     expect(overlay).toContain("catch [ObjectDisposedException]");
     expect(overlay).not.toContain("$contentStack.BeginAnimation");
-    expect(overlay).toContain('Get-ClampedStateNumber');
-    expect(overlay).toContain('-Name "currentFontSize"');
-    expect(overlay).toContain('-Name "nextFontSize"');
+    expect(overlayCore).toContain('Get-ClampedStateNumber');
+    expect(overlayCore).toContain('-Name "currentFontSize"');
+    expect(overlayCore).toContain('-Name "nextFontSize"');
+    expect(overlayCore).toContain('Get-OverlayTransition');
     expect(overlay).toContain('Join-Path $stateRoot "overlay-position.json"');
     expect(overlay).toContain('Get-Process -Name "Spotify"');
     expect(overlay).not.toContain("IPAddress]::Any");

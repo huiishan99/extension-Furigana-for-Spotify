@@ -267,10 +267,12 @@ describe("release auto-updaters", () => {
     expect(macLauncher).toContain('exec "$spicetify_executable" auto');
     expect(buildScript).toContain('resolve(outputRoot, "launcher.ps1")');
     expect(buildScript).toContain('resolve(outputRoot, "overlay.ps1")');
+    expect(buildScript).toContain('resolve(outputRoot, "overlay-core.ps1")');
     expect(buildScript).toContain('resolve(outputRoot, "launcher.sh")');
     expect(buildScript).toContain('resolve(outputRoot, "version.txt")');
     expect(packageScript).toContain('(Join-Path $builtApp "launcher.ps1")');
     expect(packageScript).toContain('(Join-Path $builtApp "overlay.ps1")');
+    expect(packageScript).toContain('(Join-Path $builtApp "overlay-core.ps1")');
     expect(packageScript).toContain('(Join-Path $builtApp "launcher.sh")');
     expect(packageScript).toContain('(Join-Path $builtApp "version.txt")');
   });

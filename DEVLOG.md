@@ -4,6 +4,7 @@
 
 - GitHub 仓库恢复为自动更新器原本锁定的 canonical 名称 `huiishan99/spotify-furigana`；已发布启动器的严格 Release URL 校验重新通过，Windows 老版本无需修改本地脚本即可继续发现更新。
 - 新增四组隐私安全的 Spotify 歌词 DOM fixture，覆盖当前桌面歌词、旧版标准歌词、旧版全屏歌词和带生成式类名前缀的布局；选择器测试现在会解析真实 HTML 结构，而不是只检查字符串常量。
+- 将悬浮层的请求校验、JSON 状态归一化、字号限制、心跳去重和换句类型判断拆入无 WPF 依赖的 `overlay-core.ps1`；Vitest 会调用 PowerShell 执行真实协议与状态机测试，构建和 Release 包也强制包含该核心文件。
 
 ## 2026-08-30 — More responsive desktop lyrics
 

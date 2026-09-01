@@ -6,6 +6,12 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
+$corePath = Join-Path $PSScriptRoot "overlay-core.ps1"
+if (-not (Test-Path -LiteralPath $corePath -PathType Leaf)) {
+  throw "Desktop lyric core is missing: ${corePath}"
+}
+. $corePath
+
 Add-Type -AssemblyName PresentationCore
 Add-Type -AssemblyName PresentationFramework
 Add-Type -AssemblyName WindowsBase
@@ -118,19 +124,11 @@ function Get-RequestBody {
         $headerEnd = $candidate.IndexOf("`r`n`r`n", [StringComparison]::Ordinal)
         if ($headerEnd -ge 0) {
           $header = $candidate.Substring(0, $headerEnd)
-          if ($header -notmatch '^POST /state HTTP/1\.[01]\r?\n') {
+          $metadata = Get-OverlayRequestMetadata -Header $header
+          if ($null -eq $metadata) {
             return $null
           }
-          if ($header -notmatch '(?im)^Origin:\s*https://xpui\.app\.spotify\.com\s*$') {
-            return $null
-          }
-          if ($header -notmatch '(?im)^Content-Length:\s*(?<length>\d+)\s*$') {
-            return $null
-          }
-          $contentLength = [int]$Matches.length
-          if ($contentLength -lt 0 -or $contentLength -gt 60000) {
-            return $null
-          }
+          $contentLength = $metadata.ContentLength
         }
       }
 
@@ -159,61 +157,6 @@ function Get-RequestBody {
     }
     $memory.Dispose()
   }
-}
-
-function Get-StateProperty {
-  param(
-    [Parameter(Mandatory = $true)][object]$State,
-    [Parameter(Mandatory = $true)][string]$Name
-  )
-  $property = $State.PSObject.Properties[$Name]
-  if ($property) {
-    return $property.Value
-  }
-  return $null
-}
-
-function Get-ClampedStateNumber {
-  param(
-    [Parameter(Mandatory = $true)][object]$State,
-    [Parameter(Mandatory = $true)][string]$Name,
-    [Parameter(Mandatory = $true)][double]$Default,
-    [Parameter(Mandatory = $true)][double]$Minimum,
-    [Parameter(Mandatory = $true)][double]$Maximum
-  )
-
-  $rawValue = Get-StateProperty -State $State -Name $Name
-  if ($null -eq $rawValue) {
-    return $Default
-  }
-  try {
-    $value = [Convert]::ToDouble(
-      $rawValue,
-      [Globalization.CultureInfo]::InvariantCulture
-    )
-  } catch {
-    return $Default
-  }
-  if ([double]::IsNaN($value) -or [double]::IsInfinity($value)) {
-    return $Default
-  }
-  return [Math]::Min($Maximum, [Math]::Max($Minimum, $value))
-}
-
-function Get-SegmentTextSignature {
-  param([Parameter(Mandatory = $true)][object[]]$Segments)
-
-  $textValues = @()
-  foreach ($segment in $Segments) {
-    if ($null -eq $segment) {
-      continue
-    }
-    $textValue = Get-StateProperty -State $segment -Name "text"
-    if ($textValue -is [string]) {
-      $textValues += $textValue
-    }
-  }
-  return [string]::Join([char]0x001F, $textValues)
 }
 
 function Set-SegmentPanel {
@@ -306,13 +249,14 @@ function Set-LyricSegments {
 
   $currentSignature = Get-SegmentTextSignature -Segments $Segments
   $nextSignature = Get-SegmentTextSignature -Segments $NextSegments
-  $currentChanged = $currentSignature -ne $lastCurrentLyricSignature
   $hadPreviousCurrent = @($lastCurrentSegments).Count -gt 0
-  $promoteFromNext = `
-    $currentChanged -and `
-    $hadPreviousCurrent -and `
-    -not [string]::IsNullOrEmpty($lastNextLyricSignature) -and `
-    $lastNextLyricSignature -eq $currentSignature
+  $transition = Get-OverlayTransition `
+    -CurrentSignature $currentSignature `
+    -PreviousCurrentSignature $lastCurrentLyricSignature `
+    -PreviousNextSignature $lastNextLyricSignature `
+    -HadPreviousCurrent $hadPreviousCurrent
+  $currentChanged = $transition -ne "unchanged"
+  $promoteFromNext = $transition -eq "promote-next"
   $previousNextFontSize = $lastNextFontSize
 
   $viewbox.BeginAnimation([Windows.UIElement]::OpacityProperty, $null)
@@ -441,12 +385,11 @@ function Apply-OverlayState {
   param([Parameter(Mandatory = $true)][string]$Body)
 
   try {
-    $state = $Body | ConvertFrom-Json
-    if ((Get-StateProperty -State $state -Name "version") -ne 1) {
+    $state = ConvertFrom-OverlayStateBody -Body $Body
+    if ($null -eq $state) {
       return
     }
-    $stateEnabled = Get-StateProperty -State $state -Name "enabled"
-    if ($stateEnabled -isnot [bool] -or -not $stateEnabled) {
+    if (-not $state.Enabled) {
       $script:suppressed = $false
       $script:lastCurrentLyricSignature = ""
       $script:lastNextLyricSignature = ""
@@ -457,33 +400,11 @@ function Apply-OverlayState {
       $window.Hide()
       return
     }
-    $segments = Get-StateProperty -State $state -Name "segments"
-    if ($segments -isnot [array]) {
-      $segments = @($segments)
-    }
-    $nextSegments = Get-StateProperty -State $state -Name "nextSegments"
-    if ($null -eq $nextSegments) {
-      $nextSegments = @()
-    } elseif ($nextSegments -isnot [array]) {
-      $nextSegments = @($nextSegments)
-    }
-    $currentFontSize = Get-ClampedStateNumber `
-      -State $state `
-      -Name "currentFontSize" `
-      -Default 30 `
-      -Minimum 26 `
-      -Maximum 44
-    $nextFontSize = Get-ClampedStateNumber `
-      -State $state `
-      -Name "nextFontSize" `
-      -Default 20 `
-      -Minimum 12 `
-      -Maximum 24
     Set-LyricSegments `
-      -Segments $segments `
-      -NextSegments $nextSegments `
-      -CurrentFontSize $currentFontSize `
-      -NextFontSize $nextFontSize
+      -Segments $state.Segments `
+      -NextSegments $state.NextSegments `
+      -CurrentFontSize $state.CurrentFontSize `
+      -NextFontSize $state.NextFontSize
   } catch {
     # Ignore malformed loopback messages without writing lyric content to disk.
   }
