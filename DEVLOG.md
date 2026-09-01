@@ -1,5 +1,10 @@
 # Devlog
 
+## 2026-09-01 — Reliability and maintenance hardening
+
+- GitHub 仓库恢复为自动更新器原本锁定的 canonical 名称 `huiishan99/spotify-furigana`；已发布启动器的严格 Release URL 校验重新通过，Windows 老版本无需修改本地脚本即可继续发现更新。
+- 新增四组隐私安全的 Spotify 歌词 DOM fixture，覆盖当前桌面歌词、旧版标准歌词、旧版全屏歌词和带生成式类名前缀的布局；选择器测试现在会解析真实 HTML 结构，而不是只检查字符串常量。
+
 ## 2026-08-30 — More responsive desktop lyrics
 
 - 当前句与下一句的 Furigana 继续并行转换；当前句最多给预览一个 16 ms 帧时间，快速命中时仍合并为一次平滑换句，预览较慢时则先发送当前句、完成后独立补入，并用渲染代次阻止过期结果覆盖新歌词。

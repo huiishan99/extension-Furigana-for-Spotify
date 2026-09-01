@@ -2,6 +2,8 @@
 
 This page separates real-client verification from automated layout coverage. A selector fixture or successful build is useful regression evidence, but it is not presented as a real Spotify runtime test.
 
+Automated selector coverage now loads preserved DOM fixtures for the current desktop layout, the earlier standard and fullscreen layouts, and generated class-name fallbacks. When a Spotify update changes the real lyrics DOM, add a privacy-safe fixture before changing selectors so the previous layouts remain covered.
+
 ## Verified on a real client
 
 | Date | OS | Spotify Desktop | Spicetify | Lyrics layout | Result |
