@@ -10,9 +10,9 @@
     "marketing-assets": "node scripts/generate-marketing-assets.mjs",
     "package": "npm run build && powershell -NoProfile -ExecutionPolicy Bypass -File scripts/package.ps1",
     "compile": "tsc --noEmit",
-    "check:app": "node --check app/index.js",
+    "check:app": "node --check dist/spotify-furigana/index.js",
     "test": "vitest run",
-    "check": "npm run compile && npm run check:app && npm run test && npm run build"
+    "check": "npm run compile && npm run test && npm run build && npm run check:app"
   },
   "dependencies": {
     "kuroshiro": "^1.2.0",

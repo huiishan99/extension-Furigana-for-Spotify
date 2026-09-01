@@ -1,51 +1,28 @@
-import { readFile } from "node:fs/promises";
-import { runInNewContext } from "node:vm";
-import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
-import { describe, expect, it } from "vitest";
-
-const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-
-interface AppLanguageTestApi {
-  normalizeUiLanguagePreference(value: unknown): string;
-  resolveUiLanguage(preference: string): string;
-  localizeOnlineStatus(
-    status: { state: string; code?: string; count?: number },
-    text: Record<string, string>,
-  ): string;
-  translations: {
-    en: Record<string, string>;
-    "zh-CN": Record<string, string>;
-    ja: Record<string, string>;
-  };
-  readSettings(): {
-    floatingCurrentSize: number;
-    floatingNextSize: number;
-  };
-  settingKeys: Record<string, string>;
-}
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 async function loadAppLanguageApi(
   documentLanguage: string,
   navigatorLanguages: string[],
 ): Promise<AppLanguageTestApi> {
-  const source = await readFile(resolve(projectRoot, "app", "index.js"), "utf8");
-  const context = {
-    Spicetify: {
-      React: {},
-      LocalStorage: { get: () => null, set: () => undefined },
-    },
-    document: { documentElement: { lang: documentLanguage } },
-    navigator: {
-      languages: navigatorLanguages,
-      language: navigatorLanguages[0] ?? "",
-    },
-  };
-  return runInNewContext(
-    `${source}\n;({ normalizeUiLanguagePreference, resolveUiLanguage, localizeOnlineStatus, translations, readSettings, settingKeys })`,
-    context,
-  ) as AppLanguageTestApi;
+  vi.resetModules();
+  vi.stubGlobal("Spicetify", {
+    React: {},
+    LocalStorage: { get: () => null, set: () => undefined },
+  });
+  vi.stubGlobal("document", { documentElement: { lang: documentLanguage } });
+  vi.stubGlobal("navigator", {
+    platform: "Win32",
+    languages: navigatorLanguages,
+    language: navigatorLanguages[0] ?? "",
+  });
+  return await import("../app/index");
 }
+
+type AppLanguageTestApi = typeof import("../app/index");
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
 
 describe("Spicetify app language", () => {
   it("uses English automatically for an English Spotify document", async () => {

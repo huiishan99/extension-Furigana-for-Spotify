@@ -48,7 +48,7 @@ Key entry points:
 - `src/ui-language.ts`: resolves automatic or manual UI language preferences and localizes extension statuses, notifications, and playbar labels;
 - `src/icon.ts`: provides the original 「ふ」 playbar mark;
 - `src/online-readings.ts`: strictly matches optional NetEase synchronized romanization, verifies cross-script artist aliases through MusicBrainz when needed, aligns readings to Spotify lyric lines, and manages the bounded local cache;
-- `app/index.js`: renders the Spicetify settings page;
+- `app/index.ts`: renders the type-checked Spicetify settings page and reuses the runtime setting schema;
 - `packaging/launcher.ps1` and `packaging/launcher.sh`: check the official stable GitHub Release, verify its SHA-256, run a no-recursion upgrade, and fall back to the installed version before launching through Spicetify; the Windows launcher changes to its local state directory before `spicetify auto` so the installed app remains replaceable;
 - `packaging/overlay.ps1`: hosts the Windows WPF always-on-top lyric window and accepts bounded state messages only from the fixed IPv4 loopback listener; it persists coordinates but never lyric content;
 - `scripts/build.mjs`: bundles the extension with the package version injected for diagnostics, copies the local dictionary and platform launchers, and writes `version.txt` for release comparison.

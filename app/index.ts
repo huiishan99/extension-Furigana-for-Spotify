@@ -1,17 +1,45 @@
+import {
+  DEFAULT_SETTINGS as defaultSettings,
+  ENABLED_KEY,
+  FLOATING_CURRENT_SIZE_KEY,
+  FLOATING_LYRICS_KEY,
+  FLOATING_NEXT_SIZE_KEY,
+  FURIGANA_GAP_KEY,
+  FURIGANA_OPACITY_KEY,
+  FURIGANA_SIZE_KEY,
+  normalizeReadingMode,
+  ONLINE_READINGS_KEY,
+  READING_MODE_KEY,
+  READING_MODES as readingModes,
+  SETTING_CHANGE_EVENT as settingEvent,
+  SETTING_RANGES,
+  type FuriganaSettings,
+  type ReadingMode,
+} from "../src/settings";
+import {
+  normalizeUiLanguagePreference,
+  resolveUiLanguage as resolveStoredUiLanguage,
+  UI_LANGUAGE_CHANGE_EVENT as uiLanguageChangeEvent,
+  UI_LANGUAGE_KEY as uiLanguageKey,
+  type UiLanguage,
+  type UiLanguagePreference,
+} from "../src/ui-language";
+
+export { normalizeUiLanguagePreference } from "../src/ui-language";
+
 const react = Spicetify.React;
-const settingEvent = "spotify-furigana:setting-change";
 const desktopOverlaySupported = /^win/iu.test(navigator.platform ?? "");
 
-const settingKeys = {
-  enabled: "spotify-furigana:enabled",
-  readingMode: "spotify-furigana:reading-mode",
-  size: "spotify-furigana:size",
-  opacity: "spotify-furigana:opacity",
-  gap: "spotify-furigana:gap",
-  onlineReadings: "spotify-furigana:online-readings-enabled",
-  floatingLyrics: "spotify-furigana:floating-lyrics-enabled",
-  floatingCurrentSize: "spotify-furigana:floating-current-size",
-  floatingNextSize: "spotify-furigana:floating-next-size",
+export const settingKeys: Record<keyof FuriganaSettings, string> = {
+  enabled: ENABLED_KEY,
+  readingMode: READING_MODE_KEY,
+  size: FURIGANA_SIZE_KEY,
+  opacity: FURIGANA_OPACITY_KEY,
+  gap: FURIGANA_GAP_KEY,
+  onlineReadings: ONLINE_READINGS_KEY,
+  floatingLyrics: FLOATING_LYRICS_KEY,
+  floatingCurrentSize: FLOATING_CURRENT_SIZE_KEY,
+  floatingNextSize: FLOATING_NEXT_SIZE_KEY,
 };
 const onlineStatusKey = "spotify-furigana:online-status";
 const onlineStatusEvent = "spotify-furigana:online-status-change";
@@ -19,11 +47,8 @@ const onlineCacheClearEvent = "spotify-furigana:online-cache-clear";
 const runtimeDiagnosticsKey = "spotify-furigana:runtime-diagnostics-v1";
 const runtimeDiagnosticsEvent =
   "spotify-furigana:runtime-diagnostics-change";
-const uiLanguageKey = "spotify-furigana:ui-language";
-const uiLanguageChangeEvent = "spotify-furigana:ui-language-change";
-const uiLanguagePreferences = ["auto", "en", "zh-CN", "ja"];
 
-const translations = {
+export const translations = {
   en: {
     eyebrow: "Japanese lyric companion",
     lead:
@@ -213,18 +238,14 @@ const translations = {
   },
 };
 
-function normalizeUiLanguagePreference(value) {
-  return uiLanguagePreferences.includes(value) ? value : "auto";
-}
-
-function readUiLanguagePreference() {
+function readUiLanguagePreference(): UiLanguagePreference {
   return normalizeUiLanguagePreference(
     Spicetify.LocalStorage.get(uiLanguageKey),
   );
 }
 
-function getLocaleCandidates() {
-  const candidates = [];
+function getLocaleCandidates(): string[] {
+  const candidates: string[] = [];
   if (document.documentElement.lang) {
     candidates.push(document.documentElement.lang);
   }
@@ -237,33 +258,42 @@ function getLocaleCandidates() {
   return candidates;
 }
 
-function resolveUiLanguage(preference) {
-  if (preference !== "auto") {
-    return preference;
-  }
-  for (const candidate of getLocaleCandidates()) {
-    const normalized = String(candidate).trim().toLowerCase();
-    if (normalized.startsWith("zh")) {
-      return "zh-CN";
-    }
-    if (normalized.startsWith("ja")) {
-      return "ja";
-    }
-    if (normalized) {
-      return "en";
-    }
-  }
-  return "en";
+export function resolveUiLanguage(preference: UiLanguagePreference): UiLanguage {
+  return resolveStoredUiLanguage(preference, getLocaleCandidates());
 }
 
-function formatText(template, values = {}) {
-  return template.replace(/\{(\w+)\}/gu, (placeholder, name) =>
+type AppText = {
+  [Key in keyof (typeof translations)["en"]]: string;
+};
+
+function formatText(
+  template: string,
+  values: Record<string, string | number> = {},
+): string {
+  return template.replace(/\{(\w+)\}/gu, (placeholder, name: string) =>
     Object.hasOwn(values, name) ? String(values[name]) : placeholder,
   );
 }
 
-function localizeOnlineStatus(status, text) {
-  const statusKeys = {
+interface OnlineStatus {
+  state: string;
+  code?: string;
+  message?: string;
+  count?: number;
+}
+
+interface RuntimeDiagnostics {
+  schemaVersion: 1;
+  report: string;
+  annotatedLines: number;
+  onlineStatus: OnlineStatus;
+}
+
+export function localizeOnlineStatus(
+  status: OnlineStatus,
+  text: AppText,
+): string {
+  const statusKeys: Record<string, keyof AppText> = {
     "online-disabled": "statusOnlineDisabled",
     "no-track": "statusNoTrack",
     "cache-ready": "statusCacheReady",
@@ -273,11 +303,11 @@ function localizeOnlineStatus(status, text) {
     unavailable: "statusUnavailable",
     "cache-cleared": "statusCacheCleared",
   };
-  const key = statusKeys[status.code];
+  const key = statusKeys[status.code ?? ""];
   if (key) {
     return formatText(text[key], { count: status.count ?? 0 });
   }
-  const fallbackKeys = {
+  const fallbackKeys: Record<string, keyof AppText> = {
     idle: "statusOnlineDisabled",
     loading: "statusLoading",
     ready: "statusCacheReady",
@@ -287,25 +317,16 @@ function localizeOnlineStatus(status, text) {
   return text[fallbackKeys[status.state] ?? "statusWaiting"];
 }
 
-const defaultSettings = {
-  enabled: true,
-  readingMode: "hiragana",
-  size: 0.46,
-  opacity: 0.82,
-  gap: 0,
-  onlineReadings: false,
-  floatingLyrics: false,
-  floatingCurrentSize: 30,
-  floatingNextSize: 20,
-};
-
-const readingModes = ["hiragana", "katakana", "romaji"];
-
-function clamp(value, min, max) {
+function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
 }
 
-function readNumber(key, fallback, min, max) {
+function readNumber(
+  key: string,
+  fallback: number,
+  min: number,
+  max: number,
+): number {
   const raw = Spicetify.LocalStorage.get(key);
   if (raw === null || raw.trim() === "") {
     return fallback;
@@ -315,19 +336,29 @@ function readNumber(key, fallback, min, max) {
   return Number.isFinite(value) ? clamp(value, min, max) : fallback;
 }
 
-function readSettings() {
+export function readSettings(): FuriganaSettings {
   const readingMode = Spicetify.LocalStorage.get(settingKeys.readingMode);
   return {
     enabled: Spicetify.LocalStorage.get(settingKeys.enabled) !== "false",
-    readingMode: readingModes.includes(readingMode) ? readingMode : "hiragana",
-    size: readNumber(settingKeys.size, defaultSettings.size, 0.3, 0.75),
+    readingMode: normalizeReadingMode(readingMode),
+    size: readNumber(
+      settingKeys.size,
+      defaultSettings.size,
+      SETTING_RANGES.size.min,
+      SETTING_RANGES.size.max,
+    ),
     opacity: readNumber(
       settingKeys.opacity,
       defaultSettings.opacity,
-      0.4,
-      1,
+      SETTING_RANGES.opacity.min,
+      SETTING_RANGES.opacity.max,
     ),
-    gap: readNumber(settingKeys.gap, defaultSettings.gap, 0, 8),
+    gap: readNumber(
+      settingKeys.gap,
+      defaultSettings.gap,
+      SETTING_RANGES.gap.min,
+      SETTING_RANGES.gap.max,
+    ),
     onlineReadings:
       Spicetify.LocalStorage.get(settingKeys.onlineReadings) === "true",
     floatingLyrics:
@@ -335,19 +366,19 @@ function readSettings() {
     floatingCurrentSize: readNumber(
       settingKeys.floatingCurrentSize,
       defaultSettings.floatingCurrentSize,
-      26,
-      44,
+      SETTING_RANGES.floatingCurrentSize.min,
+      SETTING_RANGES.floatingCurrentSize.max,
     ),
     floatingNextSize: readNumber(
       settingKeys.floatingNextSize,
       defaultSettings.floatingNextSize,
-      12,
-      24,
+      SETTING_RANGES.floatingNextSize.min,
+      SETTING_RANGES.floatingNextSize.max,
     ),
   };
 }
 
-function readOnlineStatus() {
+function readOnlineStatus(): OnlineStatus {
   const raw = Spicetify.LocalStorage.get(onlineStatusKey);
   if (!raw) {
     return {
@@ -358,9 +389,16 @@ function readOnlineStatus() {
   }
 
   try {
-    const parsed = JSON.parse(raw);
-    if (typeof parsed?.state === "string" && typeof parsed?.message === "string") {
-      return parsed;
+    const parsed: unknown = JSON.parse(raw);
+    if (
+      parsed !== null &&
+      typeof parsed === "object" &&
+      "state" in parsed &&
+      "message" in parsed &&
+      typeof parsed.state === "string" &&
+      typeof parsed.message === "string"
+    ) {
+      return parsed as OnlineStatus;
     }
   } catch {
     // Ignore stale or malformed status data.
@@ -369,20 +407,29 @@ function readOnlineStatus() {
   return { state: "idle", message: "" };
 }
 
-function readRuntimeDiagnostics() {
+function readRuntimeDiagnostics(): RuntimeDiagnostics | null {
   const raw = Spicetify.LocalStorage.get(runtimeDiagnosticsKey);
   if (!raw) {
     return null;
   }
   try {
-    const parsed = JSON.parse(raw);
+    const parsed: unknown = JSON.parse(raw);
     if (
-      parsed?.schemaVersion === 1 &&
+      parsed !== null &&
+      typeof parsed === "object" &&
+      "schemaVersion" in parsed &&
+      parsed.schemaVersion === 1 &&
+      "report" in parsed &&
       typeof parsed.report === "string" &&
+      "annotatedLines" in parsed &&
       typeof parsed.annotatedLines === "number" &&
-      typeof parsed.onlineStatus?.state === "string"
+      "onlineStatus" in parsed &&
+      parsed.onlineStatus !== null &&
+      typeof parsed.onlineStatus === "object" &&
+      "state" in parsed.onlineStatus &&
+      typeof parsed.onlineStatus.state === "string"
     ) {
-      return parsed;
+      return parsed as RuntimeDiagnostics;
     }
   } catch {
     // Ignore stale or malformed diagnostics.
@@ -390,7 +437,10 @@ function readRuntimeDiagnostics() {
   return null;
 }
 
-function formatDiagnosticsSummary(diagnostics, text) {
+function formatDiagnosticsSummary(
+  diagnostics: RuntimeDiagnostics | null,
+  text: AppText,
+): string {
   if (!diagnostics) {
     return text.diagnosticsWaiting;
   }
@@ -400,7 +450,7 @@ function formatDiagnosticsSummary(diagnostics, text) {
   });
 }
 
-async function copyText(value) {
+async function copyText(value: string): Promise<void> {
   if (navigator.clipboard?.writeText) {
     await navigator.clipboard.writeText(value);
     return;
@@ -420,8 +470,9 @@ async function copyText(value) {
   }
 }
 
-function persistSettings(settings) {
-  Object.entries(settings).forEach(([name, value]) => {
+function persistSettings(settings: FuriganaSettings): void {
+  (Object.keys(settings) as (keyof FuriganaSettings)[]).forEach((name) => {
+    const value = settings[name];
     Spicetify.LocalStorage.set(settingKeys[name], String(value));
   });
   window.dispatchEvent(
@@ -429,6 +480,17 @@ function persistSettings(settings) {
       detail: { enabled: settings.enabled, settings, source: "app" },
     }),
   );
+}
+
+interface SettingSliderProps {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  step: number;
+  valueLabel: string;
+  disabled?: boolean;
+  onChange: (value: number) => void;
 }
 
 function SettingSlider({
@@ -440,7 +502,7 @@ function SettingSlider({
   valueLabel,
   disabled = false,
   onChange,
-}) {
+}: SettingSliderProps): unknown {
   return react.createElement(
     "label",
     { className: "spotify-furigana-app__slider" },
@@ -457,12 +519,13 @@ function SettingSlider({
       step,
       value,
       disabled,
-      onChange: (event) => onChange(Number(event.target.value)),
+      onChange: (event: Event) =>
+        onChange(Number((event.target as HTMLInputElement).value)),
     }),
   );
 }
 
-function SpotifyFuriganaApp() {
+function SpotifyFuriganaApp(): unknown {
   const [settings, setSettings] = react.useState(readSettings);
   const [onlineStatus, setOnlineStatus] = react.useState(readOnlineStatus);
   const [runtimeDiagnostics, setRuntimeDiagnostics] = react.useState(
@@ -475,15 +538,20 @@ function SpotifyFuriganaApp() {
   settingsRef.current = settings;
   const uiLanguage = resolveUiLanguage(uiLanguagePreference);
   const text = translations[uiLanguage];
+  const readingModeOptions: ReadonlyArray<readonly [ReadingMode, string]> = [
+    [readingModes[0], text.hiragana],
+    [readingModes[1], text.katakana],
+    [readingModes[2], text.romaji],
+  ];
 
-  const updateSettings = (patch) => {
+  const updateSettings = (patch: Partial<FuriganaSettings>) => {
     const next = { ...settingsRef.current, ...patch };
     settingsRef.current = next;
     persistSettings(next);
     setSettings(next);
   };
 
-  const updateUiLanguage = (preference) => {
+  const updateUiLanguage = (preference: unknown) => {
     const normalized = normalizeUiLanguagePreference(preference);
     Spicetify.LocalStorage.set(uiLanguageKey, normalized);
     setUiLanguagePreference(normalized);
@@ -504,8 +572,9 @@ function SpotifyFuriganaApp() {
   };
 
   react.useEffect(() => {
-    const syncSettings = (event) => {
-      if (event.detail?.source !== "app") {
+    const syncSettings = (event: Event) => {
+      const detail = (event as CustomEvent<{ source?: string }>).detail;
+      if (detail?.source !== "app") {
         const next = readSettings();
         settingsRef.current = next;
         setSettings(next);
@@ -516,8 +585,9 @@ function SpotifyFuriganaApp() {
   }, []);
 
   react.useEffect(() => {
-    const syncRuntimeDiagnostics = (event) => {
-      setRuntimeDiagnostics(event.detail ?? readRuntimeDiagnostics());
+    const syncRuntimeDiagnostics = (event: Event) => {
+      const detail = (event as CustomEvent<RuntimeDiagnostics>).detail;
+      setRuntimeDiagnostics(detail ?? readRuntimeDiagnostics());
     };
     window.addEventListener(runtimeDiagnosticsEvent, syncRuntimeDiagnostics);
     return () =>
@@ -528,8 +598,9 @@ function SpotifyFuriganaApp() {
   }, []);
 
   react.useEffect(() => {
-    const syncOnlineStatus = (event) => {
-      setOnlineStatus(event.detail ?? readOnlineStatus());
+    const syncOnlineStatus = (event: Event) => {
+      const detail = (event as CustomEvent<OnlineStatus>).detail;
+      setOnlineStatus(detail ?? readOnlineStatus());
     };
     window.addEventListener(onlineStatusEvent, syncOnlineStatus);
     return () => window.removeEventListener(onlineStatusEvent, syncOnlineStatus);
@@ -572,7 +643,8 @@ function SpotifyFuriganaApp() {
           className: "spotify-furigana-app__language-select",
           value: uiLanguagePreference,
           "aria-label": text.interfaceLanguage,
-          onChange: (event) => updateUiLanguage(event.target.value),
+          onChange: (event: Event) =>
+            updateUiLanguage((event.target as HTMLSelectElement).value),
         },
         react.createElement(
           "option",
@@ -654,8 +726,8 @@ function SpotifyFuriganaApp() {
         react.createElement(SettingSlider, {
           label: text.floatingCurrentSize,
           value: settings.floatingCurrentSize,
-          min: 26,
-          max: 44,
+          min: SETTING_RANGES.floatingCurrentSize.min,
+          max: SETTING_RANGES.floatingCurrentSize.max,
           step: 1,
           valueLabel: `${settings.floatingCurrentSize}px`,
           disabled: !desktopOverlaySupported,
@@ -665,8 +737,8 @@ function SpotifyFuriganaApp() {
         react.createElement(SettingSlider, {
           label: text.floatingNextSize,
           value: settings.floatingNextSize,
-          min: 12,
-          max: 24,
+          min: SETTING_RANGES.floatingNextSize.min,
+          max: SETTING_RANGES.floatingNextSize.max,
           step: 1,
           valueLabel: `${settings.floatingNextSize}px`,
           disabled: !desktopOverlaySupported,
@@ -763,11 +835,7 @@ function SpotifyFuriganaApp() {
           role: "group",
           "aria-label": text.readingStyle,
         },
-        ...[
-          ["hiragana", text.hiragana],
-          ["katakana", text.katakana],
-          ["romaji", text.romaji],
-        ].map(([mode, label]) =>
+        ...readingModeOptions.map(([mode, label]) =>
           react.createElement(
             "button",
             {
@@ -790,8 +858,8 @@ function SpotifyFuriganaApp() {
         react.createElement(SettingSlider, {
           label: text.fontSize,
           value: settings.size,
-          min: 0.3,
-          max: 0.75,
+          min: SETTING_RANGES.size.min,
+          max: SETTING_RANGES.size.max,
           step: 0.01,
           valueLabel: `${Math.round(settings.size * 100)}%`,
           onChange: (size) => updateSettings({ size }),
@@ -799,8 +867,8 @@ function SpotifyFuriganaApp() {
         react.createElement(SettingSlider, {
           label: text.opacity,
           value: settings.opacity,
-          min: 0.4,
-          max: 1,
+          min: SETTING_RANGES.opacity.min,
+          max: SETTING_RANGES.opacity.max,
           step: 0.01,
           valueLabel: `${Math.round(settings.opacity * 100)}%`,
           onChange: (opacity) => updateSettings({ opacity }),
@@ -808,8 +876,8 @@ function SpotifyFuriganaApp() {
         react.createElement(SettingSlider, {
           label: text.verticalGap,
           value: settings.gap,
-          min: 0,
-          max: 8,
+          min: SETTING_RANGES.gap.min,
+          max: SETTING_RANGES.gap.max,
           step: 1,
           valueLabel: `${settings.gap}px`,
           onChange: (gap) => updateSettings({ gap }),
@@ -871,6 +939,6 @@ function SpotifyFuriganaApp() {
   );
 }
 
-function render() {
+export function render(): unknown {
   return react.createElement(SpotifyFuriganaApp);
 }

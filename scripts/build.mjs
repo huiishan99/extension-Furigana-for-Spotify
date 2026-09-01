@@ -39,8 +39,21 @@ await build({
   logLevel: "info",
 });
 
+await build({
+  entryPoints: [resolve(projectRoot, "app", "index.ts")],
+  outfile: resolve(outputRoot, "index.js"),
+  bundle: true,
+  format: "iife",
+  globalName: "SpotifyFuriganaSettingsApp",
+  platform: "browser",
+  target: ["chrome120"],
+  footer: {
+    js: "function render() { return SpotifyFuriganaSettingsApp.render(); }",
+  },
+  logLevel: "info",
+});
+
 await Promise.all([
-  copyFile(resolve(projectRoot, "app", "index.js"), resolve(outputRoot, "index.js")),
   copyFile(
     resolve(projectRoot, "app", "manifest.json"),
     resolve(outputRoot, "manifest.json"),
