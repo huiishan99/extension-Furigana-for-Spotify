@@ -92,17 +92,19 @@ macOS 安装器和生产构建已纳入 macOS CI 自动检查，但目前还没�
   <a href="https://github.com/huiishan99/spotify-furigana/releases/latest"><img alt="下载最新版本" src="https://img.shields.io/badge/下载-最新版本-00A77D?style=for-the-badge&amp;logo=github" /></a>
 </p>
 
-从[最新 Release](https://github.com/huiishan99/spotify-furigana/releases/latest)下载 `spotify-furigana-vX.Y.Z.zip`，完整解压后运行对应平台的安装脚本。安装器会自动备份已有版本并配置应用。
+从[最新 Release](https://github.com/huiishan99/spotify-furigana/releases/latest)下载对应平台的安装器。安装器会自动备份已有版本并配置应用。
 
 ### Windows
 
-在解压目录中打开 PowerShell，运行：
+下载 `Furigana-for-Spotify-Setup-vX.Y.Z.exe`，按照安装向导操作。安装时可以选择是否创建桌面图标、启用经过校验的自动更新，以及安装完成后立即启动。开始菜单入口和“**设置 → 应用 → 已安装的应用**”条目会始终创建；桌面图标默认勾选，安装后可以立刻找到。
+
+如果需要便携式或命令行安装，请下载并完整解压 `spotify-furigana-vX.Y.Z.zip`，然后运行：
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\install.ps1
 ```
 
-安装器会识别唯一的 Spotify 安装、备份现有 Furigana 版本、安装并启用插件、应用 Spicetify 配置，并在开始菜单创建 **Furigana for Spotify** 启动入口。这个入口使用项目原创的 **「ふ」图标**，方便与 Spotify 原版快捷方式区分。
+两种安装方式都会识别唯一的 Spotify 安装、备份现有 Furigana 版本、安装并启用插件，再应用 Spicetify 配置。原生 **Furigana for Spotify** 启动器使用项目原创的 **「ふ」图标**，可以从桌面或开始菜单文件夹找到，也方便与 Spotify 原版快捷方式区分。
 
 安装完成后，请从开始菜单打开 **Furigana for Spotify**。这个入口每 24 小时最多检查一次官方 Furigana Release，再在启动 Spotify 前检查并重新应用 Spicetify。因此后续发布的新功能可以自动更新，普通重启后插件仍然有效，受支持的 Spotify 更新后也能自动修复。接着播放一首带歌词的日语歌曲并打开歌词页面；第一次转换时，本地词典需要短暂加载。
 
@@ -171,6 +173,8 @@ Windows 悬浮窗使用 Spotify 桌面端原本就会读取的行级同步歌词
 插件不会发送 Spotify 凭据、Cookie、账号数据，也不会上传 Spotify 当前显示的歌词。这里的“同步”指第三方歌词与罗马音按时间戳配对，不是实时听歌或音频识别。成功结果最多在本机缓存 30 天；无结果会记录 6 小时，避免反复请求；最多保留 30 首歌。可以随时从设置页清除缓存。第三方服务和歌曲覆盖率不作保证，无法匹配时会自动使用本地读音规则和词典。
 
 ## 卸载
+
+Windows 用户可以在“**设置 → 应用 → 已安装的应用**”中卸载 **Furigana for Spotify**。通过 ZIP 安装的用户也可以运行：
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\uninstall.ps1

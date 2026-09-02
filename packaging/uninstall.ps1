@@ -1,5 +1,8 @@
 [CmdletBinding()]
-param()
+param(
+  [switch]$NoLaunch,
+  [switch]$SkipShortcut
+)
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
@@ -76,11 +79,13 @@ $shortcutPaths = @(
   (Join-Path $startMenuPrograms "Furigana for Spotify.lnk"),
   (Join-Path $startMenuPrograms "Spotify with Furigana.lnk")
 )
-foreach ($shortcutPath in $shortcutPaths) {
-  if (Test-Path -LiteralPath $shortcutPath) {
-    $removedShortcutPath = "${shortcutPath}.removed-${timestamp}"
-    Move-Item -LiteralPath $shortcutPath -Destination $removedShortcutPath
-    Write-Host "The launcher shortcut was moved to ${removedShortcutPath}."
+if (-not $SkipShortcut) {
+  foreach ($shortcutPath in $shortcutPaths) {
+    if (Test-Path -LiteralPath $shortcutPath) {
+      $removedShortcutPath = "${shortcutPath}.removed-${timestamp}"
+      Move-Item -LiteralPath $shortcutPath -Destination $removedShortcutPath
+      Write-Host "The launcher shortcut was moved to ${removedShortcutPath}."
+    }
   }
 }
 
@@ -94,4 +99,6 @@ if (Test-Path -LiteralPath $updateStateRoot) {
   Write-Host "The automatic-update state and log were moved to ${removedUpdateStatePath}."
 }
 
-Invoke-Spicetify -Executable $spicetifyExecutable -Arguments @("auto")
+if (-not $NoLaunch) {
+  Invoke-Spicetify -Executable $spicetifyExecutable -Arguments @("auto")
+}

@@ -4,7 +4,7 @@
 
 Requirements: Windows 10/11 or macOS 12+, Spotify Desktop, and [Spicetify](https://spicetify.app/docs/getting-started). Open Spotify and sign in for at least 60 seconds before installing.
 
-Extract the ZIP completely. On Windows, open PowerShell in this folder and run:
+The recommended Windows download is `Furigana-for-Spotify-Setup-vX.Y.Z.exe`, which provides a normal installation wizard, optional desktop shortcut and automatic updates, a Start menu entry, and an Installed apps entry. The desktop shortcut is selected by default. If you downloaded the portable ZIP, extract it completely, open PowerShell in this folder, and run:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\install.ps1
@@ -16,7 +16,7 @@ On macOS, open Terminal in this folder and run:
 sh ./install.sh
 ```
 
-To uninstall on Windows:
+Setup.exe installations can be removed from **Settings → Apps → Installed apps**. To uninstall a ZIP installation on Windows:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\uninstall.ps1
@@ -40,7 +40,7 @@ Reading conversion remains local by default. The sidebar settings page offers an
 
 需要 Windows 10/11 或 macOS 12+、Spotify 桌面版，以及 [Spicetify](https://spicetify.app/docs/getting-started)。安装前请打开 Spotify 并登录至少 60 秒。
 
-完整解压 ZIP。Windows 用户在解压目录中打开 PowerShell，运行：
+Windows 推荐下载 `Furigana-for-Spotify-Setup-vX.Y.Z.exe`：它提供标准安装向导，可选择桌面图标和自动更新，并创建开始菜单入口及“已安装的应用”条目；桌面图标默认勾选。如果下载的是便携 ZIP，请完整解压，在解压目录中打开 PowerShell 并运行：
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\install.ps1
@@ -52,7 +52,7 @@ macOS 用户在解压目录中打开终端，运行：
 sh ./install.sh
 ```
 
-Windows 卸载命令：
+Setup.exe 安装可从“设置 → 应用 → 已安装的应用”中卸载。ZIP 安装的 Windows 卸载命令：
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\uninstall.ps1
@@ -76,7 +76,7 @@ Windows 启动器还会启动可选的原生桌面歌词窗口。在 Spotify 侧
 
 Windows 10/11またはmacOS 12以降、Spotifyデスクトップ版、および[Spicetify](https://spicetify.app/docs/getting-started)が必要です。インストール前にSpotifyを開き、60秒以上ログインしてください。
 
-ZIPを完全に展開します。Windowsでは展開したフォルダーでPowerShellを開き、次を実行します。
+Windowsでは `Furigana-for-Spotify-Setup-vX.Y.Z.exe` を推奨します。通常のセットアップウィザード、デスクトップショートカットと自動更新の選択、スタートメニュー項目、「インストールされているアプリ」への登録を利用できます。デスクトップショートカットは既定で選択されます。ポータブルZIPを使う場合は完全に展開し、PowerShellで次を実行します。
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\install.ps1
@@ -88,7 +88,7 @@ macOSでは展開したフォルダーでターミナルを開き、次を実行
 sh ./install.sh
 ```
 
-Windowsでのアンインストール：
+Setup.exe版は **設定 → アプリ → インストールされているアプリ** から削除できます。ZIP版をWindowsでアンインストールする場合：
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\uninstall.ps1

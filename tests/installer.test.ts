@@ -23,14 +23,32 @@ describe("Windows release installer", () => {
   let overlay = "";
   let overlayCore = "";
   let uninstaller = "";
+  let nativeLauncher = "";
+  let setup = "";
+  let packager = "";
+  let releaseWorkflow = "";
 
   beforeAll(async () => {
-    [installer, launcher, overlay, overlayCore, uninstaller] = await Promise.all([
+    [
+      installer,
+      launcher,
+      overlay,
+      overlayCore,
+      uninstaller,
+      nativeLauncher,
+      setup,
+      packager,
+      releaseWorkflow,
+    ] = await Promise.all([
       readFile(resolve(projectRoot, "packaging", "install.ps1"), "utf8"),
       readFile(resolve(projectRoot, "packaging", "launcher.ps1"), "utf8"),
       readFile(resolve(projectRoot, "packaging", "overlay.ps1"), "utf8"),
       readFile(resolve(projectRoot, "packaging", "overlay-core.ps1"), "utf8"),
       readFile(resolve(projectRoot, "packaging", "uninstall.ps1"), "utf8"),
+      readFile(resolve(projectRoot, "packaging", "windows-launcher", "Program.cs"), "utf8"),
+      readFile(resolve(projectRoot, "packaging", "windows-setup.iss"), "utf8"),
+      readFile(resolve(projectRoot, "scripts", "package.ps1"), "utf8"),
+      readFile(resolve(projectRoot, ".github", "workflows", "release.yml"), "utf8"),
     ]);
   });
 
@@ -62,9 +80,11 @@ describe("Windows release installer", () => {
     expect(installer).toContain("Furigana for Spotify.lnk");
     expect(installer).toContain("Spotify with Furigana.lnk");
     expect(installer).toContain("legacyShortcutBackupPath");
-    expect(installer).toContain("-WindowStyle Hidden -File");
     expect(installer).toContain('$sourceLauncherScript = Join-Path $sourceApp "launcher.ps1"');
-    expect(installer).toContain("$shortcut.TargetPath = $PowerShellExecutable");
+    expect(installer).toContain(
+      '$sourceLauncherExecutable = Join-Path $sourceApp "Furigana for Spotify.exe"',
+    );
+    expect(installer).toContain("$shortcut.TargetPath = $LauncherExecutable");
     expect(installer).toContain("$shortcut.WorkingDirectory = $WorkingDirectory");
     expect(installer).toContain(
       '$launcherStateRoot = Join-Path $env:LOCALAPPDATA "Furigana for Spotify"',
@@ -79,12 +99,48 @@ describe("Windows release installer", () => {
     expect(launcher).toContain("Set-Location -LiteralPath $resolvedStateRoot");
     expect(launcher).toContain("[Environment]::CurrentDirectory = $resolvedStateRoot");
     expect(installer).toContain('$sourceLauncherIcon = Join-Path $sourceApp "launcher.ico"');
-    expect(installer).toContain('$shortcut.IconLocation = "${IconPath},0"');
+    expect(installer).toContain('$shortcut.IconLocation = "${LauncherExecutable},0"');
     expect(installer).not.toContain('$shortcut.IconLocation = "${SpotifyExecutable},0"');
     expect(uninstaller).toContain("Furigana for Spotify.lnk");
     expect(uninstaller).toContain("Spotify with Furigana.lnk");
     expect(uninstaller).toContain("removedShortcutPath");
     expect(uninstaller).toContain("automatic-update state and log");
+  });
+
+  it("builds a native launcher instead of pointing users at PowerShell", () => {
+    expect(nativeLauncher).toContain('AssemblyTitle("Furigana for Spotify")');
+    expect(nativeLauncher).toContain("Environment.SpecialFolder.System");
+    expect(nativeLauncher).toContain('Path.Combine(appDirectory, "launcher.ps1")');
+    expect(nativeLauncher).toContain("Environment.SpecialFolder.ApplicationData");
+    expect(nativeLauncher).toContain("SetCurrentProcessExplicitAppUserModelID");
+    expect(nativeLauncher).toContain("UseShellExecute = false");
+    expect(nativeLauncher).toContain("CreateNoWindow = true");
+    expect(packager).toContain("Resolve-CSharpCompiler");
+    expect(packager).toContain("/target:winexe");
+    expect(packager).toContain("AssemblyFileVersion");
+    expect(packager).toContain('"Furigana for Spotify.exe"');
+  });
+
+  it("builds a localized graphical installer with explicit user choices", () => {
+    expect(setup).toContain("AppId={{9C85021E-83A3-4899-8E11-EA30A869B4F1}");
+    expect(setup).toContain('Name: "chinesesimplified"');
+    expect(setup).toContain('Name: "japanese"');
+    expect(setup).toContain('Name: "autoupdate"');
+    expect(setup).toContain('Name: "desktopicon"');
+    expect(setup).toContain('Name: "{group}\\Furigana for Spotify"');
+    expect(setup).toContain('Name: "{autodesktop}\\Furigana for Spotify"');
+    expect(setup).toContain('Filename: "{app}\\Furigana for Spotify.exe"');
+    expect(setup).toContain('AppUserModelID: "FuriganaForSpotify.Launcher"');
+    expect(setup).toContain("WizardSmallImageFile={#ProjectRoot}\\assets\\logo.png");
+    expect(setup).toContain("UninstallDisplayName={#AppName}");
+    expect(setup).toContain("procedure CurStepChanged");
+    expect(setup).toContain("ResultCode <> 0");
+    expect(setup).toContain("-NoLaunch -SkipShortcut");
+    expect(setup).toContain("-DisableAutoUpdate");
+    expect(setup).toContain("[UninstallRun]");
+    expect(packager).toContain("Resolve-InnoSetupCompiler");
+    expect(packager).toContain("Furigana-for-Spotify-Setup-v${version}.exe");
+    expect(releaseWorkflow).toContain("release/*.exe");
   });
 
   it("runs the floating lyric as a loopback-only Windows desktop overlay", () => {

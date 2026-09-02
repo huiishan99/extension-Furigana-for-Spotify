@@ -1,5 +1,12 @@
 # Devlog
 
+## 2026-09-02 — Discoverable Windows installer
+
+- 新增中、日、英三语 Inno Setup 安装向导；用户可以选择桌面图标、自动更新和安装后启动，开始菜单入口与 Windows“已安装的应用”登记始终创建。
+- 新增带原创图标和版本元数据的小型原生 Windows 启动器；桌面与开始菜单快捷方式直接指向安装目录中的 `.exe`，再无窗口调用原有自修复 PowerShell 启动逻辑，不再要求用户识别脚本快捷方式。
+- 保留原 ZIP、PowerShell 和 macOS 安装方式；直接脚本安装也改用原生入口，Setup 卸载器会调用现有安全卸载流程，后续自动更新同步 Windows 登记版本。
+- Release 产物扩展为 Setup.exe、便携 ZIP 及两者的 SHA-256，并将全部产物纳入 GitHub build-provenance attestation。
+
 ## 2026-09-02 — v0.6.2 reliability release
 
 - 将兼容性 fixture、Windows 悬浮层核心测试、TypeScript 设置页、覆盖率门禁、依赖维护与构建来源证明整理为 `v0.6.2`；发布前再次执行完整检查与安装包校验。

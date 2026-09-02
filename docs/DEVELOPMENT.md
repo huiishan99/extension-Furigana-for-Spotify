@@ -29,7 +29,7 @@ spotify-furigana/
 ├── app/          # Spicetify Custom App page, styles, and manifest
 ├── assets/       # Project logo, screenshots, and launch artwork
 ├── docs/         # User translations, compatibility, and developer docs
-├── packaging/    # Release installer, uninstaller, and offline instructions
+├── packaging/    # Graphical/script installers, native launcher, and offline instructions
 ├── scripts/      # Build, package, and generated-asset scripts
 ├── src/          # Lyrics observer, selectors, settings, and reading engine
 ├── tests/        # Vitest tests
@@ -52,6 +52,8 @@ Key entry points:
 - `packaging/launcher.ps1` and `packaging/launcher.sh`: check the official stable GitHub Release, verify its SHA-256, run a no-recursion upgrade, and fall back to the installed version before launching through Spicetify; the Windows launcher changes to its local state directory before `spicetify auto` so the installed app remains replaceable;
 - `packaging/overlay.ps1`: hosts the Windows WPF always-on-top lyric window and accepts bounded state messages only from the fixed IPv4 loopback listener; it persists coordinates but never lyric content;
 - `packaging/overlay-core.ps1`: contains the platform-neutral request validation, state normalization, clamping, deduplication, and transition decisions exercised directly from the test suite;
+- `packaging/windows-setup.iss`: builds the localized Inno Setup wizard, optional desktop/update choices, Start menu registration, and Installed apps lifecycle;
+- `packaging/windows-launcher/Program.cs`: provides the small native Windows entry point used by searchable shortcuts while delegating repair/update behavior to `launcher.ps1`;
 - `scripts/build.mjs`: bundles the extension with the package version injected for diagnostics, copies the local dictionary and platform launchers, and writes `version.txt` for release comparison.
 
 ## Build and verify
@@ -65,10 +67,10 @@ npm run package
 
 - `npm run check` runs Biome formatting/lint checks, TypeScript checks, Vitest with a regression coverage floor, app syntax validation, native overlay-core tests when PowerShell is available, and the production build.
 - `npm run marketing-assets` deterministically rebuilds launch artwork from the project logo and real screenshot.
-- `npm run package` creates the installable ZIP and SHA-256 checksum under the ignored `release/` directory.
+- `npm run package` uses the .NET Framework C# compiler and Inno Setup 6/7 to create the Windows Setup.exe plus the portable ZIP, with SHA-256 files for both, under the ignored `release/` directory.
 - `packaging/install.ps1` and `packaging/uninstall.ps1` implement the Windows lifecycle; `packaging/install.sh` and `packaging/uninstall.sh` implement the macOS lifecycle and create a branded app launcher under `~/Applications`.
 - Auto-update launchers check at most once per 24 hours, accept stable `vX.Y.Z` tags only, require exact versioned ZIP/checksum assets, and invoke installers with launch suppression so the original launcher performs one final `spicetify auto`. Test-only source overrides require `SPOTIFY_FURIGANA_TEST_MODE=1` and are never used by installed shortcuts.
-- Release builds pin every GitHub Action to an immutable commit and publish a GitHub build-provenance attestation for the ZIP. Dependabot groups weekly npm and Actions maintenance updates, while the scheduled compatibility canary verifies that the canonical Release endpoint still resolves to this repository before running the fixture suite.
+- Release builds pin every GitHub Action to an immutable commit and publish GitHub build-provenance attestations for every release artifact. Dependabot groups weekly npm and Actions maintenance updates, while the scheduled compatibility canary verifies that the canonical Release endpoint still resolves to this repository before running the fixture suite.
 
 ## Install a source build
 

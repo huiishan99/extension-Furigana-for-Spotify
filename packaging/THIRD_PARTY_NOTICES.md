@@ -14,5 +14,6 @@ Furigana for Spotify bundles code and dictionary data from the following package
 | `@babel/runtime` | 7.29.7 | MIT |
 | `path-browserify` | 1.0.1 | MIT |
 | `wanakana` | 5.3.1 | MIT |
+| Inno Setup Chinese Simplified Translation | `1ff90acc` | MIT |
 
-The complete license and notice texts distributed with these packages are included in `THIRD_PARTY_LICENSES/` inside the release archive. The `kuromoji` notice also documents the dictionary data included in the package.
+The complete license and notice texts distributed with these packages are included in `THIRD_PARTY_LICENSES/` inside the release archive. The `kuromoji` notice also documents the dictionary data included in the package. The installer translation is vendored from [kira-96/Inno-Setup-Chinese-Simplified-Translation](https://github.com/kira-96/Inno-Setup-Chinese-Simplified-Translation) at commit `1ff90acc4ed4aee82b1cda43253243deee3daed4`.

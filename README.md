@@ -92,17 +92,19 @@ See the [compatibility matrix](./docs/COMPATIBILITY.md) for more version informa
   <a href="https://github.com/huiishan99/spotify-furigana/releases/latest"><img alt="Download the latest release" src="https://img.shields.io/badge/Download-latest%20release-00A77D?style=for-the-badge&amp;logo=github" /></a>
 </p>
 
-Download `spotify-furigana-vX.Y.Z.zip` from the [latest release](https://github.com/huiishan99/spotify-furigana/releases/latest), extract it completely, and run the installer for your platform. It backs up an existing installation and configures the app for you.
+Download the installer for your platform from the [latest release](https://github.com/huiishan99/spotify-furigana/releases/latest). It backs up an existing installation and configures the app for you.
 
 ### Windows
 
-Open PowerShell in the extracted folder and run:
+Download `Furigana-for-Spotify-Setup-vX.Y.Z.exe` and follow the installation wizard. You can choose whether to create a desktop shortcut, enable verified automatic updates, and launch the app when installation finishes. A Start menu entry and an entry under **Settings → Apps → Installed apps** are always created; the desktop shortcut is selected by default so the launcher is easy to find immediately.
+
+For a portable or command-line installation, download and completely extract `spotify-furigana-vX.Y.Z.zip`, then run:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\install.ps1
 ```
 
-The installer detects your single Spotify installation, backs up an existing Furigana installation, installs and enables the app, applies the Spicetify configuration, and creates a **Furigana for Spotify** launcher in the Start menu. The launcher uses the project's original **ふ** icon so it is easy to distinguish from Spotify's regular shortcut.
+Both installers detect your single Spotify installation, back up an existing Furigana installation, install and enable the app, and apply the Spicetify configuration. The native **Furigana for Spotify** launcher uses the project's original **ふ** icon so it is easy to find on the desktop or in its Start menu folder and distinguish from Spotify's regular shortcut.
 
 After installation, open **Furigana for Spotify** from the Start menu. This launcher checks for an official Furigana release at most once every 24 hours, then checks and reapplies Spicetify before opening Spotify. The extension therefore receives future Furigana features automatically, survives normal restarts, and can recover after supported Spotify updates. Play a Japanese song with lyrics and open the lyrics view; the local dictionary may take a moment to load on the first conversion.
 
@@ -171,6 +173,8 @@ Online accurate readings are **off by default**. When enabled, the extension sen
 The extension does not send Spotify credentials, cookies, account data, or the lyrics rendered by Spotify. “Synchronized” means timestamp-paired provider lyrics and romanization; the extension does not listen to or transcribe audio. Successful matches are cached locally for up to 30 days; unavailable matches are remembered for 6 hours to avoid repeated requests, with at most 30 tracks retained. The settings page can clear this cache at any time. Provider availability and song coverage are not guaranteed, so local reading rules and the dictionary remain the automatic fallback.
 
 ## Uninstall
+
+On Windows, remove **Furigana for Spotify** from **Settings → Apps → Installed apps**. ZIP installations can instead run:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\uninstall.ps1

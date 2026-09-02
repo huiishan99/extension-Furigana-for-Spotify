@@ -250,6 +250,7 @@ describe("release auto-updaters", () => {
     expect(buildScript).toContain('resolve(outputRoot, "launcher.sh")');
     expect(buildScript).toContain('resolve(outputRoot, "version.txt")');
     expect(packageScript).toContain('(Join-Path $builtApp "launcher.ps1")');
+    expect(packageScript).toContain("$nativeLauncherPath");
     expect(packageScript).toContain('(Join-Path $builtApp "overlay.ps1")');
     expect(packageScript).toContain('(Join-Path $builtApp "overlay-core.ps1")');
     expect(packageScript).toContain('(Join-Path $builtApp "launcher.sh")');

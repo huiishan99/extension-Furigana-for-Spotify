@@ -92,17 +92,19 @@ macOSインストーラーと本番ビルドはmacOS CIで自動検証してい�
   <a href="https://github.com/huiishan99/spotify-furigana/releases/latest"><img alt="最新リリースをダウンロード" src="https://img.shields.io/badge/Download-最新リリース-00A77D?style=for-the-badge&amp;logo=github" /></a>
 </p>
 
-[最新のRelease](https://github.com/huiishan99/spotify-furigana/releases/latest)から `spotify-furigana-vX.Y.Z.zip` をダウンロードし、完全に展開してから、お使いのOSのインストーラーを実行します。既存版のバックアップとアプリ設定はインストーラーが行います。
+[最新のRelease](https://github.com/huiishan99/spotify-furigana/releases/latest)から、お使いのOS用インストーラーをダウンロードします。既存版のバックアップとアプリ設定はインストーラーが行います。
 
 ### Windows
 
-展開したフォルダーでPowerShellを開き、次を実行します。
+`Furigana-for-Spotify-Setup-vX.Y.Z.exe` をダウンロードし、セットアップウィザードに従ってください。デスクトップショートカット、検証済み自動更新、インストール後の起動を選択できます。スタートメニュー項目と **設定 → アプリ → インストールされているアプリ** の登録は常に作成されます。デスクトップショートカットは既定で選択されるため、インストール直後から簡単に見つけられます。
+
+ポータブルまたはコマンドラインでインストールする場合は、`spotify-furigana-vX.Y.Z.zip` を完全に展開してから次を実行します。
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\install.ps1
 ```
 
-インストーラーは一つだけインストールされたSpotifyを検出し、既存のFurigana版をバックアップしてアプリを有効化し、Spicetify設定を適用したうえで、スタートメニューに **Furigana for Spotify** ランチャーを作成します。このランチャーにはプロジェクト独自の **「ふ」アイコン**を使用し、通常のSpotifyショートカットと見分けやすくしています。
+どちらのインストール方法でも、一つだけインストールされたSpotifyを検出し、既存のFurigana版をバックアップしてアプリを有効化し、Spicetify設定を適用します。ネイティブの **Furigana for Spotify** ランチャーはデスクトップまたはスタートメニューフォルダーから開け、プロジェクト独自の **「ふ」アイコン**で通常のSpotifyショートカットと見分けられます。
 
 インストール後は、スタートメニューから **Furigana for Spotify** を開いてください。このランチャーは24時間に最大1回、公式のFurigana Releaseを確認し、Spotifyを開く前にSpicetifyを確認して再適用します。今後のFurigana機能が自動更新され、通常の再起動後も拡張機能が維持され、対応済みのSpotify更新後も自動復旧できます。歌詞のある日本語の曲を再生して歌詞画面を開いてください。初回変換時はローカル辞書の読み込みに少し時間がかかります。
 
@@ -171,6 +173,8 @@ Windowsのフローティングウィンドウは、Spotifyデスクトップ版
 Spotifyの認証情報、Cookie、アカウント情報、Spotify画面に表示された歌詞は送信しません。ここでの「同期」は外部歌詞とローマ字のタイムスタンプ対応を意味し、音声を聴き取ったり文字起こししたりする機能ではありません。成功した結果は最大30日、見つからなかった結果は再リクエストを避けるため6時間、最大30曲までローカルにキャッシュします。設定画面からいつでも消去できます。外部サービスの稼働や曲の収録は保証されず、利用できない場合はローカル読み規則と辞書へ自動的に戻ります。
 
 ## アンインストール
+
+Windowsでは **設定 → アプリ → インストールされているアプリ** から **Furigana for Spotify** を削除できます。ZIP版は次のコマンドでもアンインストールできます。
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\uninstall.ps1

@@ -1,7 +1,8 @@
 [CmdletBinding()]
 param(
   [switch]$NoLaunch,
-  [switch]$DisableAutoUpdate
+  [switch]$DisableAutoUpdate,
+  [switch]$SkipShortcut
 )
 
 Set-StrictMode -Version Latest
@@ -53,9 +54,7 @@ function Invoke-Spicetify {
 function New-FuriganaShortcut {
   param(
     [Parameter(Mandatory = $true)][string]$Path,
-    [Parameter(Mandatory = $true)][string]$PowerShellExecutable,
-    [Parameter(Mandatory = $true)][string]$LauncherScript,
-    [Parameter(Mandatory = $true)][string]$IconPath,
+    [Parameter(Mandatory = $true)][string]$LauncherExecutable,
     [Parameter(Mandatory = $true)][string]$WorkingDirectory
   )
 
@@ -67,13 +66,10 @@ function New-FuriganaShortcut {
   $shortcut = $null
   try {
     $shortcut = $shell.CreateShortcut($Path)
-    if ($LauncherScript.Contains('"')) {
-      throw "The launcher path contains an unsupported quote character."
-    }
-    $shortcut.TargetPath = $PowerShellExecutable
-    $shortcut.Arguments = "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"${LauncherScript}`""
+    $shortcut.TargetPath = $LauncherExecutable
+    $shortcut.Arguments = ""
     $shortcut.WorkingDirectory = $WorkingDirectory
-    $shortcut.IconLocation = "${IconPath},0"
+    $shortcut.IconLocation = "${LauncherExecutable},0"
     $shortcut.Description = "Update, repair, and launch Furigana for Spotify"
     $shortcut.WindowStyle = 7
     $shortcut.Save()
@@ -85,11 +81,48 @@ function New-FuriganaShortcut {
   }
 }
 
+function Sync-RegisteredInstaller {
+  param(
+    [Parameter(Mandatory = $true)][string]$Version,
+    [Parameter(Mandatory = $true)][string]$InstallerSourceRoot
+  )
+
+  $registeredInstallRoot = [System.IO.Path]::GetFullPath((Join-Path $env:LOCALAPPDATA "Programs\Furigana for Spotify"))
+  $uninstallRoot = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall"
+  if (-not (Test-Path -LiteralPath $uninstallRoot)) {
+    return
+  }
+
+  foreach ($uninstallKey in Get-ChildItem -LiteralPath $uninstallRoot -ErrorAction SilentlyContinue) {
+    $entry = Get-ItemProperty -LiteralPath $uninstallKey.PSPath -ErrorAction SilentlyContinue
+    if (-not $entry -or $entry.DisplayName -notmatch '^Furigana for Spotify(?: \d+\.\d+\.\d+)?$' -or -not $entry.InstallLocation) {
+      continue
+    }
+
+    $entryInstallRoot = [System.IO.Path]::GetFullPath([string]$entry.InstallLocation).TrimEnd('\')
+    if (-not $entryInstallRoot.Equals($registeredInstallRoot.TrimEnd('\'), [System.StringComparison]::OrdinalIgnoreCase)) {
+      continue
+    }
+
+    Set-ItemProperty -LiteralPath $uninstallKey.PSPath -Name "DisplayVersion" -Value $Version
+    foreach ($lifecycleScript in @("install.ps1", "uninstall.ps1")) {
+      $sourceScript = Join-Path $InstallerSourceRoot $lifecycleScript
+      $registeredScript = Join-Path $registeredInstallRoot $lifecycleScript
+      if ((Test-Path -LiteralPath $sourceScript -PathType Leaf) -and
+          -not ([System.IO.Path]::GetFullPath($sourceScript).Equals([System.IO.Path]::GetFullPath($registeredScript), [System.StringComparison]::OrdinalIgnoreCase))) {
+        Copy-Item -LiteralPath $sourceScript -Destination $registeredScript -Force
+      }
+    }
+    return
+  }
+}
+
 $appName = "spotify-furigana"
 $sourceApp = Join-Path $PSScriptRoot $appName
 $sourceManifest = Join-Path $sourceApp "manifest.json"
 $sourceLauncherIcon = Join-Path $sourceApp "launcher.ico"
 $sourceLauncherScript = Join-Path $sourceApp "launcher.ps1"
+$sourceLauncherExecutable = Join-Path $sourceApp "Furigana for Spotify.exe"
 $sourceOverlayScript = Join-Path $sourceApp "overlay.ps1"
 $sourceVersionFile = Join-Path $sourceApp "version.txt"
 if (-not (Test-Path -LiteralPath $sourceManifest)) {
@@ -101,11 +134,18 @@ if (-not (Test-Path -LiteralPath $sourceLauncherIcon -PathType Leaf)) {
 if (-not (Test-Path -LiteralPath $sourceLauncherScript -PathType Leaf)) {
   throw "The release package is incomplete: ${sourceLauncherScript} is missing."
 }
+if (-not (Test-Path -LiteralPath $sourceLauncherExecutable -PathType Leaf)) {
+  throw "The release package is incomplete: ${sourceLauncherExecutable} is missing."
+}
 if (-not (Test-Path -LiteralPath $sourceOverlayScript -PathType Leaf)) {
   throw "The release package is incomplete: ${sourceOverlayScript} is missing."
 }
 if (-not (Test-Path -LiteralPath $sourceVersionFile -PathType Leaf)) {
   throw "The release package is incomplete: ${sourceVersionFile} is missing."
+}
+$sourceVersion = (Get-Content -Raw -LiteralPath $sourceVersionFile).Trim()
+if ($sourceVersion -notmatch '^\d+\.\d+\.\d+$') {
+  throw "The release package contains an invalid version: ${sourceVersion}"
 }
 
 $storeSpotify = Get-AppxPackage -Name "SpotifyAB.SpotifyMusic" -ErrorAction SilentlyContinue | Select-Object -First 1
@@ -159,11 +199,11 @@ if (Test-Path -LiteralPath $targetApp) {
   }
   Move-Item -LiteralPath $targetApp -Destination $backupPath
 }
-if (Test-Path -LiteralPath $shortcutPath) {
+if (-not $SkipShortcut -and (Test-Path -LiteralPath $shortcutPath)) {
   $shortcutBackupPath = "${shortcutPath}.backup-${timestamp}"
   Move-Item -LiteralPath $shortcutPath -Destination $shortcutBackupPath
 }
-if (Test-Path -LiteralPath $legacyShortcutPath) {
+if (-not $SkipShortcut -and (Test-Path -LiteralPath $legacyShortcutPath)) {
   $legacyShortcutBackupPath = "${legacyShortcutPath}.backup-${timestamp}"
   Move-Item -LiteralPath $legacyShortcutPath -Destination $legacyShortcutBackupPath
 }
@@ -199,16 +239,22 @@ try {
   }
   $installedLauncherIcon = Join-Path $targetApp "launcher.ico"
   $installedLauncherScript = Join-Path $targetApp "launcher.ps1"
+  $installedLauncherExecutable = Join-Path $targetApp "Furigana for Spotify.exe"
   $installedOverlayScript = Join-Path $targetApp "overlay.ps1"
   if (-not (Test-Path -LiteralPath $installedOverlayScript -PathType Leaf)) {
     throw "The installed desktop overlay is missing: ${installedOverlayScript}"
   }
-  $powerShellExecutable = Join-Path $env:SystemRoot "System32\WindowsPowerShell\v1.0\powershell.exe"
-  if (-not (Test-Path -LiteralPath $powerShellExecutable -PathType Leaf)) {
-    throw "Windows PowerShell was not found at ${powerShellExecutable}."
+  if (-not (Test-Path -LiteralPath $installedLauncherExecutable -PathType Leaf)) {
+    throw "The installed native launcher is missing: ${installedLauncherExecutable}"
   }
-  New-FuriganaShortcut -Path $shortcutPath -PowerShellExecutable $powerShellExecutable -LauncherScript $installedLauncherScript -IconPath $installedLauncherIcon -WorkingDirectory $launcherStateRoot
+  if (-not $SkipShortcut) {
+    New-FuriganaShortcut -Path $shortcutPath -LauncherExecutable $installedLauncherExecutable -WorkingDirectory $launcherStateRoot
+  }
   if (-not $NoLaunch) {
+    $powerShellExecutable = Join-Path $env:SystemRoot "System32\WindowsPowerShell\v1.0\powershell.exe"
+    if (-not (Test-Path -LiteralPath $powerShellExecutable -PathType Leaf)) {
+      throw "Windows PowerShell was not found at ${powerShellExecutable}."
+    }
     & $powerShellExecutable -NoProfile -ExecutionPolicy Bypass -File $installedLauncherScript -SkipUpdateCheck
     if ($LASTEXITCODE -ne 0) {
       throw "The Furigana launcher failed with exit code ${LASTEXITCODE}."
@@ -233,6 +279,8 @@ try {
   throw
 }
 
+Sync-RegisteredInstaller -Version $sourceVersion -InstallerSourceRoot $PSScriptRoot
+
 Write-Host "Furigana for Spotify was installed to ${targetApp}."
 if ($backupPath) {
   Write-Host "The previous installation was preserved at ${backupPath}."
@@ -243,7 +291,11 @@ if ($shortcutBackupPath) {
 if ($legacyShortcutBackupPath) {
   Write-Host "The legacy launcher shortcut was preserved at ${legacyShortcutBackupPath}."
 }
-Write-Host "A self-repairing launcher was created at ${shortcutPath}."
+if ($SkipShortcut) {
+  Write-Host "The graphical installer manages the Start menu and optional desktop shortcuts."
+} else {
+  Write-Host "A discoverable self-repairing launcher was created at ${shortcutPath}."
+}
 Write-Host "Configured Spotify installation: ${spotifyInstallType}."
 if ($DisableAutoUpdate) {
   Write-Host "Automatic Furigana release updates are disabled for this installation."
