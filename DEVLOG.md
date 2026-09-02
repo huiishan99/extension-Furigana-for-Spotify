@@ -1,5 +1,10 @@
 # Devlog
 
+## 2026-09-02 — v0.6.2 reliability release
+
+- 将兼容性 fixture、Windows 悬浮层核心测试、TypeScript 设置页、覆盖率门禁、依赖维护与构建来源证明整理为 `v0.6.2`；发布前再次执行完整检查与安装包校验。
+- GitHub 仓库 canonical 地址恢复为 `huiishan99/spotify-furigana`，使已安装版本继续通过原有安全 URL 校验发现自动更新。
+
 ## 2026-09-01 — Reliability and maintenance hardening
 
 - GitHub 仓库恢复为自动更新器原本锁定的 canonical 名称 `huiishan99/spotify-furigana`；已发布启动器的严格 Release URL 校验重新通过，Windows 老版本无需修改本地脚本即可继续发现更新。

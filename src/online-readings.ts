@@ -270,7 +270,7 @@ async function fetchVerifiedArtistAliases(artist: string, request: JsonRequest):
 
   const url = `${MUSICBRAINZ_ARTIST_ENDPOINT}?query=${encodeURIComponent(artist)}&fmt=json&limit=5`;
   const response = await request(url, {
-    "User-Agent": "FuriganaForSpotify/0.6.1 (https://github.com/huiishan99/spotify-furigana)",
+    "User-Agent": "FuriganaForSpotify/0.6.2 (https://github.com/huiishan99/spotify-furigana)",
   });
   const aliases = getVerifiedArtistAliases(response, artist);
   if (aliases.length > 0) {
