@@ -31,3 +31,10 @@ jobs:
 
       - name: Compile, test, and build
         run: npm run check
+
+      - name: Build and self-test universal macOS overlay
+        if: runner.os == 'macOS'
+        run: |
+          npm run build:macos-overlay
+          npm run build
+          test -x dist/spotify-furigana/FuriganaForSpotifyOverlay

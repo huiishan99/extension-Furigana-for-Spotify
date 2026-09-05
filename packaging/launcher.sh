@@ -204,4 +204,14 @@ fi
 
 cleanup
 trap - EXIT HUP INT TERM
+
+overlay_executable="$launcher_contents/Helpers/Furigana Desktop Lyrics.app/Contents/MacOS/FuriganaForSpotifyOverlay"
+if [ "${SPOTIFY_FURIGANA_TEST_MODE:-0}" != "1" ] && [ "${SPOTIFY_FURIGANA_DISABLE_OVERLAY:-0}" != "1" ]; then
+  if [ -x "$overlay_executable" ]; then
+    "$overlay_executable" >/dev/null 2>&1 &
+  else
+    log_update "Desktop overlay was not started because the macOS overlay executable is missing."
+  fi
+fi
+
 exec "$spicetify_executable" auto

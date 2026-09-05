@@ -135,6 +135,7 @@ foreach ($requiredPath in @(
   (Join-Path $builtApp "overlay.ps1"),
   (Join-Path $builtApp "overlay-core.ps1"),
   (Join-Path $builtApp "launcher.sh"),
+  (Join-Path $builtApp "FuriganaForSpotifyOverlay"),
   (Join-Path $builtApp "version.txt"),
   (Join-Path $packagingRoot "install.ps1"),
   (Join-Path $packagingRoot "uninstall.ps1"),

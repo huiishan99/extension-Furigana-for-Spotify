@@ -54,18 +54,24 @@ create_launcher() {
   launcher_root=$1
   installed_icon=$2
   installed_launcher=$3
-  installed_version_file=$4
-  disable_auto_update=$5
-  launcher_version=$6
+  installed_overlay=$4
+  installed_version_file=$5
+  disable_auto_update=$6
+  launcher_version=$7
   contents_root="$launcher_root/Contents"
   executable_root="$contents_root/MacOS"
   resources_root="$contents_root/Resources"
+  overlay_contents_root="$contents_root/Helpers/Furigana Desktop Lyrics.app/Contents"
+  overlay_executable_root="$overlay_contents_root/MacOS"
   launcher_executable="$executable_root/spotify-furigana"
 
-  mkdir -p "$executable_root" "$resources_root"
+  mkdir -p "$executable_root" "$resources_root" "$overlay_executable_root"
 
   cp "$installed_launcher" "$launcher_executable"
   chmod 755 "$launcher_executable"
+  cp "$installed_overlay" "$overlay_executable_root/FuriganaForSpotifyOverlay"
+  chmod 755 "$overlay_executable_root/FuriganaForSpotifyOverlay"
+  /usr/bin/xattr -d com.apple.quarantine "$overlay_executable_root/FuriganaForSpotifyOverlay" 2>/dev/null || true
   cp "$installed_version_file" "$resources_root/version.txt"
   if [ "$disable_auto_update" = "1" ]; then
     : > "$resources_root/auto-update.disabled"
@@ -96,6 +102,39 @@ create_launcher() {
   <string>$launcher_version</string>
   <key>LSMinimumSystemVersion</key>
   <string>12.0</string>
+  <key>LSUIElement</key>
+  <true/>
+  <key>NSHighResolutionCapable</key>
+  <true/>
+</dict>
+</plist>
+PLIST
+
+  cat > "$overlay_contents_root/Info.plist" <<PLIST
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>CFBundleDisplayName</key>
+  <string>Furigana Desktop Lyrics</string>
+  <key>CFBundleExecutable</key>
+  <string>FuriganaForSpotifyOverlay</string>
+  <key>CFBundleIdentifier</key>
+  <string>com.github.huiishan99.spotify-furigana.overlay</string>
+  <key>CFBundleInfoDictionaryVersion</key>
+  <string>6.0</string>
+  <key>CFBundleName</key>
+  <string>Furigana Desktop Lyrics</string>
+  <key>CFBundlePackageType</key>
+  <string>APPL</string>
+  <key>CFBundleShortVersionString</key>
+  <string>$launcher_version</string>
+  <key>CFBundleVersion</key>
+  <string>$launcher_version</string>
+  <key>LSMinimumSystemVersion</key>
+  <string>12.0</string>
+  <key>LSUIElement</key>
+  <true/>
   <key>NSHighResolutionCapable</key>
   <true/>
 </dict>
@@ -117,11 +156,13 @@ source_app="$script_root/$app_name"
 source_manifest="$source_app/manifest.json"
 source_icon="$source_app/launcher.icns"
 source_launcher="$source_app/launcher.sh"
+source_overlay="$source_app/FuriganaForSpotifyOverlay"
 source_version_file="$source_app/version.txt"
 
 [ -f "$source_manifest" ] || fail "The release package is incomplete: $source_manifest is missing."
 [ -f "$source_icon" ] || fail "The release package is incomplete: $source_icon is missing."
 [ -f "$source_launcher" ] || fail "The release package is incomplete: $source_launcher is missing."
+[ -f "$source_overlay" ] || fail "The release package is incomplete: $source_overlay is missing."
 [ -f "$source_version_file" ] || fail "The release package is incomplete: $source_version_file is missing."
 launcher_version=$(tr -d '[:space:]' < "$source_version_file")
 printf '%s\n' "$launcher_version" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$' || fail "The release package has invalid version metadata."
@@ -215,6 +256,7 @@ create_launcher \
   "$launcher_app" \
   "$target_app/launcher.icns" \
   "$target_app/launcher.sh" \
+  "$target_app/FuriganaForSpotifyOverlay" \
   "$target_app/version.txt" \
   "$disable_auto_update" \
   "$launcher_version"
@@ -236,4 +278,4 @@ if [ "$disable_auto_update" = "1" ]; then
 else
   printf 'The launcher checks the official GitHub Release once every 24 hours and installs checksum-verified updates automatically.\n'
 fi
-printf 'Open Furigana for Spotify from Applications. It also runs spicetify auto so supported Spotify updates are reapplied before launch.\n'
+printf 'Open Furigana for Spotify from Applications. It starts the native desktop-lyrics companion and runs spicetify auto so supported Spotify updates are reapplied before launch.\n'

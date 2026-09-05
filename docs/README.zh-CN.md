@@ -11,7 +11,7 @@
 <p align="center">
   <strong>读懂汉字，跟上歌词，不错过喜欢的那一句。</strong>
   <br />
-  直接在 Spotify 桌面歌词中显示振假名；Windows 还支持透明双行桌面歌词。
+  直接在 Spotify 桌面歌词中显示振假名；Windows 和 macOS 均支持透明双行桌面歌词。
   <br />
   默认本地处理 · 自动更新 · 无需 Spotify 凭据
 </p>
@@ -21,7 +21,7 @@
   <a href="https://github.com/huiishan99/spotify-furigana/releases/latest"><img alt="最新版本" src="https://img.shields.io/github/v/release/huiishan99/spotify-furigana?display_name=tag&amp;label=release&amp;color=00A77D" /></a>
   <a href="https://github.com/huiishan99/spotify-furigana/stargazers"><img alt="GitHub Stars" src="https://img.shields.io/github/stars/huiishan99/spotify-furigana?style=flat&amp;logo=github&amp;color=00A77D" /></a>
   <img alt="Windows and macOS" src="https://img.shields.io/badge/Desktop-Windows%20%7C%20macOS-4F46E5" />
-  <img alt="Spotify Desktop 1.2.97 tested" src="https://img.shields.io/badge/Spotify%20Desktop-1.2.97%20tested-16A34A?logo=spotify&amp;logoColor=1ED760&amp;labelColor=191414" />
+  <img alt="Spotify Desktop 1.2.98 tested" src="https://img.shields.io/badge/Spotify%20Desktop-1.2.98%20tested-16A34A?logo=spotify&amp;logoColor=1ED760&amp;labelColor=191414" />
   <img alt="Spicetify 2.44 tested" src="https://img.shields.io/badge/Spicetify-2.44%20tested-F97366" />
   <a href="../LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-4338CA" /></a>
 </p>
@@ -37,7 +37,7 @@
 > 如果它让你更轻松地跟上了哪怕一段副歌，欢迎[给项目一个 Star](https://github.com/huiishan99/spotify-furigana)。这会帮助更多日语学习者发现它。
 
 > [!NOTE]
-> **v0.6.0 新功能：**Windows 桌面歌词采用透明双行设计——当前句清晰突出，下一句提前以较小字号显示；换句时，下方预览会向上滑动并放大为当前句，不再直接闪现。
+> **v0.6.3 新功能：**macOS 新增原生透明桌面歌词窗口，支持当前句、下一句预览、Furigana、拖动、切换动画与跨应用置顶，行为与 Windows 版一致。
 
 ## 让日语歌词真正读得下去
 
@@ -59,7 +59,7 @@
 ## 专心听歌，剩下的交给它
 
 - **直接显示在 Spotify 里**：振假名跟随原生歌词，也兼容已知的全屏歌词布局。
-- **下一句永远提前一步**：Windows 透明悬浮窗可拖到任意位置并跨应用置顶；当前句清晰突出，下一句在下方提前准备，轮到它时自然向上滑动。
+- **下一句永远提前一步**：Windows 和 macOS 透明悬浮窗均可拖到任意位置并跨应用置顶；当前句清晰突出，下一句在下方提前准备，轮到它时自然向上滑动。
 - **默认本地、无需登录**：内置词典在电脑上完成读音转换，不需要 Spotify 凭据，也不会默认联系歌词服务。
 - **特殊唱法也有机会读对**：可选同步精准读音用于歌曲特有、少见或刻意变化的发音；无法可靠匹配时自动安全回退到本地读音。
 - **常用日语更可靠**：离线纠正 `一人` / `1人` → `ひとり`、`二人` / `2人` → `ふたり`，同时避免误改 `一人称`、`二人三脚` 等词。
@@ -74,15 +74,14 @@
 
 当前已实机验证：
 
-| 组件 | 验证版本 |
-| --- | --- |
-| Windows | Windows 11 Pro 10.0.26200 |
-| Spotify | Microsoft Store 版 1.2.97.270 |
-| Spicetify | 2.44.0 |
+| 平台 | 系统 | Spotify | Spicetify |
+| --- | --- | --- | --- |
+| Windows | Windows 11 Pro 10.0.26200 | Microsoft Store 版 1.2.97.270 | 2.44.0 |
+| macOS | macOS 26.5.1，Apple 芯片 | spotify.com 版 1.2.98.301 | 2.44.0 |
 
 其他版本可能也能工作，但尚未逐一验证。
 
-macOS 安装器和生产构建已纳入 macOS CI 自动检查，但目前还没有登记真实 Spotify 客户端的验证报告。因此 macOS 属于新增支持，尚不能表述为已完成实机验证。
+macOS 安装器、Universal 原生悬浮程序和生产构建均已纳入 macOS CI 自动检查。
 
 更多版本信息请查看[兼容性矩阵](./COMPATIBILITY.md)。
 
@@ -121,7 +120,7 @@ powershell -ExecutionPolicy Bypass -File .\install.ps1
 sh ./install.sh
 ```
 
-安装器支持位于 `/Applications` 或 `~/Applications` 的 Spotify，会检查偏好设置、备份旧版、配置并应用 Spicetify，再在 `~/Applications` 创建带项目 **「ふ」图标**的 **Furigana for Spotify.app**。以后请用这个入口启动，它会自动安装官方 Furigana Release，并在打开 Spotify 前运行 `spicetify auto`。
+安装器支持位于 `/Applications` 或 `~/Applications` 的 Spotify，会检查偏好设置、备份旧版、配置并应用 Spicetify，再在 `~/Applications` 创建带项目 **「ふ」图标**的 **Furigana for Spotify.app**。以后请用这个入口启动，它会先启动原生桌面歌词程序、自动安装官方 Furigana Release，并在打开 Spotify 前运行 `spicetify auto`。在侧边栏设置中打开 **当前句悬浮显示** 即可使用。
 
 ## 更新
 
@@ -158,13 +157,13 @@ macOS 使用 `SPOTIFY_FURIGANA_DISABLE_AUTO_UPDATE=1 sh ./install.sh`。以后�
 - 将注音字号调整为 30%–75%；
 - 将透明度调整为 40%–100%；
 - 增加最多 8 px 的上下间距；
-- 在 Windows 桌面悬浮窗中显示当前歌词及其 Furigana，在下方预览下一句，并分别调整两行字号；
+- 在 Windows 或 macOS 桌面悬浮窗中显示当前歌词及其 Furigana，在下方预览下一句，并分别调整两行字号；
 - 一键恢复默认显示。
 - 开启实验性的在线精准读音，并随时清除其本地缓存。
 
 设置会保存在本地并立即生效。
 
-Windows 悬浮窗使用 Spotify 桌面端原本就会读取的行级同步歌词。当前句与下一句只在本机使用，不会保存或上传。除非另外开启在线精准读音，否则不会联系额外的歌词服务。macOS 目前不提供桌面悬浮歌词。
+Windows 与 macOS 原生悬浮窗使用 Spotify 桌面端原本就会读取的行级同步歌词。当前句与下一句只在本机使用，不会保存或上传；通信限制在固定的本机回环端口，只保存悬浮窗的屏幕位置。除非另外开启在线精准读音，否则不会联系额外的歌词服务。
 
 ## 在线精准读音与隐私
 
@@ -202,7 +201,7 @@ sh ./uninstall.sh
 
 - 本地模式已处理常见的一人、二人人数读法，但仍可能读错人名、地名、双关及特殊唱法；在线精准读音能改善已覆盖歌曲，但无法覆盖所有曲目和歌词行。
 - Spotify 更新可能改变歌词 DOM；若插件突然失效，请在 issue 中附上 Spotify 与 Spicetify 版本。
-- 不支持 Web Player 与移动端。macOS 已有自动化安装/构建覆盖，但仍等待公开的实机验证报告。
+- 不支持 Web Player 与移动端。
 
 ## 参与贡献
 

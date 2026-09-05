@@ -1,3 +1,4 @@
+import { supportsDesktopOverlay } from "../src/floating-lyrics";
 import {
   DEFAULT_SETTINGS as defaultSettings,
   ENABLED_KEY,
@@ -28,7 +29,7 @@ import {
 export { normalizeUiLanguagePreference } from "../src/ui-language";
 
 const react = Spicetify.React;
-const desktopOverlaySupported = /^win/iu.test(navigator.platform ?? "");
+const desktopOverlaySupported = supportsDesktopOverlay(navigator.platform);
 
 export const settingKeys: Record<keyof FuriganaSettings, string> = {
   enabled: ENABLED_KEY,
@@ -64,10 +65,10 @@ export const translations = {
     turnOn: "Turn on",
     floatingTitle: "Floating current lyric",
     floatingDescription:
-      "Show the current line and a smaller next-line preview in a transparent Windows overlay. The preview slides upward when the lyric changes.",
+      "Show the current line and a smaller next-line preview in a transparent desktop overlay. The preview slides upward when the lyric changes.",
     floatingCurrentSize: "Current line size",
     floatingNextSize: "Next line size",
-    windowsOnly: "Windows only",
+    desktopOnly: "Windows and macOS only",
     onlineTitle: "Accurate online readings (experimental)",
     onlineDescription:
       "Use synchronized romanization for special sung pronunciations, with automatic fallback to local readings.",
@@ -122,10 +123,10 @@ export const translations = {
     turnOn: "开启",
     floatingTitle: "当前句悬浮显示",
     floatingDescription:
-      "在透明、可拖动的 Windows 桌面悬浮窗中显示当前句与较小的下一句；换句时，下方预览会自然向上滑动。",
+      "在透明、可拖动的桌面悬浮窗中显示当前句与较小的下一句；换句时，下方预览会自然向上滑动。",
     floatingCurrentSize: "当前句字号",
     floatingNextSize: "下一句字号",
-    windowsOnly: "仅支持 Windows",
+    desktopOnly: "仅支持 Windows 和 macOS",
     onlineTitle: "在线精准读音（实验性）",
     onlineDescription: "使用同步罗马音修正歌词中的特殊唱法；无结果时自动回退本地词典。",
     privacy:
@@ -179,10 +180,10 @@ export const translations = {
     turnOn: "オンにする",
     floatingTitle: "現在の歌詞をフローティング表示",
     floatingDescription:
-      "現在行と小さな次行プレビューを透明なWindowsオーバーレイに表示し、切り替え時は次行が自然に上へスライドします。",
+      "現在行と小さな次行プレビューを透明なデスクトップオーバーレイに表示し、切り替え時は次行が自然に上へスライドします。",
     floatingCurrentSize: "現在行のサイズ",
     floatingNextSize: "次行のサイズ",
-    windowsOnly: "Windowsのみ",
+    desktopOnly: "Windows・macOSのみ",
     onlineTitle: "オンライン高精度読み（実験的）",
     onlineDescription:
       "同期ローマ字で歌唱特有の読みを補正し、見つからない場合はローカル読みに戻します。",
@@ -653,7 +654,7 @@ function SpotifyFuriganaApp(): unknown {
             ? settings.floatingLyrics
               ? text.turnOff
               : text.turnOn
-            : text.windowsOnly,
+            : text.desktopOnly,
         ),
       ),
       react.createElement(

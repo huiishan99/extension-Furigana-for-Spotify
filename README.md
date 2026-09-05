@@ -11,7 +11,7 @@
 <p align="center">
   <strong>Read the kanji. Catch the lyric. Stay with the song.</strong>
   <br />
-  Furigana inside Spotify Desktop — plus a transparent two-line lyric overlay on Windows.
+  Furigana inside Spotify Desktop — plus a transparent two-line lyric overlay on Windows and macOS.
   <br />
   Local by default · Automatic updates · No Spotify credentials required
 </p>
@@ -21,7 +21,7 @@
   <a href="https://github.com/huiishan99/spotify-furigana/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/huiishan99/spotify-furigana?display_name=tag&amp;label=release&amp;color=00A77D" /></a>
   <a href="https://github.com/huiishan99/spotify-furigana/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/huiishan99/spotify-furigana?style=flat&amp;logo=github&amp;color=00A77D" /></a>
   <img alt="Windows and macOS" src="https://img.shields.io/badge/Desktop-Windows%20%7C%20macOS-4F46E5" />
-  <img alt="Spotify Desktop 1.2.97 tested" src="https://img.shields.io/badge/Spotify%20Desktop-1.2.97%20tested-16A34A?logo=spotify&amp;logoColor=1ED760&amp;labelColor=191414" />
+  <img alt="Spotify Desktop 1.2.98 tested" src="https://img.shields.io/badge/Spotify%20Desktop-1.2.98%20tested-16A34A?logo=spotify&amp;logoColor=1ED760&amp;labelColor=191414" />
   <img alt="Spicetify 2.44 tested" src="https://img.shields.io/badge/Spicetify-2.44%20tested-F97366" />
   <a href="./LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-4338CA" /></a>
 </p>
@@ -37,7 +37,7 @@
 > If one chorus feels easier to follow, consider [giving the project a star](https://github.com/huiishan99/spotify-furigana). It helps more Japanese learners find it.
 
 > [!NOTE]
-> **New in v0.6.0:** Windows desktop lyrics are transparent and show both the current line and a smaller preview below. When the lyric changes, that preview now rises and grows into the current line instead of flashing into place.
+> **New in v0.6.3:** macOS now has a native transparent desktop-lyrics window with the same current-line, next-line, furigana, drag, animation, and always-on-top behavior as Windows.
 
 ## Japanese lyrics, made readable
 
@@ -59,7 +59,7 @@ No separate player and no copying lyrics into another app. Open Spotify's lyrics
 ## Built to stay out of the way
 
 - **Read inside Spotify**: furigana follows the lyrics you already use, including known fullscreen layouts.
-- **Keep the next line in sight**: on Windows, a draggable transparent overlay stays above other apps, with the current line large and the next line ready underneath—then smoothly sliding upward when its turn comes.
+- **Keep the next line in sight**: on Windows and macOS, a draggable transparent overlay stays above other apps, with the current line large and the next line ready underneath—then smoothly sliding upward when its turn comes.
 - **Start private and offline**: the bundled local dictionary handles readings on your computer; no Spotify login or credentials are needed.
 - **Use the intended pronunciation when available**: optional synchronized readings improve song-specific, uncommon, and deliberately altered readings, with a safe local fallback.
 - **Handle everyday Japanese better**: common counters such as `一人` / `1人` → `ひとり` and `二人` / `2人` → `ふたり` are corrected locally without changing words such as `一人称` or `二人三脚`.
@@ -74,15 +74,14 @@ No separate player and no copying lyrics into another app. Open Spotify's lyrics
 
 Verified on real hardware with:
 
-| Component | Verified version |
-| --- | --- |
-| Windows | Windows 11 Pro 10.0.26200 |
-| Spotify | Microsoft Store build 1.2.97.270 |
-| Spicetify | 2.44.0 |
+| Platform | OS | Spotify | Spicetify |
+| --- | --- | --- | --- |
+| Windows | Windows 11 Pro 10.0.26200 | Microsoft Store 1.2.97.270 | 2.44.0 |
+| macOS | macOS 26.5.1, Apple silicon | spotify.com 1.2.98.301 | 2.44.0 |
 
 Other versions may work, but have not been individually verified.
 
-The macOS installer and production bundle are covered by automated checks on macOS runners. A real Spotify client compatibility report has not yet been recorded, so macOS support should be considered newly available rather than real-client verified.
+The macOS installer, universal native overlay, and production bundle are covered by automated checks on macOS runners.
 
 See the [compatibility matrix](./docs/COMPATIBILITY.md) for more version information.
 
@@ -121,7 +120,7 @@ Open Terminal in the extracted folder and run:
 sh ./install.sh
 ```
 
-The installer supports Spotify in `/Applications` or `~/Applications`, validates Spotify's preferences, backs up an existing Furigana installation, configures and applies Spicetify, and creates **Furigana for Spotify.app** in `~/Applications` with the project's **ふ** icon. Open this launcher for future starts so it can install official Furigana releases automatically and run `spicetify auto` before launching Spotify.
+The installer supports Spotify in `/Applications` or `~/Applications`, validates Spotify's preferences, backs up an existing Furigana installation, configures and applies Spicetify, and creates **Furigana for Spotify.app** in `~/Applications` with the project's **ふ** icon. Open this launcher for future starts so it can start the native desktop-lyrics companion, install official Furigana releases automatically, and run `spicetify auto` before launching Spotify. Enable **Floating current lyric** in the sidebar settings to use the overlay.
 
 ## Update
 
@@ -158,13 +157,13 @@ Open **Furigana for Spotify** from Spotify's sidebar. The settings page lets you
 - adjust reading size from 30% to 75%;
 - adjust opacity from 40% to 100%;
 - add up to 8 px of vertical spacing;
-- on Windows, show the current lyric plus a smaller next-line preview in a draggable, always-on-top desktop overlay, with independent size controls for both lines;
+- on Windows and macOS, show the current lyric plus a smaller next-line preview in a draggable, always-on-top desktop overlay, with independent size controls for both lines;
 - restore the display defaults with one click.
 - enable experimental online accurate readings and clear their local cache.
 
 Changes are saved locally and apply immediately.
 
-The Windows overlay uses the same line-synced lyrics that Spotify already provides to its desktop client. The current and next rendered lines stay on your device and are neither saved nor uploaded. It does not contact an additional lyrics service unless you separately enable accurate online readings. Desktop lyrics are not currently available on macOS.
+The native Windows and macOS overlays use the same line-synced lyrics that Spotify already provides to its desktop client. The current and next rendered lines stay on your device and are neither saved nor uploaded. Communication is restricted to a fixed loopback listener; only the overlay's screen position is saved. It does not contact an additional lyrics service unless you separately enable accurate online readings.
 
 ## Optional accurate readings and privacy
 
@@ -202,7 +201,7 @@ sh ./uninstall.sh
 
 - Local mode handles common one- and two-person counters, but can still misread names, place names, wordplay, and intentionally unusual pronunciations. Online accurate readings improve supported songs but cannot cover every track or line.
 - Spotify updates can change the lyrics DOM. If the extension stops working, include your Spotify and Spicetify versions in the issue.
-- Web Player and mobile are not supported. macOS has automated installer/build coverage but is awaiting a published real-client verification report.
+- Web Player and mobile are not supported.
 
 ## Contributing
 

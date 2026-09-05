@@ -8,6 +8,7 @@ Automated selector coverage now loads preserved DOM fixtures for the current des
 
 | Date | OS | Spotify Desktop | Spicetify | Lyrics layout | Result |
 | --- | --- | --- | --- | --- | --- |
+| 2026-09-05 | macOS 26.5.1 (Apple silicon) | spotify.com 1.2.98.301 | 2.44.0 | Spotify line timestamps + native AppKit overlay | Pass (v0.6.3 live current/next desktop lyrics with furigana) |
 | 2026-08-27 | Windows 11 Pro 10.0.26200 | Microsoft Store 1.2.97.270 | 2.44.0 | Spotify line timestamps + native WPF overlay | Pass (v0.6.0 cross-app always-on-top desktop lyric) |
 | 2026-08-27 | Windows 11 Pro 10.0.26200 | Microsoft Store 1.2.97.270 | 2.44.0 | `.lyrics-lyricsContent-text` | Pass (v0.5.1 source status + diagnostics + background lyric scan) |
 | 2026-08-23 | Windows 11 Pro 10.0.26200 | Microsoft Store 1.2.96.518 | 2.44.0 | `.lyrics-lyricsContent-text` | Pass (v0.5.0 updater no-update fallback + launch) |
@@ -25,9 +26,11 @@ The v0.5.1 check refreshed a mismatched Store-version backup without an interact
 
 The v0.6.0 check installed the packaged preview and launched it through the branded Windows entry. The extension sent the current line and safe text/reading segments to a native WPF window over the fixed IPv4 loopback listener; UI Automation exposed the live base text and readings while Spotify was on a non-lyrics error route, confirming that the overlay followed authenticated line timestamps rather than depending on visible lyric DOM. After Notepad became the foreground window, the overlay remained visible with `WS_EX_TOPMOST`. Its coordinate file survived a full stop/relaunch, all Spotify processes closing caused the companion process to exit after the intended grace period, and a normal relaunch without remote-debugging flags recreated the overlay with the current line. The debug port was confirmed closed afterward.
 
-Spicetify 2.44.0 officially lists Spotify compatibility through 1.2.93. The 1.2.96.518 and 1.2.97.270 rows record this project's direct test evidence and do not expand Spicetify's official compatibility claim.
+The v0.6.3 macOS check installed the universal native helper and launched it through **Furigana for Spotify.app**. The helper bound only to `127.0.0.1`, accepted the extension's origin-checked state protocol, and rendered the live `ガーデン` current and next lines with Core Text ruby annotations while Spotify was playing. The settings state persisted across restart, the companion exited after Spotify closed, and a final normal launch recreated both Spotify and the helper with no remote-debugging port left open.
 
-macOS installation, rollback, launcher, shell syntax, build, and selector contracts are covered by automated checks. No macOS real-client row has been recorded yet, so this page does not present macOS as real-client verified.
+Spicetify 2.44.0 officially lists Spotify compatibility through 1.2.93. The 1.2.96.518, 1.2.97.270, and 1.2.98.301 rows record this project's direct test evidence and do not expand Spicetify's official compatibility claim.
+
+macOS installation, rollback, launcher, shell syntax, universal native overlay build, protocol self-test, and selector contracts are covered by automated checks.
 
 ## Automated compatibility contracts
 
@@ -39,7 +42,7 @@ Every CI run checks the following known Spotify lyrics layouts:
 | Earlier standard lyrics | `[data-testid="lyrics-line"]` | Selector regression test |
 | Earlier fullscreen lyrics | `[data-testid="fullscreen-lyric"]` | Selector regression test |
 
-CI runs TypeScript checks, unit tests, and the production bundle on Windows, macOS, and Linux. These checks catch selector removal, settings regressions, local reading-engine failures, unsafe package changes, invalid macOS shell installers, and platform-specific build problems. Windows CI also exercises a local fake Release end to end: a valid newer ZIP is checksum-verified and installed before `spicetify auto`, while a mismatched checksum is rejected without blocking the installed version from launching. macOS CI validates the updater's POSIX shell syntax and the complete install/upgrade/launcher/uninstall lifecycle.
+CI runs TypeScript checks, unit tests, and the production bundle on Windows, macOS, and Linux. These checks catch selector removal, settings regressions, local reading-engine failures, unsafe package changes, invalid macOS shell installers, and platform-specific build problems. Windows CI also exercises a local fake Release end to end: a valid newer ZIP is checksum-verified and installed before `spicetify auto`, while a mismatched checksum is rejected without blocking the installed version from launching. macOS CI validates the updater's POSIX shell syntax, the complete install/upgrade/launcher/uninstall lifecycle, and a signed arm64/x86_64 overlay build with its protocol self-test.
 
 ## Report another working version
 

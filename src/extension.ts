@@ -16,6 +16,7 @@ import {
   parseSpotifyTimedLyrics,
   publishDesktopLyricPairProgressively,
   sendDesktopOverlayState,
+  supportsDesktopOverlay,
   type TimedLyricLine,
 } from "./floating-lyrics";
 import { PLAYBAR_FU_ICON } from "./icon";
@@ -190,7 +191,7 @@ async function main(): Promise<void> {
   };
   let diagnosticsTimer: number | undefined;
   let lastDiagnosticsSignature = "";
-  const desktopOverlaySupported = /^win/iu.test(navigator.platform);
+  const desktopOverlaySupported = supportsDesktopOverlay(navigator.platform);
   let lastFloatingLyricsSignature = "";
   let lastDesktopOverlayStateSignature = "";
   let lastDesktopOverlayState: DesktopOverlayState | undefined;

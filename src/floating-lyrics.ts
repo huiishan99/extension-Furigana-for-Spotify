@@ -3,6 +3,10 @@ import { DEFAULT_SETTINGS, SETTING_RANGES } from "./settings";
 
 export const DESKTOP_OVERLAY_URL = "http://127.0.0.1:43841/state";
 
+export function supportsDesktopOverlay(platform: string | null | undefined): boolean {
+  return /^(?:win|mac)/iu.test(platform ?? "");
+}
+
 export const CURRENT_LYRIC_SELECTORS = [
   ".lyrics-lyricsContent-active .lyrics-lyricsContent-text",
   '[data-testid="lyrics-line"][aria-current="true"]',

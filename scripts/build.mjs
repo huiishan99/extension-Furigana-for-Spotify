@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import { copyFile, cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -8,6 +9,12 @@ const outputRoot = resolve(projectRoot, "dist", "spotify-furigana");
 const expectedPrefix = `${resolve(projectRoot, "dist")}${sep}`;
 const packageJson = JSON.parse(await readFile(resolve(projectRoot, "package.json"), "utf8"));
 const version = String(packageJson.version);
+const macOSOverlayPath = resolve(
+  projectRoot,
+  "build",
+  "macos-overlay",
+  "FuriganaForSpotifyOverlay",
+);
 
 if (!/^\d+\.\d+\.\d+$/u.test(version)) {
   throw new Error(`Invalid release version: ${version}`);
@@ -51,7 +58,7 @@ await build({
   logLevel: "info",
 });
 
-await Promise.all([
+const assetCopies = [
   copyFile(resolve(projectRoot, "app", "manifest.json"), resolve(outputRoot, "manifest.json")),
   copyFile(resolve(projectRoot, "app", "style.css"), resolve(outputRoot, "style.css")),
   copyFile(resolve(projectRoot, "assets", "launcher.ico"), resolve(outputRoot, "launcher.ico")),
@@ -67,6 +74,12 @@ await Promise.all([
   cp(resolve(projectRoot, "node_modules", "kuromoji", "dict"), resolve(outputRoot, "dict"), {
     recursive: true,
   }),
-]);
+];
+
+if (existsSync(macOSOverlayPath)) {
+  assetCopies.push(copyFile(macOSOverlayPath, resolve(outputRoot, "FuriganaForSpotifyOverlay")));
+}
+
+await Promise.all(assetCopies);
 
 console.log(`Built Spicetify app at ${outputRoot}`);
