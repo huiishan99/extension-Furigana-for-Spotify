@@ -11,6 +11,7 @@ import {
   parseSpotifyTimedLyrics,
   publishDesktopLyricPairProgressively,
   sendDesktopOverlayState,
+  supportsDesktopOverlay,
 } from "../src/floating-lyrics";
 
 class FakeElement {
@@ -33,6 +34,13 @@ afterEach(() => {
 });
 
 describe("floating current lyric", () => {
+  it("supports the native overlay on Windows and macOS", () => {
+    expect(supportsDesktopOverlay("Win32")).toBe(true);
+    expect(supportsDesktopOverlay("MacIntel")).toBe(true);
+    expect(supportsDesktopOverlay("Linux x86_64")).toBe(false);
+    expect(supportsDesktopOverlay(undefined)).toBe(false);
+  });
+
   it("publishes the current lyric without waiting for its preview", async () => {
     let resolveNext!: (segments: { text: string }[]) => void;
     const nextSegments = new Promise<{ text: string }[]>((resolve) => {

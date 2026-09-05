@@ -11,7 +11,7 @@
 <p align="center">
   <strong>漢字を読んで、歌詞をつかんで、そのまま音楽の中へ。</strong>
   <br />
-  Spotifyデスクトップの歌詞にふりがなを追加。Windowsでは透明な2行デスクトップ歌詞も使えます。
+  Spotifyデスクトップの歌詞にふりがなを追加。WindowsとmacOSで透明な2行デスクトップ歌詞も使えます。
   <br />
   デフォルトはローカル処理 · 自動更新 · Spotify認証情報は不要
 </p>
@@ -21,7 +21,7 @@
   <a href="https://github.com/huiishan99/spotify-furigana/releases/latest"><img alt="最新リリース" src="https://img.shields.io/github/v/release/huiishan99/spotify-furigana?display_name=tag&amp;label=release&amp;color=00A77D" /></a>
   <a href="https://github.com/huiishan99/spotify-furigana/stargazers"><img alt="GitHub Stars" src="https://img.shields.io/github/stars/huiishan99/spotify-furigana?style=flat&amp;logo=github&amp;color=00A77D" /></a>
   <img alt="Windows and macOS" src="https://img.shields.io/badge/Desktop-Windows%20%7C%20macOS-4F46E5" />
-  <img alt="Spotify Desktop 1.2.97 tested" src="https://img.shields.io/badge/Spotify%20Desktop-1.2.97%20tested-16A34A?logo=spotify&amp;logoColor=1ED760&amp;labelColor=191414" />
+  <img alt="Spotify Desktop 1.2.98 tested" src="https://img.shields.io/badge/Spotify%20Desktop-1.2.98%20tested-16A34A?logo=spotify&amp;logoColor=1ED760&amp;labelColor=191414" />
   <img alt="Spicetify 2.44 tested" src="https://img.shields.io/badge/Spicetify-2.44%20tested-F97366" />
   <a href="../LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-4338CA" /></a>
 </p>
@@ -37,7 +37,7 @@
 > サビの一節でも追いやすくなったら、ぜひ[プロジェクトにStarを付けてください](https://github.com/huiishan99/spotify-furigana)。ほかの日本語学習者が見つけるきっかけになります。
 
 > [!NOTE]
-> **v0.6.0の新機能：**Windowsのデスクトップ歌詞は透明な2行表示です。次行を小さく先行表示し、切り替え時にはその行が上へスライドしながら現在行の大きさになり、突然表示される感覚を抑えます。
+> **v0.6.3の新機能：**macOSにネイティブの透明デスクトップ歌詞を追加しました。現在行、次行プレビュー、ふりがな、ドラッグ、切り替えアニメーション、常時前面表示に対応します。
 
 ## 日本語の歌詞を、もっと読みやすく
 
@@ -59,7 +59,7 @@
 ## 聴くことを邪魔しない設計
 
 - **Spotifyの中でそのまま読める**：いつもの歌詞にふりがなが付き、既知の全画面レイアウトにも対応します。
-- **次の一行を先に確認**：Windowsの透明オーバーレイは好きな場所へ移動でき、ほかのアプリより前面に表示。現在行を大きく、次行を小さく表示し、順番が来ると自然に上へスライドします。
+- **次の一行を先に確認**：WindowsとmacOSの透明オーバーレイは好きな場所へ移動でき、ほかのアプリより前面に表示。現在行を大きく、次行を小さく表示し、順番が来ると自然に上へスライドします。
 - **デフォルトはローカル、ログイン不要**：内蔵辞書が端末上で読みを変換し、Spotifyの認証情報も追加の歌詞サービスも必要ありません。
 - **曲ならではの読み方にも対応**：任意の同期高精度読みで、珍しい読みや意図的に変えた発音を改善。安全に照合できない場合はローカル読みに戻ります。
 - **日常的な表現をより確実に**：`一人` / `1人` → `ひとり`、`二人` / `2人` → `ふたり` をオフライン補正し、`一人称` や `二人三脚` などは誤って変更しません。
@@ -74,15 +74,14 @@
 
 実機で確認済みの構成：
 
-| コンポーネント | 確認済みバージョン |
-| --- | --- |
-| Windows | Windows 11 Pro 10.0.26200 |
-| Spotify | Microsoft Store版 1.2.97.270 |
-| Spicetify | 2.44.0 |
+| プラットフォーム | OS | Spotify | Spicetify |
+| --- | --- | --- | --- |
+| Windows | Windows 11 Pro 10.0.26200 | Microsoft Store版 1.2.97.270 | 2.44.0 |
+| macOS | macOS 26.5.1、Appleシリコン | spotify.com版 1.2.98.301 | 2.44.0 |
 
 ほかのバージョンでも動作する可能性はありますが、個別の検証はまだ行っていません。
 
-macOSインストーラーと本番ビルドはmacOS CIで自動検証していますが、実際のSpotifyクライアントでの確認報告はまだ登録されていません。そのため、macOSは新規対応であり、実機検証済みとはしていません。
+macOSインストーラー、Universalネイティブオーバーレイ、本番ビルドはmacOS CIで自動検証しています。
 
 詳しいバージョン情報は[互換性マトリクス](./COMPATIBILITY.md)を参照してください。
 
@@ -121,7 +120,7 @@ Windowsでは、このランチャーが任意のデスクトップ歌詞ウィ�
 sh ./install.sh
 ```
 
-インストーラーは `/Applications` または `~/Applications` のSpotifyに対応し、設定ファイルを確認して既存版をバックアップし、Spicetifyを設定・適用します。さらに、プロジェクト独自の **「ふ」アイコン**を使った **Furigana for Spotify.app** を `~/Applications` に作成します。今後はこのランチャーを使うと、公式Furigana Releaseが自動でインストールされ、Spotifyを開く前に `spicetify auto` が実行されます。
+インストーラーは `/Applications` または `~/Applications` のSpotifyに対応し、設定ファイルを確認して既存版をバックアップし、Spicetifyを設定・適用します。さらに、プロジェクト独自の **「ふ」アイコン**を使った **Furigana for Spotify.app** を `~/Applications` に作成します。今後はこのランチャーを使うと、ネイティブデスクトップ歌詞が起動し、公式Furigana Releaseが自動でインストールされ、Spotifyを開く前に `spicetify auto` が実行されます。サイドバー設定の **現在の歌詞をフローティング表示** をオンにすると利用できます。
 
 ## 更新
 
@@ -158,13 +157,13 @@ Spotifyのサイドバーから **Furigana for Spotify** を開くと、次の�
 - 読みのサイズを30%〜75%に調整
 - 透明度を40%〜100%に調整
 - 上下の間隔を最大8 px追加
-- Windowsデスクトップ上で現在の歌詞とふりがなを表示し、その下に次行をプレビューして、2行のサイズを個別に調整
+- WindowsまたはmacOSデスクトップ上で現在の歌詞とふりがなを表示し、その下に次行をプレビューして、2行のサイズを個別に調整
 - ワンクリックで表示設定を初期値に戻す
 - 実験的なオンライン高精度読みを有効化し、ローカルキャッシュを消去
 
 設定はローカルに保存され、すぐに反映されます。
 
-Windowsのフローティングウィンドウは、Spotifyデスクトップ版が元から取得する行同期歌詞を使用します。現在行と次行は端末内だけで使用し、保存やアップロードは行いません。オンライン高精度読みを別途有効にしない限り、追加の歌詞サービスには接続しません。macOSでは現在、デスクトップ歌詞を利用できません。
+WindowsとmacOSのネイティブフローティングウィンドウは、Spotifyデスクトップ版が元から取得する行同期歌詞を使用します。現在行と次行は端末内だけで使用し、保存やアップロードは行いません。通信は固定のループバックリスナーに限定され、画面上の位置だけを保存します。オンライン高精度読みを別途有効にしない限り、追加の歌詞サービスには接続しません。
 
 ## オンライン高精度読みとプライバシー
 
@@ -202,7 +201,7 @@ sh ./uninstall.sh
 
 - ローカルモードは一般的な一人・二人の人数読みを補正しますが、人名、地名、言葉遊び、特殊な読み方は誤る場合があります。オンライン高精度読みは対応曲を改善しますが、すべての曲や行を保証するものではありません。
 - Spotifyの更新によって歌詞DOMが変わる可能性があります。突然動作しなくなった場合は、SpotifyとSpicetifyのバージョンをissueに記載してください。
-- Web Playerとモバイル版には対応していません。macOSはインストール・ビルドの自動検証済みですが、公開できる実機検証報告を待っている段階です。
+- Web Playerとモバイル版には対応していません。
 
 ## コントリビューション
 

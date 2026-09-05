@@ -199,13 +199,17 @@ describe("Windows release installer", () => {
 describe("macOS release installer", () => {
   let installer = "";
   let launcher = "";
+  let overlay = "";
+  let overlayBuilder = "";
   let packager = "";
   let uninstaller = "";
 
   beforeAll(async () => {
-    [installer, launcher, uninstaller, packager] = await Promise.all([
+    [installer, launcher, overlay, overlayBuilder, uninstaller, packager] = await Promise.all([
       readFile(resolve(projectRoot, "packaging", "install.sh"), "utf8"),
       readFile(resolve(projectRoot, "packaging", "launcher.sh"), "utf8"),
+      readFile(resolve(projectRoot, "packaging", "macos-overlay", "main.swift"), "utf8"),
+      readFile(resolve(projectRoot, "scripts", "build-macos-overlay.sh"), "utf8"),
       readFile(resolve(projectRoot, "packaging", "uninstall.sh"), "utf8"),
       readFile(resolve(projectRoot, "scripts", "package.ps1"), "utf8"),
     ]);
@@ -246,9 +250,33 @@ describe("macOS release installer", () => {
     expect(installer).toContain("CFBundleIdentifier");
     expect(installer).toContain("launcher.icns");
     expect(installer).toContain('cp "$installed_launcher" "$launcher_executable"');
+    expect(installer).toContain(
+      'cp "$installed_overlay" "$overlay_executable_root/FuriganaForSpotifyOverlay"',
+    );
+    expect(installer).toContain("LSUIElement");
+    expect(installer.match(/<key>LSArchitecturePriority<\/key>/gu)).toHaveLength(2);
+    expect(installer.match(/<key>LSRequiresNativeExecution<\/key>/gu)).toHaveLength(2);
+    expect(installer).toContain("<string>arm64</string>\n    <string>x86_64</string>");
+    expect(installer).toContain("com.github.huiishan99.spotify-furigana.overlay");
     expect(launcher).toContain('exec "$spicetify_executable" auto');
+    expect(launcher).toContain('"$overlay_executable" >/dev/null 2>&1 &');
     expect(installer).toContain('source_icon="$source_app/launcher.icns"');
     expect(installer).toContain('source_launcher="$source_app/launcher.sh"');
+    expect(installer).toContain('source_overlay="$source_app/FuriganaForSpotifyOverlay"');
+  });
+
+  it("runs a native, loopback-only macOS desktop overlay", () => {
+    expect(overlay).toContain('inet_addr("127.0.0.1")');
+    expect(overlay).toContain('headers["origin"] == "https://xpui.app.spotify.com"');
+    expect(overlay).toContain("CTRubyAnnotationCreateWithAttributes");
+    expect(overlay).toContain("panel.level = .floating");
+    expect(overlay).toContain(".canJoinAllSpaces");
+    expect(overlay).toContain('application.bundleIdentifier == "com.spotify.client"');
+    expect(overlay).toContain('appendingPathComponent("overlay-position.json")');
+    expect(overlay).toContain('CABasicAnimation(keyPath: "transform.translation.y")');
+    expect(overlayBuilder).toContain('compile_architecture arm64 "$arm_file"');
+    expect(overlayBuilder).toContain("xcrun lipo -create");
+    expect(overlayBuilder).toContain('"$output_file" --self-test');
   });
 
   it("disables the custom app and preserves removed files on uninstall", () => {
@@ -263,6 +291,7 @@ describe("macOS release installer", () => {
   it("ships both macOS lifecycle scripts in the release archive", () => {
     expect(packager).toContain('(Join-Path $packagingRoot "install.sh")');
     expect(packager).toContain('(Join-Path $packagingRoot "uninstall.sh")');
+    expect(packager).toContain('(Join-Path $builtApp "FuriganaForSpotifyOverlay")');
   });
 
   it("completes an isolated install, upgrade, and uninstall lifecycle on macOS", async () => {
@@ -303,6 +332,7 @@ describe("macOS release installer", () => {
         resolve(sourceApp, "launcher.icns"),
       ),
       copyFile(resolve(projectRoot, "packaging", "launcher.sh"), resolve(sourceApp, "launcher.sh")),
+      writeFile(resolve(sourceApp, "FuriganaForSpotifyOverlay"), "#!/bin/sh\nexit 0\n"),
       writeFile(resolve(sourceApp, "manifest.json"), '{"name":"test"}\n'),
       writeFile(resolve(sourceApp, "version.txt"), "0.5.0\n"),
       writeFile(fakeSpotifyExecutable, "#!/bin/sh\nexit 0\n"),
@@ -335,6 +365,7 @@ describe("macOS release installer", () => {
       SPICETIFY_FAIL_FLAG: resolve(testRoot, "apply-failed"),
       SPICETIFY_TEST_LOG: commandLog,
       SPOTIFY_FURIGANA_SKIP_UPDATE: "1",
+      SPOTIFY_FURIGANA_DISABLE_OVERLAY: "1",
       SPOTIFY_FURIGANA_SPOTIFY_APP: fakeSpotify,
       XDG_CONFIG_HOME: configHome,
     };
@@ -350,10 +381,42 @@ describe("macOS release installer", () => {
       readFile(resolve(installedApp, "manifest.json")),
       readFile(resolve(launcherApp, "Contents", "Info.plist")),
       readFile(resolve(launcherApp, "Contents", "MacOS", "spotify-furigana")),
+      readFile(
+        resolve(
+          launcherApp,
+          "Contents",
+          "Helpers",
+          "Furigana Desktop Lyrics.app",
+          "Contents",
+          "Info.plist",
+        ),
+      ),
+      readFile(
+        resolve(
+          launcherApp,
+          "Contents",
+          "Helpers",
+          "Furigana Desktop Lyrics.app",
+          "Contents",
+          "MacOS",
+          "FuriganaForSpotifyOverlay",
+        ),
+      ),
       readFile(resolve(launcherApp, "Contents", "Resources", "launcher.icns")),
       readFile(resolve(launcherApp, "Contents", "Resources", "version.txt")),
     ]);
     execFileSync("/usr/bin/plutil", ["-lint", resolve(launcherApp, "Contents", "Info.plist")]);
+    execFileSync("/usr/bin/plutil", [
+      "-lint",
+      resolve(
+        launcherApp,
+        "Contents",
+        "Helpers",
+        "Furigana Desktop Lyrics.app",
+        "Contents",
+        "Info.plist",
+      ),
+    ]);
     execFileSync(resolve(launcherApp, "Contents", "MacOS", "spotify-furigana"), [], {
       env: environment,
     });
