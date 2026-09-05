@@ -100,7 +100,8 @@ describe("Windows release installer", () => {
     expect(launcher).toContain("[Environment]::CurrentDirectory = $resolvedStateRoot");
     expect(installer).toContain('$sourceLauncherIcon = Join-Path $sourceApp "launcher.ico"');
     expect(installer).toContain('$shortcut.IconLocation = "${LauncherIcon},0"');
-    expect(installer).toContain('"launcher-v${Version}.ico"');
+    expect(installer).toContain('"launcher-v${Version}-${launcherIconId}.ico"');
+    expect(installer).toContain("[System.Security.Cryptography.SHA256]::Create()");
     expect(installer).toContain("Set-FuriganaShortcutIcon");
     expect(installer).toContain('[Environment]::GetFolderPath("Desktop")');
     expect(installer).toContain('"Furigana for Spotify\\Furigana for Spotify.lnk"');
@@ -135,9 +136,11 @@ describe("Windows release installer", () => {
     expect(setup).toContain('Name: "{group}\\Furigana for Spotify"');
     expect(setup).toContain('Name: "{autodesktop}\\Furigana for Spotify"');
     expect(setup).toContain('Filename: "{app}\\Furigana for Spotify.exe"');
-    expect(setup).toContain('DestName: "launcher-v{#AppVersion}.ico"');
-    expect(setup).toContain('IconFilename: "{app}\\launcher-v{#AppVersion}.ico"');
-    expect(setup).toContain("UninstallDisplayIcon={app}\\launcher-v{#AppVersion}.ico");
+    expect(setup).toContain('DestName: "launcher-v{#AppVersion}-{#LauncherIconId}.ico"');
+    expect(setup).toContain('IconFilename: "{app}\\launcher-v{#AppVersion}-{#LauncherIconId}.ico"');
+    expect(setup).toContain(
+      "UninstallDisplayIcon={app}\\launcher-v{#AppVersion}-{#LauncherIconId}.ico",
+    );
     expect(setup).toContain('AppUserModelID: "FuriganaForSpotify.Launcher"');
     expect(setup).toContain("WizardSmallImageFile={#ProjectRoot}\\assets\\logo.png");
     expect(setup).toContain("UninstallDisplayName={#AppName}");
@@ -147,7 +150,9 @@ describe("Windows release installer", () => {
     expect(setup).toContain("-DisableAutoUpdate");
     expect(setup).toContain("[UninstallRun]");
     expect(packager).toContain("Resolve-InnoSetupCompiler");
+    expect(packager).toContain("function Get-Sha256Hex");
     expect(packager).toContain("Furigana-for-Spotify-Setup-v${version}.exe");
+    expect(packager).toContain('"/DLauncherIconId=${launcherIconId}"');
     expect(releaseWorkflow).toContain("release/*.exe");
   });
 

@@ -41,7 +41,7 @@ describe("desktop launcher icons", () => {
       .ensureAlpha()
       .raw()
       .toBuffer({ resolveWithObject: true });
-    for (const row of [2, 3, 28, 29]) {
+    for (const row of [0, 31]) {
       const opaquePixels = Array.from({ length: compact.info.width }, (_, column) => {
         return compact.data[(row * compact.info.width + column) * compact.info.channels + 3] ?? 0;
       }).filter((alpha) => alpha > 32);

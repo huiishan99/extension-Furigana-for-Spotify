@@ -26,7 +26,7 @@ const trimmed = await sharp(source)
 async function renderIcons(sizes) {
   return Promise.all(
     sizes.map((size) => {
-      const inset = Math.max(1, Math.round(size * 0.06));
+      const inset = Math.max(1, Math.round(size * 0.03));
       return sharp(trimmed)
         .resize(size - inset * 2, size - inset * 2, {
           fit: "contain",

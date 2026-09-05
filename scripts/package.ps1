@@ -52,10 +52,9 @@ function Resolve-InnoSetupCompiler {
   throw "Inno Setup 6 or 7 is required to build the Windows Setup.exe. Install it with: winget install --id JRSoftware.InnoSetup -e"
 }
 
-function Write-Sha256File {
+function Get-Sha256Hex {
   param(
-    [Parameter(Mandatory = $true)][string]$InputPath,
-    [Parameter(Mandatory = $true)][string]$OutputPath
+    [Parameter(Mandatory = $true)][string]$InputPath
   )
 
   $sha256 = [System.Security.Cryptography.SHA256]::Create()
@@ -67,6 +66,16 @@ function Write-Sha256File {
     $inputStream.Dispose()
     $sha256.Dispose()
   }
+  return $hash
+}
+
+function Write-Sha256File {
+  param(
+    [Parameter(Mandatory = $true)][string]$InputPath,
+    [Parameter(Mandatory = $true)][string]$OutputPath
+  )
+
+  $hash = Get-Sha256Hex -InputPath $InputPath
   $checksumLine = "${hash}  $([System.IO.Path]::GetFileName($InputPath))`n"
   [System.IO.File]::WriteAllText($OutputPath, $checksumLine, [System.Text.UTF8Encoding]::new($false))
 }
@@ -185,7 +194,9 @@ Compress-Archive -Path (Join-Path $stageRoot "*") -DestinationPath $archivePath 
 Write-Sha256File -InputPath $archivePath -OutputPath $checksumPath
 
 $innoSetupCompiler = Resolve-InnoSetupCompiler
-& $innoSetupCompiler "/DAppVersion=${version}" "/DSourceRoot=${stageRoot}" "/DOutputDir=${releaseRoot}" "/DProjectRoot=${projectRoot}" $setupScript
+$launcherIconHash = Get-Sha256Hex -InputPath (Join-Path $builtApp "launcher.ico")
+$launcherIconId = $launcherIconHash.Substring(0, 12)
+& $innoSetupCompiler "/DAppVersion=${version}" "/DLauncherIconId=${launcherIconId}" "/DSourceRoot=${stageRoot}" "/DOutputDir=${releaseRoot}" "/DProjectRoot=${projectRoot}" $setupScript
 if ($LASTEXITCODE -ne 0) {
   throw "The Windows Setup.exe build failed with exit code ${LASTEXITCODE}."
 }

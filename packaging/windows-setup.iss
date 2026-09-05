@@ -4,6 +4,9 @@
 #ifndef SourceRoot
   #error SourceRoot must be provided with /DSourceRoot=path
 #endif
+#ifndef LauncherIconId
+  #error LauncherIconId must be provided with /DLauncherIconId=hash
+#endif
 #ifndef OutputDir
   #error OutputDir must be provided with /DOutputDir=path
 #endif
@@ -33,7 +36,7 @@ OutputDir={#OutputDir}
 OutputBaseFilename=Furigana-for-Spotify-Setup-v{#AppVersion}
 SetupIconFile={#ProjectRoot}\assets\launcher.ico
 WizardSmallImageFile={#ProjectRoot}\assets\logo.png
-UninstallDisplayIcon={app}\launcher-v{#AppVersion}.ico
+UninstallDisplayIcon={app}\launcher-v{#AppVersion}-{#LauncherIconId}.ico
 LicenseFile={#ProjectRoot}\LICENSE
 Compression=lzma2/ultra64
 SolidCompression=yes
@@ -76,7 +79,7 @@ Name: "desktopicon"; Description: "{cm:DesktopIconTask}"; GroupDescription: "{cm
 [Files]
 Source: "{#SourceRoot}\spotify-furigana\*"; DestDir: "{app}\spotify-furigana"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "{#SourceRoot}\spotify-furigana\Furigana for Spotify.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#SourceRoot}\spotify-furigana\launcher.ico"; DestDir: "{app}"; DestName: "launcher-v{#AppVersion}.ico"; Flags: ignoreversion
+Source: "{#SourceRoot}\spotify-furigana\launcher.ico"; DestDir: "{app}"; DestName: "launcher-v{#AppVersion}-{#LauncherIconId}.ico"; Flags: ignoreversion
 Source: "{#SourceRoot}\install.ps1"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourceRoot}\uninstall.ps1"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourceRoot}\INSTALL.md"; DestDir: "{app}"; Flags: ignoreversion
@@ -85,8 +88,8 @@ Source: "{#SourceRoot}\THIRD_PARTY_NOTICES.md"; DestDir: "{app}"; Flags: ignorev
 Source: "{#SourceRoot}\THIRD_PARTY_LICENSES\*"; DestDir: "{app}\THIRD_PARTY_LICENSES"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
-Name: "{group}\Furigana for Spotify"; Filename: "{app}\Furigana for Spotify.exe"; WorkingDir: "{localappdata}\Furigana for Spotify"; IconFilename: "{app}\launcher-v{#AppVersion}.ico"; AppUserModelID: "FuriganaForSpotify.Launcher"
-Name: "{autodesktop}\Furigana for Spotify"; Filename: "{app}\Furigana for Spotify.exe"; WorkingDir: "{localappdata}\Furigana for Spotify"; IconFilename: "{app}\launcher-v{#AppVersion}.ico"; AppUserModelID: "FuriganaForSpotify.Launcher"; Tasks: desktopicon
+Name: "{group}\Furigana for Spotify"; Filename: "{app}\Furigana for Spotify.exe"; WorkingDir: "{localappdata}\Furigana for Spotify"; IconFilename: "{app}\launcher-v{#AppVersion}-{#LauncherIconId}.ico"; AppUserModelID: "FuriganaForSpotify.Launcher"
+Name: "{autodesktop}\Furigana for Spotify"; Filename: "{app}\Furigana for Spotify.exe"; WorkingDir: "{localappdata}\Furigana for Spotify"; IconFilename: "{app}\launcher-v{#AppVersion}-{#LauncherIconId}.ico"; AppUserModelID: "FuriganaForSpotify.Launcher"; Tasks: desktopicon
 
 [InstallDelete]
 Type: files; Name: "{autoprograms}\Furigana for Spotify.lnk"

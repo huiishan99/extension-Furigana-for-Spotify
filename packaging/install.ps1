@@ -51,6 +51,22 @@ function Invoke-Spicetify {
   }
 }
 
+function Get-Sha256Hex {
+  param(
+    [Parameter(Mandatory = $true)][string]$Path
+  )
+
+  $sha256 = [System.Security.Cryptography.SHA256]::Create()
+  $inputStream = [System.IO.File]::OpenRead($Path)
+  try {
+    $hashBytes = $sha256.ComputeHash($inputStream)
+    return -join ($hashBytes | ForEach-Object { $_.ToString("x2") })
+  } finally {
+    $inputStream.Dispose()
+    $sha256.Dispose()
+  }
+}
+
 function New-FuriganaShortcut {
   param(
     [Parameter(Mandatory = $true)][string]$Path,
@@ -140,8 +156,9 @@ function Sync-RegisteredInstaller {
     }
 
     $sourceLauncherIcon = Join-Path $InstallerSourceRoot "spotify-furigana\launcher.ico"
-    $registeredLauncherIcon = Join-Path $registeredInstallRoot "launcher-v${Version}.ico"
     if (Test-Path -LiteralPath $sourceLauncherIcon -PathType Leaf) {
+      $launcherIconId = (Get-Sha256Hex -Path $sourceLauncherIcon).Substring(0, 12)
+      $registeredLauncherIcon = Join-Path $registeredInstallRoot "launcher-v${Version}-${launcherIconId}.ico"
       Copy-Item -LiteralPath $sourceLauncherIcon -Destination $registeredLauncherIcon -Force
       $registeredShortcutPaths = @(
         (Join-Path ([Environment]::GetFolderPath("Programs")) "Furigana for Spotify.lnk"),
@@ -277,7 +294,8 @@ try {
     }
   }
   $installedLauncherIcon = Join-Path $targetApp "launcher.ico"
-  $installedVersionedLauncherIcon = Join-Path $targetApp "launcher-v${sourceVersion}.ico"
+  $launcherIconId = (Get-Sha256Hex -Path $installedLauncherIcon).Substring(0, 12)
+  $installedVersionedLauncherIcon = Join-Path $targetApp "launcher-v${sourceVersion}-${launcherIconId}.ico"
   $installedLauncherScript = Join-Path $targetApp "launcher.ps1"
   $installedLauncherExecutable = Join-Path $targetApp "Furigana for Spotify.exe"
   $installedOverlayScript = Join-Path $targetApp "overlay.ps1"
