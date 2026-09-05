@@ -1,5 +1,10 @@
 # Devlog
 
+## 2026-09-06 — Transparent launcher icon padding
+
+- 完整保留原有「ふ」歌词卡、左侧歌词页、顶部气泡和右下音符，不再重绘 Logo。
+- 修复图标生成器在 `contain` 缩放时用不透明黑色填充上下留白的问题，改用透明背景并重新生成 Windows `.ico` 与 macOS `.icns`，消除桌面小图标上下两条黑杠。
+
 ## 2026-09-02 — Discoverable Windows installer
 
 - 新增中、日、英三语 Inno Setup 安装向导；用户可以选择桌面图标、自动更新和安装后启动，开始菜单入口与 Windows“已安装的应用”登记始终创建。
