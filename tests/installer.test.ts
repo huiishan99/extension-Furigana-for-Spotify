@@ -241,6 +241,9 @@ describe("macOS release installer", () => {
       'cp "$installed_overlay" "$overlay_executable_root/FuriganaForSpotifyOverlay"',
     );
     expect(installer).toContain("LSUIElement");
+    expect(installer.match(/<key>LSArchitecturePriority<\/key>/gu)).toHaveLength(2);
+    expect(installer.match(/<key>LSRequiresNativeExecution<\/key>/gu)).toHaveLength(2);
+    expect(installer).toContain("<string>arm64</string>\n    <string>x86_64</string>");
     expect(installer).toContain("com.github.huiishan99.spotify-furigana.overlay");
     expect(launcher).toContain('exec "$spicetify_executable" auto');
     expect(launcher).toContain('"$overlay_executable" >/dev/null 2>&1 &');

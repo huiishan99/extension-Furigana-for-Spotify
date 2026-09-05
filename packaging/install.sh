@@ -102,6 +102,13 @@ create_launcher() {
   <string>$launcher_version</string>
   <key>LSMinimumSystemVersion</key>
   <string>12.0</string>
+  <key>LSArchitecturePriority</key>
+  <array>
+    <string>arm64</string>
+    <string>x86_64</string>
+  </array>
+  <key>LSRequiresNativeExecution</key>
+  <true/>
   <key>LSUIElement</key>
   <true/>
   <key>NSHighResolutionCapable</key>
@@ -133,6 +140,13 @@ PLIST
   <string>$launcher_version</string>
   <key>LSMinimumSystemVersion</key>
   <string>12.0</string>
+  <key>LSArchitecturePriority</key>
+  <array>
+    <string>arm64</string>
+    <string>x86_64</string>
+  </array>
+  <key>LSRequiresNativeExecution</key>
+  <true/>
   <key>LSUIElement</key>
   <true/>
   <key>NSHighResolutionCapable</key>
