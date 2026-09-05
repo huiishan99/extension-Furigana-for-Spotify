@@ -55,6 +55,7 @@ function New-FuriganaShortcut {
   param(
     [Parameter(Mandatory = $true)][string]$Path,
     [Parameter(Mandatory = $true)][string]$LauncherExecutable,
+    [Parameter(Mandatory = $true)][string]$LauncherIcon,
     [Parameter(Mandatory = $true)][string]$WorkingDirectory
   )
 
@@ -69,9 +70,33 @@ function New-FuriganaShortcut {
     $shortcut.TargetPath = $LauncherExecutable
     $shortcut.Arguments = ""
     $shortcut.WorkingDirectory = $WorkingDirectory
-    $shortcut.IconLocation = "${LauncherExecutable},0"
+    $shortcut.IconLocation = "${LauncherIcon},0"
     $shortcut.Description = "Update, repair, and launch Furigana for Spotify"
     $shortcut.WindowStyle = 7
+    $shortcut.Save()
+  } finally {
+    if ($shortcut) {
+      [void][System.Runtime.InteropServices.Marshal]::FinalReleaseComObject($shortcut)
+    }
+    [void][System.Runtime.InteropServices.Marshal]::FinalReleaseComObject($shell)
+  }
+}
+
+function Set-FuriganaShortcutIcon {
+  param(
+    [Parameter(Mandatory = $true)][string]$Path,
+    [Parameter(Mandatory = $true)][string]$LauncherIcon
+  )
+
+  if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {
+    return
+  }
+
+  $shell = New-Object -ComObject WScript.Shell
+  $shortcut = $null
+  try {
+    $shortcut = $shell.CreateShortcut($Path)
+    $shortcut.IconLocation = "${LauncherIcon},0"
     $shortcut.Save()
   } finally {
     if ($shortcut) {
@@ -111,6 +136,20 @@ function Sync-RegisteredInstaller {
       if ((Test-Path -LiteralPath $sourceScript -PathType Leaf) -and
           -not ([System.IO.Path]::GetFullPath($sourceScript).Equals([System.IO.Path]::GetFullPath($registeredScript), [System.StringComparison]::OrdinalIgnoreCase))) {
         Copy-Item -LiteralPath $sourceScript -Destination $registeredScript -Force
+      }
+    }
+
+    $sourceLauncherIcon = Join-Path $InstallerSourceRoot "spotify-furigana\launcher.ico"
+    $registeredLauncherIcon = Join-Path $registeredInstallRoot "launcher-v${Version}.ico"
+    if (Test-Path -LiteralPath $sourceLauncherIcon -PathType Leaf) {
+      Copy-Item -LiteralPath $sourceLauncherIcon -Destination $registeredLauncherIcon -Force
+      $registeredShortcutPaths = @(
+        (Join-Path ([Environment]::GetFolderPath("Programs")) "Furigana for Spotify.lnk"),
+        (Join-Path ([Environment]::GetFolderPath("Programs")) "Furigana for Spotify\Furigana for Spotify.lnk"),
+        (Join-Path ([Environment]::GetFolderPath("Desktop")) "Furigana for Spotify.lnk")
+      )
+      foreach ($registeredShortcutPath in $registeredShortcutPaths) {
+        Set-FuriganaShortcutIcon -Path $registeredShortcutPath -LauncherIcon $registeredLauncherIcon
       }
     }
     return
@@ -238,6 +277,7 @@ try {
     }
   }
   $installedLauncherIcon = Join-Path $targetApp "launcher.ico"
+  $installedVersionedLauncherIcon = Join-Path $targetApp "launcher-v${sourceVersion}.ico"
   $installedLauncherScript = Join-Path $targetApp "launcher.ps1"
   $installedLauncherExecutable = Join-Path $targetApp "Furigana for Spotify.exe"
   $installedOverlayScript = Join-Path $targetApp "overlay.ps1"
@@ -247,8 +287,9 @@ try {
   if (-not (Test-Path -LiteralPath $installedLauncherExecutable -PathType Leaf)) {
     throw "The installed native launcher is missing: ${installedLauncherExecutable}"
   }
+  Copy-Item -LiteralPath $installedLauncherIcon -Destination $installedVersionedLauncherIcon -Force
   if (-not $SkipShortcut) {
-    New-FuriganaShortcut -Path $shortcutPath -LauncherExecutable $installedLauncherExecutable -WorkingDirectory $launcherStateRoot
+    New-FuriganaShortcut -Path $shortcutPath -LauncherExecutable $installedLauncherExecutable -LauncherIcon $installedVersionedLauncherIcon -WorkingDirectory $launcherStateRoot
   }
   if (-not $NoLaunch) {
     $powerShellExecutable = Join-Path $env:SystemRoot "System32\WindowsPowerShell\v1.0\powershell.exe"

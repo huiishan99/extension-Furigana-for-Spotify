@@ -99,7 +99,12 @@ describe("Windows release installer", () => {
     expect(launcher).toContain("Set-Location -LiteralPath $resolvedStateRoot");
     expect(launcher).toContain("[Environment]::CurrentDirectory = $resolvedStateRoot");
     expect(installer).toContain('$sourceLauncherIcon = Join-Path $sourceApp "launcher.ico"');
-    expect(installer).toContain('$shortcut.IconLocation = "${LauncherExecutable},0"');
+    expect(installer).toContain('$shortcut.IconLocation = "${LauncherIcon},0"');
+    expect(installer).toContain('"launcher-v${Version}.ico"');
+    expect(installer).toContain("Set-FuriganaShortcutIcon");
+    expect(installer).toContain('[Environment]::GetFolderPath("Desktop")');
+    expect(installer).toContain('"Furigana for Spotify\\Furigana for Spotify.lnk"');
+    expect(installer).toContain("$installedVersionedLauncherIcon");
     expect(installer).not.toContain('$shortcut.IconLocation = "${SpotifyExecutable},0"');
     expect(uninstaller).toContain("Furigana for Spotify.lnk");
     expect(uninstaller).toContain("Spotify with Furigana.lnk");
@@ -130,6 +135,9 @@ describe("Windows release installer", () => {
     expect(setup).toContain('Name: "{group}\\Furigana for Spotify"');
     expect(setup).toContain('Name: "{autodesktop}\\Furigana for Spotify"');
     expect(setup).toContain('Filename: "{app}\\Furigana for Spotify.exe"');
+    expect(setup).toContain('DestName: "launcher-v{#AppVersion}.ico"');
+    expect(setup).toContain('IconFilename: "{app}\\launcher-v{#AppVersion}.ico"');
+    expect(setup).toContain("UninstallDisplayIcon={app}\\launcher-v{#AppVersion}.ico");
     expect(setup).toContain('AppUserModelID: "FuriganaForSpotify.Launcher"');
     expect(setup).toContain("WizardSmallImageFile={#ProjectRoot}\\assets\\logo.png");
     expect(setup).toContain("UninstallDisplayName={#AppName}");
