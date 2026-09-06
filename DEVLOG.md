@@ -1,5 +1,10 @@
 # Devlog
 
+## 2026-09-06 — Stable Windows updater CI
+
+- 将自动更新器的离线测试改成由本地测试服务器立即断开连接，不再依赖 Windows runner 对已关闭端口的等待时序。
+- 为包含真实 PowerShell 子进程的离线回退用例设置 20 秒安全上限，避免 GitHub Actions 偶发超过 Vitest 默认 5 秒而误报失败。
+
 ## 2026-09-06 — Transparent launcher icon padding
 
 - 完整保留原有「ふ」歌词卡、左侧歌词页、顶部气泡和右下音符，不再重绘 Logo。

@@ -115,6 +115,10 @@ async function runWindowsUpdateScenario(mode: "valid" | "checksum-failure" | "of
 
   const server = createServer((request, response) => {
     const path = request.url ?? "";
+    if (mode === "offline") {
+      request.socket.destroy();
+      return;
+    }
     if (path === "/latest") {
       response.writeHead(302, { Location: "/releases/tag/v0.5.0" });
       response.end();
@@ -139,7 +143,6 @@ async function runWindowsUpdateScenario(mode: "valid" | "checksum-failure" | "of
     response.end();
   });
 
-  let serverClosed = false;
   try {
     await new Promise<void>((resolveListen) => {
       server.listen(0, "127.0.0.1", resolveListen);
@@ -150,11 +153,6 @@ async function runWindowsUpdateScenario(mode: "valid" | "checksum-failure" | "of
     }
     const releaseApiUrl = `http://127.0.0.1:${address.port}/latest`;
     const downloadBase = `http://127.0.0.1:${address.port}/download`;
-    if (mode === "offline") {
-      await new Promise<void>((resolveClose) => server.close(() => resolveClose()));
-      serverClosed = true;
-    }
-
     const environment: NodeJS.ProcessEnv = {
       ...process.env,
       LOCALAPPDATA: fakeLocalAppData,
@@ -217,9 +215,7 @@ async function runWindowsUpdateScenario(mode: "valid" | "checksum-failure" | "of
       updateLog,
     };
   } finally {
-    if (!serverClosed) {
-      await new Promise<void>((resolveClose) => server.close(() => resolveClose()));
-    }
+    await new Promise<void>((resolveClose) => server.close(() => resolveClose()));
     await rm(testRoot, { recursive: true, force: true });
   }
 }
@@ -295,5 +291,5 @@ describe("release auto-updaters", () => {
     expect(result.spicetifyLog).toContain("auto");
     expect(result.updateLog).toContain("Update check failed");
     expect(result.updateLog).toContain("continuing with the installed version");
-  });
+  }, 20_000);
 });
