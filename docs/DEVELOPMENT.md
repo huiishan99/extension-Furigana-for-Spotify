@@ -14,7 +14,7 @@ Windows launchers shipped through v0.6.2 reject the canonical release URL after 
 
 The Node.js/npm requirements below are for development. Release users need Spotify Desktop and Spicetify installed separately, but do not need Node.js, npm, or a browser extension. The Windows Setup wizard installs Furigana only and does not bootstrap Spotify or Spicetify.
 
-- Node.js 22 or later
+- Node.js 22.12+ or 24 LTS (Node.js 26+ is also supported)
 - npm
 - Windows or macOS and Spicetify for real-client verification
 
