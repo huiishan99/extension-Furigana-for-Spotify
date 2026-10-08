@@ -281,6 +281,10 @@ describe("online synchronized readings", () => {
     expect(result?.providerTrackId).toBe("2135625944");
     expect(request).toHaveBeenCalledTimes(3);
     expect(request.mock.calls[1]?.[0]).toContain("musicbrainz.org");
+    expect(request).toHaveBeenNthCalledWith(2, expect.any(String), {
+      "User-Agent":
+        "FuriganaForSpotify/development (https://github.com/huiishan99/extension-Furigana-for-Spotify)",
+    });
     expect(request.mock.calls[2]?.[0]).toContain("rv=-1");
   });
 

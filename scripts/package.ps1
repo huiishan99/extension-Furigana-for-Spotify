@@ -84,7 +84,7 @@ $projectRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot ".."))
 $packageJsonPath = Join-Path $projectRoot "package.json"
 $packageJson = Get-Content -Raw -LiteralPath $packageJsonPath | ConvertFrom-Json
 $version = [string]$packageJson.version
-if ($version -notmatch '^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$') {
+if ($version -notmatch '\A[0-9]+\.[0-9]+\.[0-9]+\z') {
   throw "Invalid package version: ${version}"
 }
 
@@ -123,6 +123,7 @@ Assert-PathInside -Root $releaseRoot -Candidate $setupPath
 Assert-PathInside -Root $releaseRoot -Candidate $setupChecksumPath
 
 $cSharpCompiler = Resolve-CSharpCompiler
+$innoSetupCompiler = Resolve-InnoSetupCompiler
 $launcherVersionSource = [System.IO.Path]::GetTempFileName()
 try {
   $launcherVersion = "${version}.0"
@@ -194,7 +195,6 @@ foreach ($licenseInput in $thirdPartyLicenseInputs) {
 Compress-Archive -Path (Join-Path $stageRoot "*") -DestinationPath $archivePath -CompressionLevel Optimal
 Write-Sha256File -InputPath $archivePath -OutputPath $checksumPath
 
-$innoSetupCompiler = Resolve-InnoSetupCompiler
 $launcherIconHash = Get-Sha256Hex -InputPath (Join-Path $builtApp "launcher.ico")
 $launcherIconId = $launcherIconHash.Substring(0, 12)
 & $innoSetupCompiler "/DAppVersion=${version}" "/DLauncherIconId=${launcherIconId}" "/DSourceRoot=${stageRoot}" "/DOutputDir=${releaseRoot}" "/DProjectRoot=${projectRoot}" $setupScript
@@ -205,6 +205,8 @@ if (-not (Test-Path -LiteralPath $setupPath -PathType Leaf)) {
   throw "The Windows Setup.exe was not created at ${setupPath}."
 }
 Write-Sha256File -InputPath $setupPath -OutputPath $setupChecksumPath
+
+& (Join-Path $PSScriptRoot "verify-package.ps1")
 
 Write-Host "Created release package: ${archivePath}"
 Write-Host "Created checksum: ${checksumPath}"

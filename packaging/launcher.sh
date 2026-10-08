@@ -5,8 +5,8 @@ set -u
 PATH="/opt/homebrew/bin:/usr/local/bin:$HOME/.spicetify:$PATH"
 export PATH
 
-official_latest_url="https://github.com/huiishan99/spotify-furigana/releases/latest"
-official_download_base="https://github.com/huiishan99/spotify-furigana/releases/download"
+official_latest_url="https://github.com/huiishan99/extension-Furigana-for-Spotify/releases/latest"
+official_download_base="https://github.com/huiishan99/extension-Furigana-for-Spotify/releases/download"
 latest_url=$official_latest_url
 download_base=$official_download_base
 if [ "${SPOTIFY_FURIGANA_TEST_MODE:-0}" = "1" ]; then
@@ -63,6 +63,9 @@ resolve_spicetify() {
 }
 
 valid_version() {
+  case "$1" in
+    ''|*[!0-9.]*) return 1 ;;
+  esac
   printf '%s\n' "$1" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'
 }
 
@@ -115,7 +118,13 @@ perform_update_check() {
     log_update "Update check could not reach GitHub; continuing with the installed version."
     return 1
   }
+  resolved_latest_url=${resolved_latest_url%/}
   tag_name=${resolved_latest_url##*/}
+  if [ "${SPOTIFY_FURIGANA_TEST_MODE:-0}" != "1" ] &&
+    [ "$resolved_latest_url" != "${official_latest_url%/latest}/tag/$tag_name" ]; then
+    log_update "Latest Release redirected outside the expected GitHub repository; continuing with the installed version."
+    return 1
+  fi
   case "$tag_name" in
     v*) latest_version=${tag_name#v} ;;
     *) log_update "Update check received an unsupported release tag."; return 1 ;;

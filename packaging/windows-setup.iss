@@ -16,7 +16,7 @@
 
 #define AppName "Furigana for Spotify"
 #define AppPublisher "Furigana for Spotify contributors"
-#define AppUrl "https://github.com/huiishan99/spotify-furigana"
+#define AppUrl "https://github.com/huiishan99/extension-Furigana-for-Spotify"
 [Setup]
 AppId={{9C85021E-83A3-4899-8E11-EA30A869B4F1}
 AppName={#AppName}

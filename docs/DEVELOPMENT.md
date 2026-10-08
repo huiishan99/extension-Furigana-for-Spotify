@@ -2,7 +2,17 @@
 
 This document contains the implementation and build details intentionally kept out of the user-facing READMEs.
 
+## v0.6.3 release preparation
+
+The canonical repository is [`huiishan99/extension-Furigana-for-Spotify`](https://github.com/huiishan99/extension-Furigana-for-Spotify). Keep `spotify-furigana` as the package name, Custom App identifier, install directory, and release ZIP prefix; the repository rename does not rename those internal identifiers.
+
+The source version is **0.6.3**. Its release candidate includes the Windows Setup wizard, native Windows launcher, native macOS overlay, and canonical-URL updater repair. The [v0.6.3 release page](https://github.com/huiishan99/extension-Furigana-for-Spotify/releases/tag/v0.6.3) is the distribution destination for `spotify-furigana-v0.6.3.zip`, `spotify-furigana-v0.6.3.zip.sha256`, `Furigana-for-Spotify-Setup-v0.6.3.exe`, and `Furigana-for-Spotify-Setup-v0.6.3.exe.sha256`. A tagged source tree or successful build alone does not mean those assets are published. The release body is maintained in [`releases/v0.6.3.md`](./releases/v0.6.3.md).
+
+Windows launchers shipped through v0.6.2 reject the canonical release URL after the old repository URL redirects. They cannot retrieve the update that repairs them. Once the v0.6.3 assets are published, affected users must manually download and completely extract `spotify-furigana-v0.6.3.zip`, then rerun `install.ps1` once. Reinstalling v0.6.2 does not repair the updater, and publishing v0.6.3 alone does not migrate those installations.
+
 ## Requirements
+
+The Node.js/npm requirements below are for development. Release users need Spotify Desktop and Spicetify installed separately, but do not need Node.js, npm, or a browser extension. The Windows Setup wizard installs Furigana only and does not bootstrap Spotify or Spicetify.
 
 - Node.js 22 or later
 - npm
@@ -25,7 +35,7 @@ The custom app and startup extension run separately. They share settings through
 ## Repository layout
 
 ```text
-spotify-furigana/
+extension-Furigana-for-Spotify/
 ├── app/          # Spicetify Custom App page, styles, and manifest
 ├── assets/       # Project logo, screenshots, and launch artwork
 ├── docs/         # User translations, compatibility, and developer docs
@@ -58,6 +68,8 @@ Key entry points:
 
 ## Build and verify
 
+Release packaging runs on Windows and requires the universal macOS helper at `build/macos-overlay/FuriganaForSpotifyOverlay`. Build it on macOS with `npm run build:macos-overlay`, then transfer that output to the Windows packaging workspace. CI performs this handoff automatically. A normal `npm run check` does not require this cross-platform packaging step.
+
 ```powershell
 npm ci
 npm run check
@@ -71,6 +83,14 @@ npm run package
 - `packaging/install.ps1` and `packaging/uninstall.ps1` implement the Windows lifecycle; `packaging/install.sh` and `packaging/uninstall.sh` implement the macOS lifecycle and create a branded app launcher under `~/Applications`.
 - Auto-update launchers check at most once per 24 hours, accept stable `vX.Y.Z` tags only, require exact versioned ZIP/checksum assets, and invoke installers with launch suppression so the original launcher performs one final `spicetify auto`. Test-only source overrides require `SPOTIFY_FURIGANA_TEST_MODE=1` and are never used by installed shortcuts.
 - Release builds pin every GitHub Action to an immutable commit and publish GitHub build-provenance attestations for every release artifact. Dependabot groups weekly npm and Actions maintenance updates, while the scheduled compatibility canary verifies that the canonical Release endpoint still resolves to this repository before running the fixture suite.
+
+For v0.6.3, require the exact release commit to pass the Linux, macOS, and Windows CI matrix, the universal macOS overlay build/self-test, and Windows package verification. The package verifier checks package/lock/staged versions, native Windows launcher and Setup version metadata, complete ZIP contents, required native helpers and notices, and both SHA-256 files. Before announcing the release, verify all four uploaded assets on the versioned release page and retain the one-time Windows recovery instructions in the release body. No new live Spotify-client validation was performed during this release update; earlier results remain in `docs/COMPATIBILITY.md`.
+
+## Publishing a verified release
+
+The `Release` workflow supports the existing stable-tag push trigger and a manual **Run workflow** entry point. For a manual run, select `main`, enter the package version without `v`, and paste the full SHA of the main commit whose CI and packaging checks you have verified. The workflow rejects a changed main SHA, version mismatches, existing tags/releases, and missing reviewed release notes. It builds and verifies the packages before publishing, then checks those preconditions again. Release runs are serialized, existing assets are not overwritten, and the built-in GitHub token prevents the newly created tag from starting a duplicate release run.
+
+The manual trigger does not select or approve a new commit for you. Check the exact main commit's successful CI before starting it. If publication stops after a tag or draft release was created, inspect that state before deciding how to recover; do not bypass the overwrite protection or force-move a tag.
 
 ## Install a source build
 
