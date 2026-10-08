@@ -34,7 +34,10 @@ function Assert-ExecutableVersion {
   )
 
   $metadata = [System.Diagnostics.FileVersionInfo]::GetVersionInfo($Path)
-  if ($metadata.FileVersion -ne "${Version}.0" -or $metadata.ProductVersion -ne $Version) {
+  # Inno Setup pads the version resource strings with spaces.
+  $fileVersion = ([string]$metadata.FileVersion).Trim()
+  $productVersion = ([string]$metadata.ProductVersion).Trim()
+  if ($fileVersion -ne "${Version}.0" -or $productVersion -ne $Version) {
     throw "Executable version does not match ${Version}: ${Path} (file $($metadata.FileVersion), product $($metadata.ProductVersion))."
   }
 }
