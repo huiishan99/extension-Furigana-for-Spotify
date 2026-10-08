@@ -11,7 +11,7 @@
 <p align="center">
   <strong>读懂汉字，跟上歌词，不错过喜欢的那一句。</strong>
   <br />
-  在 Windows 和 macOS 的 Spotify 桌面歌词中显示振假名；Windows 支持透明双行桌面歌词，macOS 悬浮窗目前仅在未发布源码中提供。
+  在 Windows 和 macOS 的 Spotify 桌面歌词中显示振假名；v0.6.3 为两个平台提供透明双行桌面歌词。
   <br />
   默认本地处理 · 无需 Spotify 凭据
 </p>
@@ -37,7 +37,7 @@
 > 如果它让你更轻松地跟上了哪怕一段副歌，欢迎[给项目一个 Star](https://github.com/huiishan99/extension-Furigana-for-Spotify)。这会帮助更多日语学习者发现它。
 
 > [!NOTE]
-> **发布状态（2026-10-08）：**最新已发布版本为 [v0.6.2](https://github.com/huiishan99/extension-Furigana-for-Spotify/releases/tag/v0.6.2)，发布于 2026-09-02，仅提供 `spotify-furigana-v0.6.2.zip` 和 `spotify-furigana-v0.6.2.zip.sha256`。仓库源码版本为 **v0.6.3，尚未发布**；Windows Setup 安装向导、原生 Windows 启动器和原生 macOS 桌面歌词窗口均属于源码中的新功能，不包含在 v0.6.2 中。目前没有已发布的 Setup EXE。
+> **v0.6.3 安装说明：**本文对应 v0.6.3 的 Windows Setup 安装向导、原生 Windows 启动器、原生 macOS 桌面歌词窗口及更新器修复。请在 [v0.6.3 Release](https://github.com/huiishan99/extension-Furigana-for-Spotify/releases/tag/v0.6.3) 附件发布后下载 `spotify-furigana-v0.6.3.zip` 或 `Furigana-for-Spotify-Setup-v0.6.3.exe`，并使用各自对应的 `.sha256` 校验文件。详见[版本说明](./releases/v0.6.3.md)。v0.6.2 及以前的 Windows 安装需要按下文手动更新一次。
 
 ## 让日语歌词真正读得下去
 
@@ -59,12 +59,12 @@
 ## 专心听歌，剩下的交给它
 
 - **直接显示在 Spotify 里**：振假名跟随原生歌词，也兼容已知的全屏歌词布局。
-- **下一句永远提前一步**：Windows 透明悬浮窗（macOS 版目前仅在未发布的 v0.6.3 源码中提供）可拖到任意位置并跨应用置顶；当前句清晰突出，下一句在下方提前准备，轮到它时自然向上滑动。
+- **下一句永远提前一步**：Windows 和 macOS 透明悬浮窗可拖到任意位置并跨应用置顶；当前句清晰突出，下一句在下方提前准备，轮到它时自然向上滑动。
 - **默认本地、无需登录**：内置词典在电脑上完成读音转换，不需要 Spotify 凭据，也不会默认联系歌词服务。
 - **特殊唱法也有机会读对**：可选同步精准读音用于歌曲特有、少见或刻意变化的发音；无法可靠匹配时自动安全回退到本地读音。
 - **常用日语更可靠**：离线纠正 `一人` / `1人` → `ひとり`、`二人` / `2人` → `ふたり`，同时避免误改 `一人称`、`二人三脚` 等词。
 - **按自己的习惯显示**：可选平假名、片假名或罗马字，并调整注音字号、透明度、间距和界面语言。
-- **Spotify 更新后继续听歌**：专属启动器可在受支持的 Spotify 更新后重新应用 Spicetify，再打开 Spotify。v0.6.2 及以前的 Windows 安装需在仓库更名修复版发布后手动重装一次，详见[更新](#更新)。
+- **Spotify 更新后继续听歌**：专属启动器可在受支持的 Spotify 更新后重新应用 Spicetify，再打开 Spotify。v0.6.2 及以前的 Windows 安装需手动更新至 v0.6.3 一次，以恢复版本更新，详见[更新](#更新)。
 
 ## 环境要求
 
@@ -72,7 +72,7 @@
 - Spotify 桌面版：Windows 使用 [spotify.com 桌面版](https://www.spotify.com/download/windows/)或 Microsoft Store 版（二选一）；macOS 使用 [spotify.com 版](https://www.spotify.com/download/mac/)
 - [Spicetify](https://spicetify.app/docs/getting-started)
 
-当前已实机验证：
+此前已实机验证的环境：
 
 | 平台 | 系统 | Spotify | Spicetify |
 | --- | --- | --- | --- |
@@ -81,7 +81,7 @@
 
 其他版本可能也能工作，但尚未逐一验证。
 
-macOS 安装器和生产构建已纳入 macOS CI 自动检查；未发布的 v0.6.3 源码中的 Universal 原生悬浮程序也有对应检查。
+自动检查覆盖 Linux、macOS 和 Windows，包括 Universal 原生 macOS 悬浮程序及 Windows 发布打包。本次发布更新未新增 Spotify 客户端实机验证；上表保留的是此前的实机结果。
 
 更多版本信息请查看[兼容性矩阵](./COMPATIBILITY.md)。
 
@@ -91,11 +91,13 @@ macOS 安装器和生产构建已纳入 macOS CI 自动检查；未发布的 v0.
   <a href="https://github.com/huiishan99/extension-Furigana-for-Spotify/releases/latest"><img alt="下载最新版本" src="https://img.shields.io/badge/下载-最新版本-00A77D?style=for-the-badge&amp;logo=github" /></a>
 </p>
 
-从 [v0.6.2 Release](https://github.com/huiishan99/extension-Furigana-for-Spotify/releases/tag/v0.6.2) 下载并完整解压 `spotify-furigana-v0.6.2.zip`。同一个 ZIP 包含 Windows 和 macOS 安装脚本，请按下方对应平台的说明操作；旁边的 `.sha256` 文件提供校验值。请下载这一发布附件，而不是 GitHub 自动生成的源码 ZIP。
+请在 [v0.6.3 Release](https://github.com/huiishan99/extension-Furigana-for-Spotify/releases/tag/v0.6.3) 附件发布后下载。Windows 可选择 `Furigana-for-Spotify-Setup-v0.6.3.exe`；跨平台的 `spotify-furigana-v0.6.3.zip` 包含 Windows 和 macOS 安装脚本。两个文件都有对应的 `.sha256` 校验文件。请使用这些发布附件，而不是 GitHub 自动生成的源码 ZIP。
+
+**请先安装 Spotify 桌面版和 Spicetify。** Windows Setup EXE 只安装 Furigana，不会代装这两个前置程序。使用发布版无需 Node.js、npm 或浏览器插件。
 
 ### Windows
 
-当前已发布版本使用 ZIP 安装：在解压目录中打开 PowerShell，运行：
+使用脚本安装时，请完整解压 `spotify-furigana-v0.6.3.zip`，在解压目录中打开 PowerShell，运行：
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\install.ps1
@@ -103,7 +105,7 @@ powershell -ExecutionPolicy Bypass -File .\install.ps1
 
 脚本会识别唯一的 Spotify 安装、备份现有 Furigana 版本、安装并启用插件，再应用 Spicetify 配置。它会在开始菜单创建使用项目原创 **「ふ」图标**的 **Furigana for Spotify** 快捷方式。
 
-**适用于未来包含 Setup 的发布版本：**只有在 Release 页面确实提供 `Furigana-for-Spotify-Setup-vX.Y.Z.exe` 时，才下载并按向导安装。未发布的 Setup 支持可选桌面图标、自动更新和安装后启动选项、原生 Windows 启动器、开始菜单入口，以及“**设置 → 应用 → 已安装的应用**”条目；桌面图标默认勾选。这些 Setup 说明不适用于当前 v0.6.2 ZIP。
+**Windows Setup：**请在 v0.6.3 Release 页面列出 `Furigana-for-Spotify-Setup-v0.6.3.exe` 后下载并按向导安装。Setup 提供可选桌面图标、自动更新和安装后启动选项、原生 Windows 启动器、开始菜单入口，以及“**设置 → 应用 → 已安装的应用**”条目；桌面图标默认勾选。
 
 安装完成后，请从开始菜单打开 **Furigana for Spotify**。它会在启动 Spotify 前检查并重新应用 Spicetify，以便在受支持的 Spotify 更新后恢复插件。v0.6.2 启动器的版本更新检查受仓库更名影响，无法通过自动更新修复自身；详见[更新](#更新)。接着播放一首带歌词的日语歌曲并打开歌词页面；第一次转换时，本地词典需要短暂加载。
 
@@ -114,24 +116,24 @@ powershell -ExecutionPolicy Bypass -File .\install.ps1
 
 ### macOS
 
-在 `spotify-furigana-v0.6.2.zip` 的解压目录中打开终端，运行：
+在 `spotify-furigana-v0.6.3.zip` 的解压目录中打开终端，运行：
 
 ```sh
 sh ./install.sh
 ```
 
-安装器支持位于 `/Applications` 或 `~/Applications` 的 Spotify，会检查偏好设置、备份旧版、配置并应用 Spicetify，再在 `~/Applications` 创建带项目 **「ふ」图标**的 **Furigana for Spotify.app**。以后请用这个入口启动，它会检查官方 Furigana Release，并在打开 Spotify 前运行 `spicetify auto`。原生 macOS 桌面歌词及其 **当前句悬浮显示** 功能需要未发布的 v0.6.3 源码，当前 Release ZIP 不包含这些功能。
+安装器支持位于 `/Applications` 或 `~/Applications` 的 Spotify，会检查偏好设置、备份旧版、配置并应用 Spicetify，再在 `~/Applications` 创建带项目 **「ふ」图标**的 **Furigana for Spotify.app**。以后请用这个入口启动，它会检查官方 Furigana Release，并在打开 Spotify 前运行 `spicetify auto`。在 v0.6.3 中，这个入口还会启动原生 macOS 桌面歌词窗口。在侧边栏设置中打开 **当前句悬浮显示**，即可在其他应用上方显示当前句和下一句。
 
 ## 更新
 
 > [!IMPORTANT]
-> **Windows 仓库更名后的恢复方式：**v0.6.2 及以前发布的 Windows 更新器会拒绝 GitHub 重定向后的 `huiishan99/extension-Furigana-for-Spotify` 发布地址。它们仍会打开已安装版本，但无法自动下载修复自身的更新。包含修复的版本发布后，需要手动下载其 Release ZIP、完整解压并重新运行一次 `install.ps1`。截至 2026-10-08，尚未发布修复版；重装 v0.6.2 不能解决此问题。
+> **Windows 仓库更名后的恢复方式：**v0.6.2 及以前发布的 Windows 更新器会拒绝 GitHub 重定向后的 `huiishan99/extension-Furigana-for-Spotify` 发布地址。它们仍会打开已安装版本，但无法自动下载修复自身的更新。请在 [v0.6.3 附件](https://github.com/huiishan99/extension-Furigana-for-Spotify/releases/tag/v0.6.3) 发布后，手动下载 `spotify-furigana-v0.6.3.zip`、完整解压并重新运行一次 `install.ps1`，安装修复后的更新器。重装 v0.6.2 不能解决此问题。
 
 从 `v0.5.0` 开始，**Furigana for Spotify** 启动器提供版本更新检查（Windows 受上述问题影响），每 24 小时最多检查一次 GitHub 官方最新 Release。发现新的稳定版本时，它会下载版本对应的 ZIP 和 `.sha256`、校验安装包、把当前版本保留为带时间戳的备份，然后在打开 Spotify 前完成升级；不会安装常驻后台更新程序。
 
 如果 GitHub 暂时不可用、校验失败或安装失败，启动器只会在本机记录错误，并继续打开当前已安装的版本。更新检查不会发送 Spotify 凭据、账号信息、曲目信息或歌词，只会发出读取和下载本项目公开 GitHub Release 所需的普通 HTTPS 请求。
 
-`v0.4.3` 及更早版本没有更新器，也需要手动安装。手动更新时，下载并解压所选已发布版本的 Release ZIP，然后运行下方命令。Windows 用户需要等待包含仓库更名修复的版本发布，才能通过这次安装恢复自动更新。
+`v0.4.3` 及更早版本没有更新器，也需要手动安装。手动更新时，下载并解压所选已发布版本的 Release ZIP，然后运行下方命令。Windows 用户请使用 v0.6.3 修复仓库更名导致的更新问题。
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\install.ps1
@@ -160,13 +162,13 @@ macOS 使用 `SPOTIFY_FURIGANA_DISABLE_AUTO_UPDATE=1 sh ./install.sh`。以后�
 - 将注音字号调整为 30%–75%；
 - 将透明度调整为 40%–100%；
 - 增加最多 8 px 的上下间距；
-- 在 Windows 桌面悬浮窗中（macOS 需未发布的 v0.6.3 源码）显示当前歌词及其 Furigana，在下方预览下一句，并分别调整两行字号；
+- 在 Windows 和 macOS 桌面悬浮窗中显示当前歌词及其 Furigana，在下方预览下一句，并分别调整两行字号；
 - 一键恢复默认显示。
 - 开启实验性的在线精准读音，并随时清除其本地缓存。
 
 设置会保存在本地并立即生效。
 
-Windows 悬浮窗与未发布的原生 macOS 悬浮窗使用 Spotify 桌面端原本就会读取的行级同步歌词。当前句与下一句只在本机使用，不会保存或上传；通信限制在固定的本机回环端口，只保存悬浮窗的屏幕位置。除非另外开启在线精准读音，否则不会联系额外的歌词服务。
+Windows 悬浮窗与原生 macOS 悬浮窗使用 Spotify 桌面端原本就会读取的行级同步歌词。当前句与下一句只在本机使用，不会保存或上传；通信限制在固定的本机回环端口，只保存悬浮窗的屏幕位置。除非另外开启在线精准读音，否则不会联系额外的歌词服务。
 
 ## 在线精准读音与隐私
 
@@ -176,7 +178,7 @@ Windows 悬浮窗与未发布的原生 macOS 悬浮窗使用 Spotify 桌面端�
 
 ## 卸载
 
-当前已发布的 Windows ZIP 版请运行以下命令卸载：
+Windows ZIP 安装请运行以下命令卸载：
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\uninstall.ps1
@@ -188,7 +190,7 @@ macOS：
 sh ./uninstall.sh
 ```
 
-如果以后安装了提供 Setup 的发布版本，也可以在“**设置 → 应用 → 已安装的应用**”中卸载 **Furigana for Spotify**。
+如果使用 Windows Setup 安装，也可以在“**设置 → 应用 → 已安装的应用**”中卸载 **Furigana for Spotify**。
 
 ## 常见问题
 

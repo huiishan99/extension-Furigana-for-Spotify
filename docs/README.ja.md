@@ -11,7 +11,7 @@
 <p align="center">
   <strong>漢字を読んで、歌詞をつかんで、そのまま音楽の中へ。</strong>
   <br />
-  WindowsとmacOSのSpotifyデスクトップ歌詞にふりがなを追加。Windowsでは透明な2行デスクトップ歌詞も使えます。macOSのオーバーレイは未リリースのソースで利用できます。
+  WindowsとmacOSのSpotifyデスクトップ歌詞にふりがなを追加。v0.6.3では両方のOSで透明な2行デスクトップ歌詞も使えます。
   <br />
   デフォルトはローカル処理 · Spotify認証情報は不要
 </p>
@@ -37,7 +37,7 @@
 > サビの一節でも追いやすくなったら、ぜひ[プロジェクトにStarを付けてください](https://github.com/huiishan99/extension-Furigana-for-Spotify)。ほかの日本語学習者が見つけるきっかけになります。
 
 > [!NOTE]
-> **リリース状況（2026-10-08）：**最新の公開版は2026-09-02リリースの [v0.6.2](https://github.com/huiishan99/extension-Furigana-for-Spotify/releases/tag/v0.6.2) です。配布ファイルは `spotify-furigana-v0.6.2.zip` と `spotify-furigana-v0.6.2.zip.sha256` です。リポジトリのソースは **v0.6.3、未リリース**です。Windows Setupウィザード、ネイティブWindowsランチャー、ネイティブmacOSデスクトップ歌詞はソース側の新機能で、v0.6.2には含まれません。現在、Setup EXEは公開されていません。
+> **v0.6.3の配布について：**このガイドはv0.6.3のWindows Setupウィザード、ネイティブWindowsランチャー、ネイティブmacOSデスクトップ歌詞、更新機能の修正に対応します。[v0.6.3リリースページ](https://github.com/huiishan99/extension-Furigana-for-Spotify/releases/tag/v0.6.3) で公開された `spotify-furigana-v0.6.3.zip` または `Furigana-for-Spotify-Setup-v0.6.3.exe` と、それぞれに対応する `.sha256` を使用してください。[リリースノート](./releases/v0.6.3.md)も参照してください。v0.6.2以前のWindows版は、以下の手順で一度手動更新する必要があります。
 
 ## 日本語の歌詞を、もっと読みやすく
 
@@ -59,12 +59,12 @@
 ## 聴くことを邪魔しない設計
 
 - **Spotifyの中でそのまま読める**：いつもの歌詞にふりがなが付き、既知の全画面レイアウトにも対応します。
-- **次の一行を先に確認**：Windowsの透明オーバーレイ（macOS版は未リリースのv0.6.3ソースで利用可能）は好きな場所へ移動でき、ほかのアプリより前面に表示。現在行を大きく、次行を小さく表示し、順番が来ると自然に上へスライドします。
+- **次の一行を先に確認**：WindowsとmacOSの透明オーバーレイは好きな場所へ移動でき、ほかのアプリより前面に表示。現在行を大きく、次行を小さく表示し、順番が来ると自然に上へスライドします。
 - **デフォルトはローカル、ログイン不要**：内蔵辞書が端末上で読みを変換し、Spotifyの認証情報も追加の歌詞サービスも必要ありません。
 - **曲ならではの読み方にも対応**：任意の同期高精度読みで、珍しい読みや意図的に変えた発音を改善。安全に照合できない場合はローカル読みに戻ります。
 - **日常的な表現をより確実に**：`一人` / `1人` → `ひとり`、`二人` / `2人` → `ふたり` をオフライン補正し、`一人称` や `二人三脚` などは誤って変更しません。
 - **自分に合う表示へ**：ひらがな・カタカナ・ローマ字を選び、読みのサイズ、透明度、間隔、UI言語を調整できます。
-- **Spotify更新後も聴き続ける**：専用ランチャーは対応するSpotify更新後にSpicetifyを再適用してからSpotifyを開きます。v0.6.2以前のWindows版は、リポジトリ名変更への修正版が公開された後、一度手動で再インストールする必要があります。[更新](#更新)を参照してください。
+- **Spotify更新後も聴き続ける**：専用ランチャーは対応するSpotify更新後にSpicetifyを再適用してからSpotifyを開きます。v0.6.2以前のWindows版は、更新機能を復旧するため、一度手動でv0.6.3へ更新する必要があります。[更新](#更新)を参照してください。
 
 ## 必要環境
 
@@ -72,7 +72,7 @@
 - Spotifyデスクトップ版：Windowsでは[spotify.com版](https://www.spotify.com/download/windows/)またはMicrosoft Store版（どちらか一方）、macOSでは[spotify.com版](https://www.spotify.com/download/mac/)
 - [Spicetify](https://spicetify.app/docs/getting-started)
 
-実機で確認済みの構成：
+これまでに実機で確認した構成：
 
 | プラットフォーム | OS | Spotify | Spicetify |
 | --- | --- | --- | --- |
@@ -81,7 +81,7 @@
 
 ほかのバージョンでも動作する可能性はありますが、個別の検証はまだ行っていません。
 
-macOSインストーラーと本番ビルドはmacOS CIで自動検証しています。未リリースのv0.6.3ソースに含まれるUniversalネイティブオーバーレイも検証対象です。
+自動チェックはLinux・macOS・Windowsを対象とし、UniversalネイティブmacOSオーバーレイとWindows配布パッケージも検証します。今回のリリース更新では、新たなSpotifyクライアントの実機検証は行っていません。上の表は以前の実機検証結果です。
 
 詳しいバージョン情報は[互換性マトリクス](./COMPATIBILITY.md)を参照してください。
 
@@ -91,11 +91,13 @@ macOSインストーラーと本番ビルドはmacOS CIで自動検証してい�
   <a href="https://github.com/huiishan99/extension-Furigana-for-Spotify/releases/latest"><img alt="最新リリースをダウンロード" src="https://img.shields.io/badge/Download-最新リリース-00A77D?style=for-the-badge&amp;logo=github" /></a>
 </p>
 
-[v0.6.2 Release](https://github.com/huiishan99/extension-Furigana-for-Spotify/releases/tag/v0.6.2) から `spotify-furigana-v0.6.2.zip` をダウンロードし、完全に展開してください。同じZIPにWindowsとmacOSのインストールスクリプトが含まれています。以下のOS別手順に従ってください。隣の `.sha256` ファイルにはチェックサムが記載されています。GitHubが自動生成するソースコードZIPではなく、この配布ファイルを使用してください。
+[v0.6.3リリースページ](https://github.com/huiishan99/extension-Furigana-for-Spotify/releases/tag/v0.6.3) に配布ファイルが公開されたらダウンロードしてください。Windowsでは `Furigana-for-Spotify-Setup-v0.6.3.exe` を選べます。共通の `spotify-furigana-v0.6.3.zip` にはWindowsとmacOSのインストールスクリプトが含まれます。それぞれに対応する `.sha256` チェックサムファイルがあります。GitHubが自動生成するソースコードZIPではなく、これらの配布ファイルを使用してください。
+
+**先にSpotifyデスクトップ版とSpicetifyをインストールしてください。** Windows Setup EXEがインストールするのはFuriganaであり、これらの前提ソフトは含まれません。配布版の利用にNode.js、npm、ブラウザー拡張機能は不要です。
 
 ### Windows
 
-現在公開されているZIP版では、展開したフォルダーでPowerShellを開き、次を実行します。
+スクリプトでインストールする場合は、`spotify-furigana-v0.6.3.zip` を完全に展開し、そのフォルダーでPowerShellを開いて次を実行します。
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\install.ps1
@@ -103,7 +105,7 @@ powershell -ExecutionPolicy Bypass -File .\install.ps1
 
 スクリプトは一つだけインストールされたSpotifyを検出し、既存のFurigana版をバックアップしてアプリを有効化し、Spicetify設定を適用します。スタートメニューにプロジェクト独自の **「ふ」アイコン**を使う **Furigana for Spotify** ショートカットを作成します。
 
-**今後、Setupを含むリリースが公開された場合：**リリースページに `Furigana-for-Spotify-Setup-vX.Y.Z.exe` が実際に掲載されている場合にのみダウンロードし、ウィザードに従ってください。未リリースのSetupは、デスクトップショートカット、自動更新とインストール後の起動の選択、ネイティブWindowsランチャー、スタートメニュー項目、**設定 → アプリ → インストールされているアプリ** への登録に対応します。デスクトップショートカットは既定で選択されます。このSetupの説明は現在のv0.6.2 ZIPには適用されません。
+**Windows Setup：**v0.6.3リリースページに `Furigana-for-Spotify-Setup-v0.6.3.exe` が掲載されたらダウンロードし、ウィザードに従ってください。Setupは、デスクトップショートカット、自動更新とインストール後の起動の選択、ネイティブWindowsランチャー、スタートメニュー項目、**設定 → アプリ → インストールされているアプリ** への登録に対応します。デスクトップショートカットは既定で選択されます。
 
 インストール後は、スタートメニューから **Furigana for Spotify** を開いてください。Spotifyを開く前にSpicetifyを確認して再適用し、対応済みのSpotify更新後に拡張機能を復旧できます。v0.6.2ランチャーの更新確認はリポジトリ名変更の影響を受けており、自身の修正を自動更新で取り込めません。[更新](#更新)を参照してください。歌詞のある日本語の曲を再生して歌詞画面を開いてください。初回変換時はローカル辞書の読み込みに少し時間がかかります。
 
@@ -114,24 +116,24 @@ Windowsでは、このランチャーが任意のデスクトップ歌詞ウィ�
 
 ### macOS
 
-`spotify-furigana-v0.6.2.zip` を展開したフォルダーでターミナルを開き、次を実行します。
+`spotify-furigana-v0.6.3.zip` を展開したフォルダーでターミナルを開き、次を実行します。
 
 ```sh
 sh ./install.sh
 ```
 
-インストーラーは `/Applications` または `~/Applications` のSpotifyに対応し、設定ファイルを確認して既存版をバックアップし、Spicetifyを設定・適用します。さらに、プロジェクト独自の **「ふ」アイコン**を使った **Furigana for Spotify.app** を `~/Applications` に作成します。今後はこのランチャーを使うと、公式Furigana Releaseを確認し、Spotifyを開く前に `spicetify auto` が実行されます。ネイティブmacOSデスクトップ歌詞と **現在の歌詞をフローティング表示** 機能には、未リリースのv0.6.3ソースが必要です。現在のRelease ZIPには含まれません。
+インストーラーは `/Applications` または `~/Applications` のSpotifyに対応し、設定ファイルを確認して既存版をバックアップし、Spicetifyを設定・適用します。さらに、プロジェクト独自の **「ふ」アイコン**を使った **Furigana for Spotify.app** を `~/Applications` に作成します。今後はこのランチャーを使うと、公式Furigana Releaseを確認し、Spotifyを開く前に `spicetify auto` が実行されます。v0.6.3ではネイティブmacOSデスクトップ歌詞ウィンドウも起動します。サイドバー設定の **現在の歌詞をフローティング表示** をオンにすると、現在行と次行をほかのアプリより前面に表示できます。
 
 ## 更新
 
 > [!IMPORTANT]
-> **Windowsのリポジトリ名変更後の復旧：**v0.6.2以前に配布されたWindows更新機能は、GitHubがリダイレクトした先の `huiishan99/extension-Furigana-for-Spotify` のリリースURLを拒否します。インストール済みの版は引き続き開きますが、自身の修正をダウンロードできません。修正を含むリリースが公開されたら、そのRelease ZIPを手動でダウンロードして完全に展開し、`install.ps1` を一度再実行してください。2026-10-08時点では修正版は未公開です。v0.6.2を再インストールしても、この問題は解消しません。
+> **Windowsのリポジトリ名変更後の復旧：**v0.6.2以前に配布されたWindows更新機能は、GitHubがリダイレクトした先の `huiishan99/extension-Furigana-for-Spotify` のリリースURLを拒否します。インストール済みの版は引き続き開きますが、自身の修正をダウンロードできません。[v0.6.3の配布ファイル](https://github.com/huiishan99/extension-Furigana-for-Spotify/releases/tag/v0.6.3) が公開されたら、`spotify-furigana-v0.6.3.zip` を手動でダウンロードして完全に展開し、`install.ps1` を一度再実行して更新機能を修復してください。v0.6.2を再インストールしても、この問題は解消しません。
 
 `v0.5.0` 以降、**Furigana for Spotify** ランチャーには更新確認機能があり（Windowsは上記の問題の影響を受けます）、24時間に最大1回、GitHubの公式最新Releaseを確認します。新しい安定版がある場合、対応するZIPと `.sha256` をダウンロードして検証し、現在のバージョンをタイムスタンプ付きバックアップとして保存してから、Spotifyを開く前に更新します。常駐型のバックグラウンド更新プログラムはありません。
 
 GitHubに接続できない場合、チェックサムが不正な場合、またはインストールに失敗した場合は、エラーをローカルに記録し、現在インストール済みのバージョンをそのまま開きます。更新確認ではSpotifyの認証情報、アカウント情報、曲情報、歌詞を送信せず、このプロジェクトの公開GitHub Releaseを確認・ダウンロードするための通常のHTTPSリクエストだけを行います。
 
-`v0.4.3` 以前には更新機能がなく、手動インストールが必要です。手動更新では、選んだ公開版のRelease ZIPをダウンロードして展開し、次を実行します。Windowsの自動更新を復旧するには、リポジトリ名変更への修正を含む版の公開を待ってインストールしてください。
+`v0.4.3` 以前には更新機能がなく、手動インストールが必要です。手動更新では、選んだ公開版のRelease ZIPをダウンロードして展開し、次を実行します。Windowsのリポジトリ名変更による更新問題の修復にはv0.6.3を使用してください。
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\install.ps1
@@ -160,13 +162,13 @@ Spotifyのサイドバーから **Furigana for Spotify** を開くと、次の�
 - 読みのサイズを30%〜75%に調整
 - 透明度を40%〜100%に調整
 - 上下の間隔を最大8 px追加
-- Windowsデスクトップ上（macOSは未リリースのv0.6.3ソースが必要）で現在の歌詞とふりがなを表示し、その下に次行をプレビューして、2行のサイズを個別に調整
+- WindowsとmacOSのデスクトップ上で現在の歌詞とふりがなを表示し、その下に次行をプレビューして、2行のサイズを個別に調整
 - ワンクリックで表示設定を初期値に戻す
 - 実験的なオンライン高精度読みを有効化し、ローカルキャッシュを消去
 
 設定はローカルに保存され、すぐに反映されます。
 
-Windowsのフローティングウィンドウと未リリースのネイティブmacOSウィンドウは、Spotifyデスクトップ版が元から取得する行同期歌詞を使用します。現在行と次行は端末内だけで使用し、保存やアップロードは行いません。通信は固定のループバックリスナーに限定され、画面上の位置だけを保存します。オンライン高精度読みを別途有効にしない限り、追加の歌詞サービスには接続しません。
+WindowsのフローティングウィンドウとネイティブmacOSウィンドウは、Spotifyデスクトップ版が元から取得する行同期歌詞を使用します。現在行と次行は端末内だけで使用し、保存やアップロードは行いません。通信は固定のループバックリスナーに限定され、画面上の位置だけを保存します。オンライン高精度読みを別途有効にしない限り、追加の歌詞サービスには接続しません。
 
 ## オンライン高精度読みとプライバシー
 
@@ -176,7 +178,7 @@ Spotifyの認証情報、Cookie、アカウント情報、Spotify画面に表示
 
 ## アンインストール
 
-現在公開されているWindows ZIP版は、次のコマンドでアンインストールします。
+WindowsのZIPインストールは、次のコマンドでアンインストールします。
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\uninstall.ps1
@@ -188,7 +190,7 @@ macOS：
 sh ./uninstall.sh
 ```
 
-今後公開されるSetup版をインストールした場合は、**設定 → アプリ → インストールされているアプリ** から **Furigana for Spotify** を削除することもできます。
+Windows Setup版をインストールした場合は、**設定 → アプリ → インストールされているアプリ** から **Furigana for Spotify** を削除することもできます。
 
 ## トラブルシューティング
 

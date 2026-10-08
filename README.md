@@ -11,7 +11,7 @@
 <p align="center">
   <strong>Read the kanji. Catch the lyric. Stay with the song.</strong>
   <br />
-  Furigana inside Spotify Desktop on Windows and macOS, with a transparent two-line lyric overlay on Windows. The macOS overlay is available in unreleased source.
+  Furigana inside Spotify Desktop on Windows and macOS, with a transparent two-line desktop lyric overlay on both platforms in v0.6.3.
   <br />
   Local by default · No Spotify credentials required
 </p>
@@ -37,7 +37,7 @@
 > If one chorus feels easier to follow, consider [giving the project a star](https://github.com/huiishan99/extension-Furigana-for-Spotify). It helps more Japanese learners find it.
 
 > [!NOTE]
-> **Release status (2026-10-08):** the latest published release is [v0.6.2](https://github.com/huiishan99/extension-Furigana-for-Spotify/releases/tag/v0.6.2), released on 2026-09-02. Its downloadable assets are `spotify-furigana-v0.6.2.zip` and `spotify-furigana-v0.6.2.zip.sha256`. The repository source is **v0.6.3, unreleased**; the Windows Setup wizard, native Windows launcher, and native macOS desktop-lyrics window are source features and are not included in v0.6.2. No Setup EXE is currently published.
+> **v0.6.3 distribution:** this guide covers the Windows Setup wizard, native Windows launcher, native macOS desktop-lyrics window, and updater repair in v0.6.3. Use the assets on the [v0.6.3 release page](https://github.com/huiishan99/extension-Furigana-for-Spotify/releases/tag/v0.6.3) once they are published: `spotify-furigana-v0.6.3.zip`, `Furigana-for-Spotify-Setup-v0.6.3.exe`, and each file’s matching `.sha256`. See the [release notes](./docs/releases/v0.6.3.md). Existing Windows installations through v0.6.2 need the one-time manual update described below.
 
 ## Japanese lyrics, made readable
 
@@ -59,12 +59,12 @@ No separate player and no copying lyrics into another app. Open Spotify's lyrics
 ## Built to stay out of the way
 
 - **Read inside Spotify**: furigana follows the lyrics you already use, including known fullscreen layouts.
-- **Keep the next line in sight**: on Windows (and macOS in unreleased v0.6.3 source), a draggable transparent overlay stays above other apps, with the current line large and the next line ready underneath—then smoothly sliding upward when its turn comes.
+- **Keep the next line in sight**: on Windows and macOS, a draggable transparent overlay stays above other apps, with the current line large and the next line ready underneath—then smoothly sliding upward when its turn comes.
 - **Start private and offline**: the bundled local dictionary handles readings on your computer; no Spotify login or credentials are needed.
 - **Use the intended pronunciation when available**: optional synchronized readings improve song-specific, uncommon, and deliberately altered readings, with a safe local fallback.
 - **Handle everyday Japanese better**: common counters such as `一人` / `1人` → `ひとり` and `二人` / `2人` → `ふたり` are corrected locally without changing words such as `一人称` or `二人三脚`.
 - **Make it comfortable**: choose hiragana, katakana, or romaji and tune reading size, opacity, spacing, and interface language.
-- **Keep listening after supported Spotify updates**: the branded launcher can reapply Spicetify before opening Spotify. Windows installations through v0.6.2 need a one-time manual reinstall after the repository-rename fix is released; see [Update](#update).
+- **Keep listening after supported Spotify updates**: the branded launcher can reapply Spicetify before opening Spotify. Windows installations through v0.6.2 need a one-time manual update to v0.6.3 to restore release updates; see [Update](#update).
 
 ## Requirements
 
@@ -72,7 +72,7 @@ No separate player and no copying lyrics into another app. Open Spotify's lyrics
 - Spotify Desktop: on Windows, use the [spotify.com build](https://www.spotify.com/download/windows/) or Microsoft Store build (install only one); on macOS, use the [spotify.com build](https://www.spotify.com/download/mac/)
 - [Spicetify](https://spicetify.app/docs/getting-started)
 
-Verified on real hardware with:
+Previously verified on real hardware with:
 
 | Platform | OS | Spotify | Spicetify |
 | --- | --- | --- | --- |
@@ -81,7 +81,7 @@ Verified on real hardware with:
 
 Other versions may work, but have not been individually verified.
 
-The macOS installer and production bundle are covered by automated checks on macOS runners. The universal native overlay is also covered in the unreleased v0.6.3 source.
+Automated checks cover Linux, macOS, and Windows, including the universal native macOS overlay and Windows release packaging. No new live Spotify-client validation was performed during this release update; the table above records earlier real-client results.
 
 See the [compatibility matrix](./docs/COMPATIBILITY.md) for more version information.
 
@@ -91,11 +91,13 @@ See the [compatibility matrix](./docs/COMPATIBILITY.md) for more version informa
   <a href="https://github.com/huiishan99/extension-Furigana-for-Spotify/releases/latest"><img alt="Download the latest release" src="https://img.shields.io/badge/Download-latest%20release-00A77D?style=for-the-badge&amp;logo=github" /></a>
 </p>
 
-Download `spotify-furigana-v0.6.2.zip` from the [v0.6.2 release](https://github.com/huiishan99/extension-Furigana-for-Spotify/releases/tag/v0.6.2) and extract it completely. The same ZIP includes Windows and macOS install scripts; use the instructions below. The adjacent `.sha256` asset contains the archive checksum. Use this release asset, rather than GitHub’s automatically generated source-code ZIP.
+For v0.6.3, use the [versioned release page](https://github.com/huiishan99/extension-Furigana-for-Spotify/releases/tag/v0.6.3) once its assets are published. Windows users can choose `Furigana-for-Spotify-Setup-v0.6.3.exe`; the cross-platform `spotify-furigana-v0.6.3.zip` contains Windows and macOS install scripts. Each download has a matching `.sha256` checksum file. Use these release assets, rather than GitHub’s automatically generated source-code ZIP.
+
+**Install Spotify Desktop and Spicetify first.** The Windows Setup EXE installs Furigana; it does not install those prerequisites. Release users do not need Node.js, npm, or a browser extension.
 
 ### Windows
 
-For the currently published ZIP, open PowerShell in the extracted folder and run:
+For script installation, extract `spotify-furigana-v0.6.3.zip` completely, open PowerShell in that folder, and run:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\install.ps1
@@ -103,7 +105,7 @@ powershell -ExecutionPolicy Bypass -File .\install.ps1
 
 The script detects your single Spotify installation, backs up an existing Furigana installation, installs and enables the app, and applies the Spicetify configuration. It creates a **Furigana for Spotify** Start menu shortcut with the project’s original **ふ** icon.
 
-**For a future release that includes Setup:** download `Furigana-for-Spotify-Setup-vX.Y.Z.exe` only when that asset appears on its release page, then follow the wizard. The unreleased Setup supports an optional desktop shortcut, automatic-update and launch choices, a native Windows launcher, a Start menu entry, and **Settings → Apps → Installed apps** registration. The desktop shortcut is selected by default. These Setup instructions do not apply to the current v0.6.2 ZIP.
+**Windows Setup:** download `Furigana-for-Spotify-Setup-v0.6.3.exe` from the v0.6.3 release page when it is listed, then follow the wizard. Setup includes an optional desktop shortcut, automatic-update and launch choices, a native Windows launcher, a Start menu entry, and **Settings → Apps → Installed apps** registration. The desktop shortcut is selected by default.
 
 After installation, open **Furigana for Spotify** from the Start menu. It checks and reapplies Spicetify before opening Spotify, so the extension can recover after supported Spotify updates. The v0.6.2 launcher’s release-update check is affected by the repository rename; it cannot install its own repair. See [Update](#update). Play a Japanese song with lyrics and open the lyrics view; the local dictionary may take a moment to load on the first conversion.
 
@@ -114,24 +116,24 @@ On Windows, the same launcher also starts the optional desktop-lyrics window. Tu
 
 ### macOS
 
-Open Terminal in the folder extracted from `spotify-furigana-v0.6.2.zip` and run:
+Open Terminal in the folder extracted from `spotify-furigana-v0.6.3.zip` and run:
 
 ```sh
 sh ./install.sh
 ```
 
-The installer supports Spotify in `/Applications` or `~/Applications`, validates Spotify's preferences, backs up an existing Furigana installation, configures and applies Spicetify, and creates **Furigana for Spotify.app** in `~/Applications` with the project's **ふ** icon. Open this launcher for future starts so it can check for official Furigana releases and run `spicetify auto` before launching Spotify. The native macOS desktop-lyrics companion and its **Floating current lyric** setting require the unreleased v0.6.3 source; they are not part of the current release ZIP.
+The installer supports Spotify in `/Applications` or `~/Applications`, validates Spotify's preferences, backs up an existing Furigana installation, configures and applies Spicetify, and creates **Furigana for Spotify.app** in `~/Applications` with the project's **ふ** icon. Open this launcher for future starts so it can check for official Furigana releases and run `spicetify auto` before launching Spotify. In v0.6.3, this launcher also starts the native macOS desktop-lyrics companion. Enable **Floating current lyric** in the sidebar settings to show the current and next lines above other apps.
 
 ## Update
 
 > [!IMPORTANT]
-> **Windows repository-rename recovery:** Windows updaters shipped through v0.6.2 reject the release URL after GitHub redirects to `huiishan99/extension-Furigana-for-Spotify`. They keep opening the installed version, but cannot download their own repair. Once a release containing the fix is published, download its release ZIP manually, extract it completely, and rerun `install.ps1` once. As of 2026-10-08, no fixed release is published; reinstalling v0.6.2 does not fix this issue.
+> **Windows repository-rename recovery:** Windows updaters shipped through v0.6.2 reject the release URL after GitHub redirects to `huiishan99/extension-Furigana-for-Spotify`. They keep opening the installed version, but cannot download their own repair. Once the [v0.6.3 assets](https://github.com/huiishan99/extension-Furigana-for-Spotify/releases/tag/v0.6.3) are published, manually download `spotify-furigana-v0.6.3.zip`, extract it completely, and rerun `install.ps1` once. This installs the fixed updater; reinstalling v0.6.2 does not fix the issue.
 
 Starting with `v0.5.0`, the **Furigana for Spotify** launcher includes an update check (subject to the Windows issue above). It checks the official latest GitHub Release at most once every 24 hours. When a newer stable version exists, it downloads the version-matched ZIP and `.sha256` file, verifies the archive, preserves the installed version as a timestamped backup, and upgrades before opening Spotify. There is no resident background updater.
 
 If GitHub is unavailable, the checksum is invalid, or installation fails, the launcher records the error locally and opens the currently installed version. The update check sends no Spotify credentials, account data, track information, or lyrics; it makes only the normal HTTPS requests needed to read and download this project's public GitHub Release.
 
-Users on `v0.4.3` or earlier have no updater and also need a manual installation. For manual updates, download and extract the chosen published Release ZIP, then run the commands below. On Windows, wait for a release containing the rename fix to restore automatic updates.
+Users on `v0.4.3` or earlier have no updater and also need a manual installation. For manual updates, download and extract the chosen published Release ZIP, then run the commands below. Use v0.6.3 for the Windows repository-rename repair.
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\install.ps1
@@ -160,13 +162,13 @@ Open **Furigana for Spotify** from Spotify's sidebar. The settings page lets you
 - adjust reading size from 30% to 75%;
 - adjust opacity from 40% to 100%;
 - add up to 8 px of vertical spacing;
-- on Windows (and macOS in unreleased v0.6.3 source), show the current lyric plus a smaller next-line preview in a draggable, always-on-top desktop overlay, with independent size controls for both lines;
+- on Windows and macOS, show the current lyric plus a smaller next-line preview in a draggable, always-on-top desktop overlay, with independent size controls for both lines;
 - restore the display defaults with one click.
 - enable experimental online accurate readings and clear their local cache.
 
 Changes are saved locally and apply immediately.
 
-The Windows overlay and unreleased native macOS overlay use the same line-synced lyrics that Spotify already provides to its desktop client. The current and next rendered lines stay on your device and are neither saved nor uploaded. Communication is restricted to a fixed loopback listener; only the overlay's screen position is saved. It does not contact an additional lyrics service unless you separately enable accurate online readings.
+The Windows overlay and native macOS overlay use the same line-synced lyrics that Spotify already provides to its desktop client. The current and next rendered lines stay on your device and are neither saved nor uploaded. Communication is restricted to a fixed loopback listener; only the overlay's screen position is saved. It does not contact an additional lyrics service unless you separately enable accurate online readings.
 
 ## Optional accurate readings and privacy
 
@@ -176,7 +178,7 @@ The extension does not send Spotify credentials, cookies, account data, or the l
 
 ## Uninstall
 
-For the currently published Windows ZIP installation, run:
+For a Windows ZIP installation, run:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\uninstall.ps1
@@ -188,7 +190,7 @@ On macOS:
 sh ./uninstall.sh
 ```
 
-If you install a future Setup release, you can instead remove **Furigana for Spotify** from **Settings → Apps → Installed apps**.
+For a Windows Setup installation, you can instead remove **Furigana for Spotify** from **Settings → Apps → Installed apps**.
 
 ## Troubleshooting
 

@@ -4,6 +4,20 @@ on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Stable package version without v (for example 0.6.3)"
+        required: true
+        type: string
+      expected_sha:
+        description: "Full SHA of the tested main commit to release"
+        required: true
+        type: string
+
+concurrency:
+  group: release-${{ github.repository }}
+  cancel-in-progress: false
 
 permissions:
   attestations: write
@@ -11,7 +25,33 @@ permissions:
   id-token: write
 
 jobs:
+  prepare:
+    name: Validate release request
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      tag: ${{ steps.release.outputs.tag }}
+      sha: ${{ steps.release.outputs.sha }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 22
+
+      - name: Validate version, main commit, and release absence
+        id: release
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          RELEASE_VERSION: ${{ inputs.version }}
+          EXPECTED_SHA: ${{ inputs.expected_sha }}
+        run: node scripts/release-preflight.mjs
+
   macos-overlay:
+    needs: prepare
     runs-on: macos-latest
     steps:
       - name: Check out repository
@@ -28,7 +68,7 @@ jobs:
           if-no-files-found: error
 
   release:
-    needs: macos-overlay
+    needs: [prepare, macos-overlay]
     runs-on: windows-latest
     steps:
       - name: Check out repository
@@ -42,14 +82,6 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-
-      - name: Verify tag matches package version
-        shell: pwsh
-        run: |
-          $version = (Get-Content -Raw package.json | ConvertFrom-Json).version
-          if ("v${version}" -ne "${{ github.ref_name }}") {
-            throw "Tag ${{ github.ref_name }} does not match package version v${version}."
-          }
 
       - name: Compile and test
         run: npm run check
@@ -71,11 +103,24 @@ jobs:
             release/*.exe
             release/*.sha256
 
+      # Recheck immediately before publication, including drafts with the write-scoped token.
+      - name: Recheck release target before publishing
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          RELEASE_VERSION: ${{ inputs.version }}
+          EXPECTED_SHA: ${{ inputs.expected_sha }}
+        run: node scripts/release-preflight.mjs
+
+      # GitHub's workflow token creates the tag without triggering a second tag-push run.
       - name: Create GitHub Release
         uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         with:
-          name: Furigana for Spotify ${{ github.ref_name }}
-          generate_release_notes: true
+          name: Furigana for Spotify ${{ needs.prepare.outputs.tag }}
+          tag_name: ${{ needs.prepare.outputs.tag }}
+          target_commitish: ${{ needs.prepare.outputs.sha }}
+          body_path: docs/releases/${{ needs.prepare.outputs.tag }}.md
+          overwrite_files: false
+          generate_release_notes: false
           fail_on_unmatched_files: true
           files: |
             release/*.zip
