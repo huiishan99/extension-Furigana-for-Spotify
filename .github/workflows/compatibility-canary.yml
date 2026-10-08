@@ -4,6 +4,11 @@ on:
   schedule:
     - cron: "17 1 * * 1"
   workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/compatibility-canary.yml"
+      - "packaging/launcher.*"
+      - "tests/updater*"
 
 permissions:
   contents: read
@@ -24,7 +29,7 @@ jobs:
       - name: Verify canonical Release endpoint
         shell: pwsh
         run: |
-          $latestUrl = "https://github.com/huiishan99/spotify-furigana/releases/latest"
+          $latestUrl = "https://github.com/huiishan99/extension-Furigana-for-Spotify/releases/latest"
           $response = Invoke-WebRequest -Uri $latestUrl -Headers @{ "User-Agent" = "FuriganaForSpotify/compatibility-canary" } -TimeoutSec 15 -UseBasicParsing
           $baseResponse = $response.BaseResponse
           if ($baseResponse.PSObject.Properties.Name -contains "ResponseUri") {
@@ -34,7 +39,7 @@ jobs:
           } else {
             throw "Could not resolve the latest GitHub Release URL."
           }
-          if ($resolvedUrl -notmatch '^https://github\.com/huiishan99/spotify-furigana/releases/tag/v\d+\.\d+\.\d+/?$') {
+          if ($resolvedUrl -cnotmatch '\Ahttps://github\.com/huiishan99/extension-Furigana-for-Spotify/releases/tag/v[0-9]+\.[0-9]+\.[0-9]+/?\z') {
             throw "Release endpoint redirected outside the canonical repository: $resolvedUrl"
           }
 

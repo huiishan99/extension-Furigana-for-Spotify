@@ -230,13 +230,15 @@ describe("release auto-updaters", () => {
     ]);
 
     expect(windowsLauncher).toContain(
-      "https://github.com/huiishan99/spotify-furigana/releases/latest",
+      "https://github.com/huiishan99/extension-Furigana-for-Spotify/releases/latest",
     );
     expect(windowsLauncher).toContain("[System.Security.Cryptography.SHA256]::Create()");
     expect(windowsLauncher).toContain("Expand-Archive");
     expect(windowsLauncher).toContain("-NoLaunch");
     expect(windowsLauncher).toContain("continuing with the installed version");
-    expect(macLauncher).toContain("https://github.com/huiishan99/spotify-furigana/releases/latest");
+    expect(macLauncher).toContain(
+      "https://github.com/huiishan99/extension-Furigana-for-Spotify/releases/latest",
+    );
     expect(macLauncher).toContain("shasum -a 256");
     expect(macLauncher).toContain("SPOTIFY_FURIGANA_NO_LAUNCH=1");
     expect(macLauncher).toContain('exec "$spicetify_executable" auto');
@@ -255,41 +257,40 @@ describe("release auto-updaters", () => {
     expect(packageScript).toContain('(Join-Path $builtApp "version.txt")');
   });
 
-  it("installs a checksum-verified newer release and still launches Spotify", async () => {
-    if (process.platform !== "win32") {
-      return;
-    }
+  it.runIf(process.platform === "win32")(
+    "installs a checksum-verified newer release and still launches Spotify",
+    async () => {
+      const result = await runWindowsUpdateScenario("valid");
+      expect(result.installRan).toBe(true);
+      expect(result.spicetifyLog).toContain("auto");
+      expect(result.spicetifyWorkingDirectory.toLowerCase()).toBe(
+        result.launcherStateRoot.toLowerCase(),
+      );
+      expect(result.updateLog).toContain("Updated automatically from 0.4.0 to 0.5.0.");
+    },
+    20_000,
+  );
 
-    const result = await runWindowsUpdateScenario("valid");
-    expect(result.installRan).toBe(true);
-    expect(result.spicetifyLog).toContain("auto");
-    expect(result.spicetifyWorkingDirectory.toLowerCase()).toBe(
-      result.launcherStateRoot.toLowerCase(),
-    );
-    expect(result.updateLog).toContain("Updated automatically from 0.4.0 to 0.5.0.");
-  }, 20_000);
+  it.runIf(process.platform === "win32")(
+    "rejects a bad checksum but still launches the installed version",
+    async () => {
+      const result = await runWindowsUpdateScenario("checksum-failure");
+      expect(result.installRan).toBe(false);
+      expect(result.spicetifyLog).toContain("auto");
+      expect(result.updateLog).toContain("SHA-256 did not match");
+      expect(result.updateLog).toContain("continuing with the installed version");
+    },
+  );
 
-  it("rejects a bad checksum but still launches the installed version", async () => {
-    if (process.platform !== "win32") {
-      return;
-    }
-
-    const result = await runWindowsUpdateScenario("checksum-failure");
-    expect(result.installRan).toBe(false);
-    expect(result.spicetifyLog).toContain("auto");
-    expect(result.updateLog).toContain("SHA-256 did not match");
-    expect(result.updateLog).toContain("continuing with the installed version");
-  });
-
-  it("continues launching when the release service is offline", async () => {
-    if (process.platform !== "win32") {
-      return;
-    }
-
-    const result = await runWindowsUpdateScenario("offline");
-    expect(result.installRan).toBe(false);
-    expect(result.spicetifyLog).toContain("auto");
-    expect(result.updateLog).toContain("Update check failed");
-    expect(result.updateLog).toContain("continuing with the installed version");
-  }, 20_000);
+  it.runIf(process.platform === "win32")(
+    "continues launching when the release service is offline",
+    async () => {
+      const result = await runWindowsUpdateScenario("offline");
+      expect(result.installRan).toBe(false);
+      expect(result.spicetifyLog).toContain("auto");
+      expect(result.updateLog).toContain("Update check failed");
+      expect(result.updateLog).toContain("continuing with the installed version");
+    },
+    20_000,
+  );
 });

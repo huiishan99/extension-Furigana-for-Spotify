@@ -2,6 +2,14 @@
 
 This document contains the implementation and build details intentionally kept out of the user-facing READMEs.
 
+## Source and release status
+
+As of 2026-10-08, the canonical repository is [`huiishan99/extension-Furigana-for-Spotify`](https://github.com/huiishan99/extension-Furigana-for-Spotify). Keep `spotify-furigana` as the package name, Custom App identifier, install directory, and release ZIP prefix; the repository rename does not rename those internal identifiers.
+
+The latest published release is [v0.6.2](https://github.com/huiishan99/extension-Furigana-for-Spotify/releases/tag/v0.6.2), dated 2026-09-02, with only `spotify-furigana-v0.6.2.zip` and `spotify-furigana-v0.6.2.zip.sha256` as release assets. `package.json` and `package-lock.json` identify the current source as **0.6.3, unreleased**. The Windows Setup wizard, native Windows launcher, native macOS overlay, and updater rename repair described below are source-build features; no v0.6.3 or fixed updater release is published yet.
+
+Windows launchers shipped through v0.6.2 reject the canonical release URL after the old repository URL redirects. They cannot retrieve the update that repairs them. When a fixed release is published, affected users must manually extract its release ZIP and rerun `install.ps1` once; reinstalling v0.6.2 does not repair the updater. Publishing a fixed release alone does not migrate those installations.
+
 ## Requirements
 
 - Node.js 22 or later
@@ -25,7 +33,7 @@ The custom app and startup extension run separately. They share settings through
 ## Repository layout
 
 ```text
-spotify-furigana/
+extension-Furigana-for-Spotify/
 ├── app/          # Spicetify Custom App page, styles, and manifest
 ├── assets/       # Project logo, screenshots, and launch artwork
 ├── docs/         # User translations, compatibility, and developer docs
@@ -67,10 +75,12 @@ npm run package
 
 - `npm run check` runs Biome formatting/lint checks, TypeScript checks, Vitest with a regression coverage floor, app syntax validation, native overlay-core tests when PowerShell is available, and the production build.
 - `npm run marketing-assets` deterministically rebuilds launch artwork from the project logo and real screenshot.
-- `npm run package` uses the .NET Framework C# compiler and Inno Setup 6/7 to create the Windows Setup.exe plus the portable ZIP, with SHA-256 files for both, under the ignored `release/` directory.
+- In the unreleased source, `npm run package` uses the .NET Framework C# compiler and Inno Setup 6/7 to create the Windows Setup.exe plus the portable ZIP, with SHA-256 files for both, under the ignored `release/` directory.
 - `packaging/install.ps1` and `packaging/uninstall.ps1` implement the Windows lifecycle; `packaging/install.sh` and `packaging/uninstall.sh` implement the macOS lifecycle and create a branded app launcher under `~/Applications`.
 - Auto-update launchers check at most once per 24 hours, accept stable `vX.Y.Z` tags only, require exact versioned ZIP/checksum assets, and invoke installers with launch suppression so the original launcher performs one final `spicetify auto`. Test-only source overrides require `SPOTIFY_FURIGANA_TEST_MODE=1` and are never used by installed shortcuts.
 - Release builds pin every GitHub Action to an immutable commit and publish GitHub build-provenance attestations for every release artifact. Dependabot groups weekly npm and Actions maintenance updates, while the scheduled compatibility canary verifies that the canonical Release endpoint still resolves to this repository before running the fixture suite.
+
+Before publishing the next release, verify the actual uploaded ZIP, checksum, and optional Setup assets, update the release-status notes in all three READMEs and `packaging/INSTALL.md`, and include the one-time manual Windows updater-recovery instructions in the release notes. Do not describe a source version or a successful build as a published release.
 
 ## Install a source build
 

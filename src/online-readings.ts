@@ -6,6 +6,10 @@ export const ONLINE_STATUS_KEY = "spotify-furigana:online-status";
 export const ONLINE_STATUS_EVENT = "spotify-furigana:online-status-change";
 export const ONLINE_CACHE_CLEAR_EVENT = "spotify-furigana:online-cache-clear";
 
+declare const __SPOTIFY_FURIGANA_VERSION__: string;
+const APP_VERSION =
+  typeof __SPOTIFY_FURIGANA_VERSION__ === "string" ? __SPOTIFY_FURIGANA_VERSION__ : "development";
+
 const SEARCH_ENDPOINT = "https://music-api.gdstudio.xyz/api.php";
 const NETEASE_LYRIC_ENDPOINT = "https://music.163.com/api/song/lyric";
 const MUSICBRAINZ_ARTIST_ENDPOINT = "https://musicbrainz.org/ws/2/artist/";
@@ -270,7 +274,7 @@ async function fetchVerifiedArtistAliases(artist: string, request: JsonRequest):
 
   const url = `${MUSICBRAINZ_ARTIST_ENDPOINT}?query=${encodeURIComponent(artist)}&fmt=json&limit=5`;
   const response = await request(url, {
-    "User-Agent": "FuriganaForSpotify/0.6.2 (https://github.com/huiishan99/spotify-furigana)",
+    "User-Agent": `FuriganaForSpotify/${APP_VERSION} (https://github.com/huiishan99/extension-Furigana-for-Spotify)`,
   });
   const aliases = getVerifiedArtistAliases(response, artist);
   if (aliases.length > 0) {

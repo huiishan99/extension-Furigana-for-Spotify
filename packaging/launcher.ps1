@@ -2,15 +2,15 @@
 param(
   [switch]$SkipUpdateCheck,
   [ValidateRange(0, 720)][int]$UpdateIntervalHours = 24,
-  [string]$ReleaseLatestUrl = "https://github.com/huiishan99/spotify-furigana/releases/latest",
-  [string]$ReleaseDownloadBaseUrl = "https://github.com/huiishan99/spotify-furigana/releases/download"
+  [string]$ReleaseLatestUrl = "https://github.com/huiishan99/extension-Furigana-for-Spotify/releases/latest",
+  [string]$ReleaseDownloadBaseUrl = "https://github.com/huiishan99/extension-Furigana-for-Spotify/releases/download"
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
-$officialReleaseLatestUrl = "https://github.com/huiishan99/spotify-furigana/releases/latest"
-$officialDownloadBaseUrl = "https://github.com/huiishan99/spotify-furigana/releases/download"
+$officialReleaseLatestUrl = "https://github.com/huiishan99/extension-Furigana-for-Spotify/releases/latest"
+$officialDownloadBaseUrl = "https://github.com/huiishan99/extension-Furigana-for-Spotify/releases/download"
 $testMode = $env:SPOTIFY_FURIGANA_TEST_MODE -eq "1"
 if (-not $testMode -and (
   $ReleaseLatestUrl -ne $officialReleaseLatestUrl -or
@@ -115,13 +115,14 @@ function Invoke-FuriganaUpdate {
   } else {
     throw "Could not resolve the latest GitHub Release URL."
   }
-  $tagName = $resolvedLatestUrl.TrimEnd('/').Split('/')[-1]
-  if ($tagName -notmatch '^v(?<version>\d+\.\d+\.\d+)$') {
+  $resolvedLatestUrl = $resolvedLatestUrl -creplace '/\z', ''
+  $tagName = $resolvedLatestUrl.Split('/')[-1]
+  if ($tagName -cnotmatch '\Av(?<version>[0-9]+\.[0-9]+\.[0-9]+)\z') {
     throw "Latest GitHub Release has an unsupported tag: ${tagName}"
   }
   if (-not $testMode) {
-    $expectedTagUrl = "https://github.com/huiishan99/spotify-furigana/releases/tag/${tagName}"
-    if (-not [string]::Equals($resolvedLatestUrl.TrimEnd('/'), $expectedTagUrl, [StringComparison]::Ordinal)) {
+    $expectedTagUrl = "https://github.com/huiishan99/extension-Furigana-for-Spotify/releases/tag/${tagName}"
+    if (-not [string]::Equals($resolvedLatestUrl, $expectedTagUrl, [StringComparison]::Ordinal)) {
       throw "Latest Release redirected outside the expected GitHub repository."
     }
   }

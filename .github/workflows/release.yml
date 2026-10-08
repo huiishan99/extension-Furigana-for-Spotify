@@ -60,7 +60,7 @@ jobs:
           name: macos-overlay
           path: build/macos-overlay
 
-      - name: Build release package
+      - name: Build and verify release packages
         run: npm run package
 
       - name: Attest release package provenance

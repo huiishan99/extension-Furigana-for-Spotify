@@ -38,3 +38,38 @@ jobs:
           npm run build:macos-overlay
           npm run build
           test -x dist/spotify-furigana/FuriganaForSpotifyOverlay
+
+      - name: Upload macOS helper for packaging checks
+        if: runner.os == 'macOS'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ci-macos-overlay
+          path: build/macos-overlay/FuriganaForSpotifyOverlay
+          if-no-files-found: error
+          retention-days: 1
+
+  package:
+    name: Verify release packaging
+    needs: check
+    runs-on: windows-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download tested macOS helper
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: ci-macos-overlay
+          path: build/macos-overlay
+
+      - name: Build and verify packages without publishing
+        run: npm run package
