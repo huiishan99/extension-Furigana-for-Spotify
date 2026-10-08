@@ -12,6 +12,21 @@ function Assert-NonemptyFile {
   }
 }
 
+# Avoid depending on PowerShell module autoloading when npm starts Windows
+# PowerShell from a PowerShell 7 CI shell with an inherited PSModulePath.
+function Get-PackageFileSha256 {
+  param([Parameter(Mandatory = $true)][string]$Path)
+
+  $stream = [System.IO.File]::OpenRead($Path)
+  $sha256 = [System.Security.Cryptography.SHA256]::Create()
+  try {
+    return [BitConverter]::ToString($sha256.ComputeHash($stream)).Replace('-', '')
+  } finally {
+    $stream.Dispose()
+    $sha256.Dispose()
+  }
+}
+
 function Assert-ExecutableVersion {
   param(
     [Parameter(Mandatory = $true)][string]$Path,
@@ -51,7 +66,7 @@ foreach ($artifact in @($archivePath, $setupPath)) {
     throw "Release checksum has an invalid filename or format: ${checksumPath}"
   }
   $expectedHash = $Matches.hash
-  if ((Get-FileHash -LiteralPath $artifact -Algorithm SHA256).Hash -ne $expectedHash) {
+  if ((Get-PackageFileSha256 -Path $artifact) -ne $expectedHash) {
     throw "Release checksum does not match: ${artifact}"
   }
 }
@@ -110,7 +125,7 @@ try {
       $stream.Dispose()
       $sha256.Dispose()
     }
-    if ($archiveHash -ne (Get-FileHash -LiteralPath $expectedFiles[$entryPath] -Algorithm SHA256).Hash) {
+    if ($archiveHash -ne (Get-PackageFileSha256 -Path $expectedFiles[$entryPath])) {
       throw "Release archive differs from the staged input: ${entryPath}"
     }
   }
