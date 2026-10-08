@@ -82,12 +82,12 @@ Assert-ExecutableVersion -Path $setupPath -Version $version
 # Compare the complete archive with the staged inputs without extracting or running it.
 # This also rejects unexpected roots, duplicate paths, and traversal entries.
 Add-Type -AssemblyName System.IO.Compression.FileSystem
-$expectedFiles = @{}
+$expectedFiles = [System.Collections.Generic.Dictionary[string,string]]::new([StringComparer]::Ordinal)
 foreach ($file in Get-ChildItem -LiteralPath $stageRoot -File -Recurse) {
   $relativePath = $file.FullName.Substring($stageRoot.Length + 1).Replace('\', '/')
   $expectedFiles[$relativePath] = $file.FullName
 }
-$seenFiles = @{}
+$seenFiles = [System.Collections.Generic.Dictionary[string,bool]]::new([StringComparer]::OrdinalIgnoreCase)
 $archive = [System.IO.Compression.ZipFile]::OpenRead($archivePath)
 try {
   foreach ($entry in $archive.Entries) {

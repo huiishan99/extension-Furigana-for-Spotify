@@ -108,9 +108,9 @@ function Invoke-FuriganaUpdate {
   $headers = @{ "User-Agent" = "FuriganaForSpotify/${CurrentVersionText}" }
   $latestResponse = Invoke-WebRequest -Uri $ReleaseLatestUrl -Headers $headers -TimeoutSec 15 -UseBasicParsing
   $baseResponse = $latestResponse.BaseResponse
-  if ($baseResponse.PSObject.Properties.Name -contains "ResponseUri") {
+  if ($baseResponse.PSObject.Properties["ResponseUri"]) {
     $resolvedLatestUrl = [string]$baseResponse.ResponseUri.AbsoluteUri
-  } elseif ($baseResponse.PSObject.Properties.Name -contains "RequestMessage") {
+  } elseif ($baseResponse.PSObject.Properties["RequestMessage"]) {
     $resolvedLatestUrl = [string]$baseResponse.RequestMessage.RequestUri.AbsoluteUri
   } else {
     throw "Could not resolve the latest GitHub Release URL."
